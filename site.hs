@@ -3,7 +3,6 @@
 import           Data.Monoid (mappend)
 import           Hakyll
 
-
 --------------------------------------------------------------------------------
 main :: IO ()
 main = hakyll $ do
@@ -15,18 +14,18 @@ main = hakyll $ do
         route   idRoute
         compile compressCssCompiler
 
-    match (fromList ["about.rst", "contact.markdown"]) $ do
+    match (fromList ["instr.markdown", "contact.markdown"]) $ do
         route   $ setExtension "html"
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
---
---    match "tutorials/*" $ do
---        route $ setExtension "html"
---        compile $ pandocCompiler
---            >>= loadAndApplyTemplate "templates/post.html"    defaultContext
---            >>= loadAndApplyTemplate "templates/default.html" defaultContext
---            >>= relativizeUrls
+
+    match "tutorials/*" $ do
+        route $ setExtension "html"
+        compile $ pandocCompiler
+            >>= loadAndApplyTemplate "templates/post.html"    defaultContext
+            >>= loadAndApplyTemplate "templates/default.html" defaultContext
+            >>= relativizeUrls
 --
 --    create ["archive.html"] $ do
 --        route idRoute
@@ -45,7 +44,7 @@ main = hakyll $ do
     match "index.html" $ do
         route idRoute
         compile $ do
-            tutorials <- recentFirst =<< loadAll "tutorials/*"
+            tutorials <- loadAll "tutorials/*"
             let indexCtx =
                     listField "tutorials" defaultContext (return tutorials) `mappend`
                     constField "title" "Home"                               `mappend`

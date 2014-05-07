@@ -1,59 +1,25 @@
 ---
-title: S.P.Q.R.
+title: Урок 01 - Создание окна
 ---
+<a href="http://ogldev.atspace.co.uk/www/tutorial01/tutorial01.html" ><h2>Теоретическое введение</h2></a>
+<p>OpenGL не имеет собственного API для создания и управления окном. Современные оконные системы, которые поддерживают OpenGL, включают подсистему, обеспечивающую связь между контентом OpenGL и оконной системой. В системе X Window этот интерфейс называется GLX. Компания Microsoft предлагает WGL (произносится как Wiggle) для Windows и MacOS имеет CGL. Работа непосредственно с этими интерфейсами для создания окна, в котором будет отображаться графика, достаточна сложна, поэтому мы будем использовать высокоуровневые библиотеки дабы не ввязывать в детали. Мы будем использовать библиотеку, называемую 'OpenGL utility library', или сокращенно GLUT. Она предоставляет простейший API для управления оконной системой, а так же обработка событий, контроль ввода/вывода и ещё несколько других возможностей. К тому же GLUT кросс-платформенный, что значительно упрощает перенос под разные ОС. Хорошими альтернативами GLUT'y являются SDL и GLFW.</p>
 
-Mauris in lorem nisl. Maecenas tempus facilisis ante, eget viverra nisl
-tincidunt et. Donec turpis lectus, mattis ac malesuada a, accumsan eu libero.
-Morbi condimentum, tortor et tincidunt ullamcorper, sem quam pretium nulla, id
-convallis lectus libero nec turpis. Proin dapibus nisi id est sodales nec
-ultrices tortor pellentesque. Vivamus vel nisi ac lacus sollicitudin vulputate
-ac ut ligula. Nullam feugiat risus eget eros gravida in molestie sapien euismod.
-Nunc sed hendrerit orci. Nulla mollis consequat lorem ac blandit. Ut et turpis
-mauris. Nulla est odio, posuere id ullamcorper sit amet, tincidunt vel justo.
-Curabitur placerat tincidunt varius. Nulla vulputate, ipsum eu consectetur
-mollis, dui nibh aliquam neque, at ultricies leo ligula et arcu. Proin et mi
-eget tellus sodales lobortis. Sed tempor, urna vel pulvinar faucibus, lectus
-urna vehicula ante, at facilisis dolor odio at lorem. Morbi vehicula euismod
-urna, et imperdiet urna ornare vitae.
-
-Sed tincidunt sollicitudin ultrices. In hac habitasse platea dictumst. Morbi
-ligula lectus, egestas at ultricies nec, fringilla et tellus. Duis urna lorem,
-bibendum a ornare sed, euismod sed nunc. Aliquam tempor massa at velit fringilla
-fringilla. Praesent sit amet tempor felis. Maecenas id felis ac velit aliquam
-tempor a sit amet orci. Nunc placerat nulla pellentesque sem commodo cursus.
-Praesent quis sapien orci, quis ultricies augue. Nam vestibulum sem non augue
-semper tincidunt pellentesque ipsum volutpat. Duis congue, nunc a aliquam
-luctus, quam ante convallis nisi, ac pellentesque lacus orci vel turpis. Cum
-sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus
-mus. Suspendisse hendrerit nisl eu felis sagittis faucibus. Nunc eu congue
-lorem. Quisque non nibh nisi, et ultrices massa. Sed vitae erat vitae nulla
-pellentesque fermentum.
-
-Ut diam nunc, consectetur ut ultrices eu, iaculis sed felis. Sed lacinia, odio
-et accumsan luctus, arcu ipsum accumsan erat, sit amet malesuada libero lacus et
-velit. Donec accumsan tristique tristique. Proin a metus magna, vitae mattis
-nisl. Integer a libero ipsum. Mauris faucibus eleifend metus id sodales. Morbi
-ornare, nibh nec facilisis imperdiet, turpis sem commodo lorem, id commodo
-mauris metus vitae justo. Etiam at pellentesque tortor. Proin mollis accumsan
-ligula, nec tempus augue auctor quis. Nulla lacinia, mi quis lobortis auctor,
-nisi diam posuere dui, pulvinar feugiat dui libero eget quam. Fusce eu risus
-nunc, a consectetur orci. Class aptent taciti sociosqu ad litora torquent per
-conubia nostra, per inceptos himenaeos. Maecenas venenatis aliquet orci, a
-ultricies sem facilisis eu. Donec dolor purus, porta condimentum convallis nec,
-dignissim nec libero.
-
-Etiam rutrum ultricies dui, et interdum metus elementum et. Nulla sapien nunc,
-interdum tristique porttitor in, laoreet vitae mi. Ut vehicula auctor mauris sit
-amet bibendum. Phasellus adipiscing mattis libero, eget adipiscing erat
-dignissim at. Vivamus convallis malesuada metus nec cursus. Ut cursus, lorem
-eleifend sollicitudin condimentum, felis tortor sodales augue, ac tempus lacus
-ipsum vitae quam. Vestibulum vitae lacus non tortor vehicula iaculis faucibus
-quis massa.
-
-Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus
-mus. Duis malesuada neque nec ante porttitor accumsan. Suspendisse potenti.
-Aliquam in lacus magna, imperdiet laoreet lectus. Praesent id diam nec ante
-commodo rhoncus nec vel augue. Pellentesque tortor massa, dignissim ut sagittis
-sed, hendrerit vitae nunc. Nam gravida, urna vitae hendrerit rutrum, felis augue
-vulputate tortor, ut varius velit libero nec lectus. In adipiscing massa in est
-scelerisque ullamcorper. Vivamus in nisi metus.
+<a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial01"><h2>Прямиком к коду!</h2></a>
+<pre><code>glutInit(&amp;argc, argv);</code></pre>
+<p>Здесь мы инициализируем GLUT. Параметры могут быть переданы прямо из командной строки и включают полезные опции, например '-sync' включает синхронизацию у X, а  и '-gldebug' автоматически проверяет на ошибки и выводит их.</p>
+<pre><code>glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);</code></pre>
+<p>Так настраиваются некоторые опции GLUT. GLUT_DOUBLE включает двойную буферизацию (отрисовка будет происходить в фоновый буфер, в то время как другой буфер отображается) и буфер цвета, непрерывно используемого для конечной цели рендеринга (т.е. на экране). Мы будем использовать как эти 2 опции, так и другие, с которыми познакомимся позже.</p>
+<pre><code>glutInitWindowSize(1024, 768);
+glutInitWindowPosition(100, 100);
+glutCreateWindow("Tutorial 01");</code></pre>
+<p>Эти функции задают параметры окна и создают его. Так же мы даем ему заголовок.</p>
+<pre><code>glutDisplayFunc(RenderSceneCB);</code></pre>
+<p>Так как мы начали работать в оконной системе, большая часть действий с запущенной программой происходит через функции обратного вызова. GLUT берёт на себя взаимодействие с оконной системой и предоставляет нам несколько вариантов обратного вызова. Пока что мы используем только один, самый главный, который отрисовывает 1 кадр. Эта функция регулярно вызывается GLUT'ом.</p>
+<pre><code>glClearColor(0.0f, 0.0f, 0.0f, 0.0f);</code></pre>
+<p>Это наша первая встреча с понятием состояние OpenGL. Идея состояний в том, что они слишком сложны для того, что бы рассматриваться как вызов функции, принимающей несколько параметров (к тому же, правильно спроектированная функция не должна принимать много параметров). Вы должны указать шейдеры, буферы и прочие параметры, влияющие на рендеринг. В дополнение, вы будете часто хотеть сохранить некоторые эффекты в разных частях рендеринга (например, если вы никогда не будете выключать проверку глубины(depth test), то нет никакого смысла в включении её для каждого вызова рендера). Вот почему большинство конфигураций задаётся назначением флагов и переменных состояния OpenGL и рендеринг вызывается с ограниченным количеством параметров, проходит через вершины для отрисовки и их смещение. После вызова функции, изменяющей состояния, эта конкретная конфигурация остаётся не изменой до следующего вызова этой же функции с другим значением. Вызов выше устанавливает цвет, который будет использован во время очистки
+буфера кадра (объяснения будут позже). Цвет имеет 4 канала (красный, зелёный, синий, альфа-канал) и принимает значения от 0.0 и до 1.0.</p>
+<pre><code>glutMainLoop();</code></pre>
+<p>Этот вызов передаёт контроль GLUT'у, который теперь начнёт свой собственный цикл. В этом цикле он ждёт событий от оконной системы и передаёт их через функции обратного вызова, которые мы задали ранее. В нашем случае GLUT будет вызывать только функцию отображения на экран (RenderSceneCB), что бы дать ей возможность нарисовать кадр.</p>
+<pre><code>glClear(GL_COLOR_BUFFER_BIT);
+glutSwapBuffers();<br></code></pre>
+<p>Всё что мы делаем в нашей функции рендера - это очистка буфера кадра (используя цвет, заданный выше, попробуйте изменить его). Вторая функция просит GLUT поменять фоновый буфер и буфер кадра местами. В следующем вызове рендер будет происходить в текущий буфер кадра, а фоновый буфер будет отображается.</p>
