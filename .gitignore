@@ -1,0 +1,6 @@
+site
+_cache
+_site
+public_html
+*.o
+*.hi
