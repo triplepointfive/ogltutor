@@ -1,18 +1,18 @@
---------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
-import           Data.Monoid (mappend)
-import           Hakyll
+import Data.Monoid (mappend)
+import Hakyll
 
---------------------------------------------------------------------------------
 main :: IO ()
 main = hakyll $ do
     match "images/*" $ do
         route   idRoute
         compile copyFileCompiler
 
-    match "css/*" $ do
-        route   idRoute
-        compile compressCssCompiler
+    match "css/default.sass" $do
+        route   $ gsubRoute "css/" (const "css/") `composeRoutes` setExtension "css"
+        compile $ getResourceString
+            >>= withItemBody (unixFilter "sass" ["-s"])
+            >>= return . fmap compressCss
 
     match (fromList ["instr.markdown", "contact.markdown"]) $ do
         route   $ setExtension "html"
@@ -26,20 +26,6 @@ main = hakyll $ do
             >>= loadAndApplyTemplate "templates/post.html"    defaultContext
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
---
---    create ["archive.html"] $ do
---        route idRoute
---        compile $ do
---            tutorials <- recentFirst =<< loadAll "tutorials/*"
---            let archiveCtx =
---                    listField "tutorials" defaultContext (return tutorials) `mappend`
---                    constField "title" "Archives"            `mappend`
---                    defaultContext
---
---            makeItem ""
---                >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
---                >>= loadAndApplyTemplate "templates/default.html" archiveCtx
---                >>= relativizeUrls
 
     match "index.html" $ do
         route idRoute
@@ -56,10 +42,3 @@ main = hakyll $ do
                 >>= relativizeUrls
 
     match "templates/*" $ compile templateCompiler
-
-
---------------------------------------------------------------------------------
---postCtx :: Context String
---postCtx =
---    dateField "date" "%B %e, %Y" `mappend`
---    defaultContext
