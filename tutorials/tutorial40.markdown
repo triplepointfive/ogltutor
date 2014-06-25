@@ -1,0 +1,507 @@
+---
+title: Урок 40 - Теневой объем (Stencil Shadow Volume)
+---
+<a href="http://ogldev.atspace.co.uk/www/tutorial40/tutorial40.html"><h2>Теоретическое введение</h2></a>
+
+<p>
+    В <a href="tutorial23.html">уроках 23 &amp; 24</a> мы изучили карту теней,
+    относительно простой способ внести тени в наш 3D мир. Карты теней получают помехи при попытках использовать их для
+    точечных источников света. Нам требуется вектор направления для создания карты, а для точечного источника, который
+    светит во всех направлениях, такой вектор получить проблемно. Хотя, есть методы для решения этой проблемы, они
+    немного сложны и больше подходят для света прожектором. <i>Теневой объем (Stencil Shadow Volume)</i> - это интересная
+    техника, которая дает простое решение проблеме точечного источника. Эта техника открыта William Bilodeau и Michael Songy
+    в 1998 и получила популярность у John Carmack в его движке для Doom 3 (2002).
+</p>
+<p>
+    Если вы до этого прошли все предыдущие уроки, то вы уже знакомы с одним из вариантов этой техники в небольшой серии
+    уроков под названием
+    <a href="tutorial35.html">Deferred Shading</a>.
+    В deferred shading для того, что бы остановить влияние света мы использовали силу света. Свет вычислялся только для
+    объектов внутри действия источника света. Теперь мы собираемся поступить наооборот. Мы будем создавать теневой объем
+    и вычислять свет только для объектов вне. Аналогично тому, как мы делали для всета, будет использоваться буфер
+    трафарета как ключевой компонент алгоритма. Отсюда и название - Теневой объем (Stencil Shadow Volume).
+</p>
+<p>
+    Идея алгоритма теневого объема в продлении силуэта объекта, который был создан при падении света на него, в объем, а
+    затем рендерить этот объем в буфер трафарета, используя пару простых операций над трафаретом. Суть идеи в <b>
+    когда объект внутри объема (а следовательно в тени) передние полигоны объема выигрывают тест глубины против
+    полигонов объекта, а задние полигоны объема проигрывают этот тест</b>.
+</p>
+<p>
+    Мы собираемся настроить операции трафарета согласно описанию в методе под названием <i>Depth Fail</i>. Люди часто
+    начинаю описывать технику теневого объема с использованием более простого метода <i>Depth Pass</i>, хотя с этим
+    методом возникает проблема, когда зритель внутри теневого объема; Depth Fail решает эту проблему. Поэтому я целиком 
+    пропускаю Depth Pass и сразу перехожу к Depth Fail. Посмотрим на изображение:
+</p>
+<img src="/images/t40_shadow_volume1.jpg">
+<p>
+    У нас есть лампочка в левом нижнем углу и зеленый объект (называется окклюдер (occluder)), который бросает тень из-за
+    света. 3 круглых объекта рендерятся как обычно. Объект B под тенью, а A &amp; C нет. Красные стрелочки обозначают
+    зону теневого объема (пунктирная часть линии не входит в него).
+</p>
+<p>
+    Давайте рассмотрим, как использовать буфер трафарета для теней. Мы начинаем с рендера самих объектов (А, В, С и
+    зеленой коробки) в буфер глубины. Когда мы закончим, то нам будет доступна глубина ближайших к нам пикселей. Затем
+    мы пройдемся по объектам на сцене одним за другим и создадим теневой объем для каждого. В нашем примере
+    показана только тень зеленой коробки, но в законченном приложении мы так же будем создавать тень и для круглых
+    объектов, поскольку они отбрасывают тень сами по себе. Теневой объем создается с помощью обнаружения силуэта (за
+    подробностями в
+    <a href="tutorial39.html">урок 39</a>)
+    и продлеванием его до бесконечности. Мы рендерим этот объем в буфер трафарета следуя правилам:
+</p>
+<ul>
+    <li>Если тест глубины провален при рендере <b>обратной</b> стороны полигона теневого объема, мы <b>увеличиваем</b>
+        значение в буфере трафарета.</li>
+    <li>Если тест глубины провален при рендере <b>лицевой</b> стороны полигона теневого объема, мы <b>уменьшаем</b>
+        значение в буфере трафарета.</li>
+    <li>Мы ничего не делаем, если: тест глубины пройден, тест трафарета провален.</li>
+</ul>
+<p>
+    Рассмотрим, что произойдет с буфером трафарета при использовании схемы выше. Лицевая и обратная стороны
+    треугольников объема, которые попали под объект А провалят тест глубины. Мы увеличим и уменьшим значения пикселей,
+    покрытых объектом А в буфере трафарета, а значит, что они остануться равны 0. В случае объекта В лицевая сторона
+    треугольников объема выиграет тест глубины, а обратная проиграет. Поэтому, мы только увеличим значение трафарета.
+    А для объекта С треугольники объема (и лицевая и обратная стороны) выиграют тест глубины. Поэтому значение трафарета
+    не изменится и останется равным 0.
+</p>
+<p>
+    Заметим, что до этого момента мы еще не притрагивались к буферу цвета. После того, как мы звершим схему выше, мы
+    рендерим все объекты еще раз используя стандартный шейдер света, но в этот раз мы установим тест трафарета таким
+    образом, что только пиксели, чье значение равно 0 будут рендериться. Это значит, что только объекты А и С будут
+    отображены на экран.
+</p>
+<p>
+    Вот более сложный пример с 2 окклюдерами:
+</p>
+<img src="/images/t40_shadow_volume2.jpg">
+<p>
+    Что бы было проще понять, где теневой объем второго окклюдера, он помечен более тонкой красной стрелкой. Вы можете
+    отследить изменения в буфере трафарета (отметки +1 и -1) и заметить, что и в этом случае алгоритм работает как надо.
+    Отличие от предыдущего изображения в том, что теперь А так же в тени.
+</p>
+<p>
+    Давайте рассмотрим, как применить эти знания на практике. Как мы обсудили ранее, нам необходимо рендерить объем,
+    который будет создан, когда мы продлим силуэт окклюдера. Мы можем начать с кода из предыдущего урока, в котором
+    находится силуэт. Все, что нам требуется изменить - это продлить стороны силуэта в объем. Это делается излучением
+    трапеции (в действительности 4 вершин в топологии полоса треугольников) из GS для каждой стороны силуэта. 2 вершины
+    мы получим из стороны силуэта, а 2 другие вершины будут созданы, когда мы продлим вершины стороны до бесконечности
+    вдоль вектора из источника света до вершин. Благодаря продлению до бесконечности мы можем быть уверены в том, что
+    объем охватит все, что лежит на пути тени. Эта трапеция изображена на следующем изображении:
+</p>
+<img src="/images/t40_quad.jpg">
+<p>
+    Когда мы повторим этот процесс для всех сторон силуэта, объем будет создан. Этого достаточно? конечно нет. Проблема
+    в том, что этот объем выглядит как усеченный конус без оснований. Поскольку наш алгоритм зависит от теста глубины и
+    лицевой и обратной стороны, мы можем оказаться в ситуации, когда вектор из глаз в пиксель проходит только через
+    одну из сторон объема:
+</p>
+<img src="/images/t40_caps.jpg">
+<p>
+    Решение проблемы в создании объема, который будет закрыт с обеих сторон. Для этого мы создадим и нижнее и верхнее
+    основания (пунктирные линии на рисунке). Создать верхнее очень просто. Каждый освещенный треугольник будет его
+    образовывать. Поскольку это не оптимальное решение, вы возможно захотите создать верхнее основание используя
+    меньше треугольников. Нижнее основание также легко создать. Нам просто требуется продлить вершины освещенных
+    треугольников до бесконечности (вдоль вектора из источника света до каждой вершины) и обратить их порядок (иначе
+    итоговый треугольник будет направлен внутрь объема).
+</p>
+<p>
+    Слово "бесконечность" уже было употреблено несколько раз, и пора дать ему определение. Посмотрим на изображение:
+</p>
+<img src="/images/t40_infinity.jpg">
+<p>
+    Мы видим изображение усеченного конуса, рассмотренного выше. Лампочка испускает луч, который проходит через точку
+    'p' и идет до бесконечности. Другими словами, 'p' продлена до бесконечности. Очевидно, в бесконечности координаты
+    позиции точки 'p' - это (бесконечность, бесконечность, бесконечность), но нас это не волнует. Нам нужен способ
+    растеризовать треугольники теневого объема, т.е. найти проекцию вершин на плоскость проекции. Эта плоскость по-факту
+    ближняя плоскость. Поскольку 'p' продлена до бесконечности вдоль вектора света, мы не можем по-прежнему спроецировать
+    ее на ближнюю плоскость. Это делается пунктирной линией, которая исходит из начала координат и пересекает где-то
+    вектор света. Мы же хотим найти 'Xp', т.е. координату X точки, где этот вектор пересекает ближнюю плоскость.
+</p>
+<p>
+    Давайте считать каждую точку вектора света как 'p + vt', где 'v' - вектор из источника света до точки 'p' и 't' - это
+    скаляр из 0 до бесконечности. Тогда из изображения выше и правила подобия треугольников мы можем сказать, что:
+</p>
+<img src="/images/t40_infinity1.jpg">
+<p>
+    Где 'n' - это координата Z ближней плоскости. Так как 't' идет до бесконечности, мы получаем:
+</p>
+<img src="/images/t40_infinity2.jpg">
+<p>
+    Вот так мы найдем проекцию 'p' в бесконечности на ближнюю плоскость. А теперь немного магии - оказывается, что для
+    нахождения Xp и Yp согласно формуле выше нам просто требуется домножить вектор (Vx, Vy, Vz, 0) (где 'V' - вектор из
+    источника света в точку 'p') на матрицу просмотра/проеккции, и применить деление перспективы на результат. Мы не
+    собираемся приводить доказательство здесь, вы можете попробовать сделать это сами и убедиться в результате. Подводя
+    результат, для того, что бы растеризовать треугольник, который содержит вершины, продленные до бесконечности вдоль
+    некоторого вектора, мы должны домножить этот вектор на матрицу просмотра/проекции, и изменить координату 'w' на 0.
+    Далее мы будем широко пользоваться этой техникой в GS.
+</p>
+
+<a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial40"><h2>Прямиком к коду!</h2></a>
+
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">glut_backend.cpp:80</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH<b>|GLUT_STENCIL</b>);
+</code></pre>
+<p>
+    Прежде чем начать работать над этим уроком, убедитесь, что вы добавили код выделенный жирным. Без него буфер кадра
+    будет создан без буфера трафарета и ничего не будет работать. Я потратил время, прежде чем осознал, что пропустил его,
+    поэтому убедитесь, что добавили его.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:162</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>virtual void RenderSceneCB()
+{
+    CalcFPS();
+
+    m_scale += 0.1f;
+
+    m_pGameCamera-&gt;OnRender();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    RenderSceneIntoDepth();
+
+    glEnable(GL_STENCIL_TEST);
+
+    RenderShadowVolIntoStencil();
+
+    RenderShadowedScene();
+
+    glDisable(GL_STENCIL_TEST);
+
+    RenderAmbientLight();
+
+    RenderFPS();
+
+    glutSwapBuffers();
+}
+</code></pre>
+<p>
+    Главная функция рендера вызывает 3 этапа алгоритма. В первом мы рендерим всю сцену в буфер глубины (не трогая буфер
+    цвета). Затем мы рендерим теневой объем в буфер трафарета, настройка теста трафарета уже объяснена в разделе теории.
+    И, наконец, рендер самой сцены принимая во внимание значения в буфере трафарета (т.е. только пиксели, чье значение
+    равно 0 рендерятся).
+</p>
+<p>
+    Важное отличие этого метода от карты теней в том, что затемненные пиксели в трафарете теневого объема никогда не
+    попадут в фрагментный шейдер. Когда мы использовали карту теней, у нас была возможность вычислять окружающий свет
+    для затемненных пикселей. Здесь у нас нет такой возможности. Поэтому мы добавили фоновый проход вне теста трафарета.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:223</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void RenderSceneIntoDepth()
+{
+    glDrawBuffer(GL_NONE);
+    glDepthMask(GL_TRUE);
+
+    m_nullTech.Enable();
+
+    Pipeline p;
+
+    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetPerspectiveProj(m_persProjInfo);
+
+    p.WorldPos(m_boxPos);
+    p.Rotate(0, m_scale, 0);
+    m_nullTech.SetWVP(p.GetWVPTrans());
+    m_box.Render();
+
+    p.Scale(10.0f, 10.0f, 10.0f);
+    p.WorldPos(0.0f, 0.0f, 0.0f);
+    p.Rotate(90.0f, 0.0f, 0.0f);
+    m_nullTech.SetWVP(p.GetWVPTrans());
+    m_quad.Render();
+}
+</code></pre>
+<p>
+    Здесь мы рендерим всю сцену в буфер глубины, при этом отключив запись в буфер цвета. Этот шаг важен, поскольку когда
+    вы будете иметь несколько окклюдеров на сцене, то их потребуется рендерить один за другим в буфер трафарета, но
+    буфер глубины требуется заполнить только 1 раз, так как он общий для всех окклюдеров. Так как нам важна только
+    глубина, мы используем нулевую технологию в качестве пустого FS.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:247</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void RenderShadowVolIntoStencil()
+{
+    glDrawBuffer(GL_NONE);
+    glDepthMask(GL_FALSE);
+
+    glDisable(GL_CULL_FACE);
+
+    // Тест трафарета должен быть включен, но
+    // он всегда успешен. Нас интересует только глубина.
+    glStencilFunc(GL_ALWAYS, 0, 0xff);
+
+    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+
+    m_ShadowVolTech.Enable();
+
+    m_ShadowVolTech.SetLightPos(m_pointLight.Position);
+
+    Pipeline p;
+    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetPerspectiveProj(m_persProjInfo);
+    p.WorldPos(m_boxPos);
+    m_ShadowVolTech.SetVP(p.GetVPTrans());
+    m_ShadowVolTech.SetWorldMatrix(p.GetWorldTrans());
+
+    m_box.Render();
+
+    glEnable(GL_CULL_FACE);
+}
+</code></pre>
+<p>
+    Вот где все самое интересное. Мы используем специальную технику, которая основывается на методе обнаружения силуэта
+    из предыдущего урока. Она создает объем (и его основания) из силуэта окклюдера. Для начала мы отключаем запись в
+    буферы цвета и глубины. Обновлять будем только буфер трафарета. Мы выключаем обрезание обратной стороны, т.к. наш
+    алгоритм зависит от рендера всех треугольников объема. Затем мы настраиваем тест трафарета (который был включен в
+    методе) на прохождение всегда, а операции трафарета для лицевоц и обратной сторон назначаются согласно технике
+    depth fail. После этого мы просто устанавливаем все, что потребуется шейдеру и рендерим окклюдер.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:278</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void RenderShadowedScene()
+{
+    glDrawBuffer(GL_BACK);
+
+    // предотвращаем обновление буфера трафарета
+    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+    glStencilFunc(GL_EQUAL, 0x0, 0xFF);
+
+    m_LightingTech.Enable();
+
+    m_pointLight.AmbientIntensity = 0.0f;
+    m_pointLight.DiffuseIntensity = 0.8f;
+
+    m_LightingTech.SetPointLights(1, &amp;m_pointLight);
+
+    m_pGroundTex-&gt;Bind(GL_TEXTURE0);
+
+    Pipeline p;
+    p.SetPerspectiveProj(m_persProjInfo);
+    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+
+    p.WorldPos(m_boxPos);
+    p.Rotate(0, m_scale, 0);
+    m_LightingTech.SetWVP(p.GetWVPTrans());
+    m_LightingTech.SetWorldMatrix(p.GetWorldTrans());
+    m_box.Render();
+
+    p.Scale(10.0f, 10.0f, 10.0f);
+    p.WorldPos(0.0f, 0.0f, 0.0f);
+    p.Rotate(90.0f, 0.0f, 0.0f);
+    m_LightingTech.SetWVP(p.GetWVPTrans());
+    m_LightingTech.SetWorldMatrix(p.GetWorldTrans());
+
+    m_quad.Render();
+}
+</code></pre>
+<p>
+    Теперь мы можем установить обновленный буфер трафарета на использование. Согласно алгоритму мы настраиваем рендер
+    только когда значение трафарета для пикселя равно нулю. Вот и все! Далее мы можем использовать стандартный шейдер
+    света для рендера сцены. Только не забудьте включить запись в буфер цвета прежде чем начать...
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:315</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void RenderAmbientLight()
+{
+    glDrawBuffer(GL_BACK);
+    glDepthMask(GL_TRUE);
+
+    glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    m_LightingTech.Enable();
+
+    m_pointLight.AmbientIntensity = 0.2f;
+    m_pointLight.DiffuseIntensity = 0.0f;
+
+    m_LightingTech.SetPointLights(1, &amp;m_pointLight);
+
+    m_pGroundTex-&gt;Bind(GL_TEXTURE0);
+
+    Pipeline p;
+    p.SetPerspectiveProj(m_persProjInfo);
+    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+
+    p.WorldPos(m_boxPos);
+    p.Rotate(0, m_scale, 0);
+    m_LightingTech.SetWVP(p.GetWVPTrans());
+    m_LightingTech.SetWorldMatrix(p.GetWorldTrans());
+    m_box.Render();
+
+    p.Scale(10.0f, 10.0f, 10.0f);
+    p.WorldPos(0.0f, 0.0f, 0.0f);
+    p.Rotate(90.0f, 0.0f, 0.0f);
+    m_LightingTech.SetWVP(p.GetWVPTrans());
+    m_LightingTech.SetWorldMatrix(p.GetWorldTrans());
+
+    m_quad.Render();
+
+    glDisable(GL_BLEND);
+}
+</code></pre>
+<p>
+    Фоновый проход поможет нам избежать полностью черных пикселей, которые были отброшенны тестом трафарета. В реальной
+    жизни мы обычно не видим таких глубоких теней, поэтому мы добавим немного фонового света для всех пикселей. Для
+    этого просто используется другой проход света вне рамок теста глубины. Стоит отметить несколько вещей: мы обнулили
+    диффузную интенсивность (так как она перекрыта тенью) и включили смешивание (для слияния результатов предыдущего
+    прохода с этим). Давайте перейдем к шейдерам.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">shadow_volume.glsl:0</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>struct VSInput
+{
+    vec3  Position;
+    vec2  TexCoord;
+    vec3  Normal;
+};
+
+interface VSOutput
+{
+    vec3 WorldPos;
+};
+
+uniform mat4 gWorld;
+
+shader VSmain(in VSInput VSin:0, out VSOutput VSout)
+{
+    VSout.WorldPos = (gWorld * vec4(VSin.Position, 1.0)).xyz;
+}
+</code></pre>
+<p>
+    Наш VS крайне прост - все, что нам требуется - это преобразовать позицию вершины в пространство экрана. Все остальное
+    происходит в GS.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">shadow_volume.glsl:48</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>shader GSmain(in VSOutput GSin[])
+{
+    vec3 e1 = GSin[2].WorldPos - GSin[0].WorldPos;
+    vec3 e2 = GSin[4].WorldPos - GSin[0].WorldPos;
+    vec3 e3 = GSin[1].WorldPos - GSin[0].WorldPos;
+    vec3 e4 = GSin[3].WorldPos - GSin[2].WorldPos;
+    vec3 e5 = GSin[4].WorldPos - GSin[2].WorldPos;
+    vec3 e6 = GSin[5].WorldPos - GSin[0].WorldPos;
+
+    vec3 Normal = cross(e1,e2);
+    vec3 LightDir = gLightPos - GSin[0].WorldPos;
+
+    if (dot(Normal, LightDir) &gt; 0.000001) {
+        Normal = cross(e3,e1);
+
+        if (dot(Normal, LightDir) &lt;= 0) {
+            EmitQuad(GSin[0].WorldPos, GSin[2].WorldPos);
+        }
+
+        Normal = cross(e4,e5);
+        LightDir = gLightPos - GSin[2].WorldPos;
+
+        if (dot(Normal, LightDir) &lt;= 0) {
+            EmitQuad(GSin[2].WorldPos, GSin[4].WorldPos);
+        }
+
+        Normal = cross(e2,e6);
+        LightDir = gLightPos - GSin[4].WorldPos;
+
+        if (dot(Normal, LightDir) &lt;= 0) {
+            EmitQuad(GSin[4].WorldPos, GSin[0].WorldPos);
+        }
+
+        // верхнее основание
+        vec3 LightDir = (normalize(GSin[0].WorldPos - gLightPos)) * EPSILON;
+        gl_Position = gVP * vec4((GSin[0].WorldPos + LightDir), 1.0);
+        EmitVertex();
+
+        LightDir = (normalize(GSin[2].WorldPos - gLightPos)) * EPSILON;
+        gl_Position = gVP * vec4((GSin[2].WorldPos + LightDir), 1.0);
+        EmitVertex();
+
+        LightDir = (normalize(GSin[4].WorldPos - gLightPos)) * EPSILON;
+        gl_Position = gVP * vec4((GSin[4].WorldPos + LightDir), 1.0);
+        EmitVertex();
+        EndPrimitive();
+
+        // нижнее основание
+        LightDir = GSin[2].WorldPos - gLightPos;
+        gl_Position = gVP * vec4(LightDir, 0.0);
+        EmitVertex();
+
+        LightDir = GSin[0].WorldPos - gLightPos;
+        gl_Position = gVP * vec4(LightDir, 0.0);
+        EmitVertex();
+
+        LightDir = GSin[4].WorldPos - gLightPos;
+        gl_Position = gVP * vec4(LightDir, 0.0);
+        EmitVertex();
+
+        EndPrimitive();
+    }
+}
+</code></pre>
+<p>
+    GS начинается так же, как и шейдер для силуэта, нам интересны только освещенные треугольники. Когда мы обнаружим
+    стороны силуэта, мы продлеваем трапецию из нее до бесконечности (это ниже). Вспомните, что индексы вершин исходного
+    треугольника 0, 2, 4, а смежные 1, 3, 5 (подробнее в предыдущем уроке). Затем мы принимаемся за основания. Заметим,
+    что для верхнего мы не исользуем треугольники как-есть. Вместо этого, мы движемся вдоль вектора света на небольшое
+    значение (для этого нормируем вектор света и домножаем на небольшое отклонение). Причина в ошибках чисел с плавающей
+    точкой, возможна ситуация, когда объем покрывает верхнее основание. Немного его отодвинув мы решаем проблему.
+</p>
+<p>
+    Для нижнего основания мы просто проецируем исходные вершины в бесконечность вдоль вектора света и задаем обратный
+    порядок.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">shadow_volume.glsl:20</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>uniform mat4 gVP;
+
+uniform vec3 gLightPos;
+
+float EPSILON = 0.01;
+
+void EmitQuad(vec3 StartVertex, vec3 EndVertex)
+{
+    vec3 LightDir = normalize(StartVertex - gLightPos);
+    vec3 l = LightDir * EPSILON;
+    gl_Position = gVP * vec4((StartVertex + l), 1.0);
+    EmitVertex();
+
+    gl_Position = gVP * vec4(LightDir, 0.0);
+    EmitVertex();
+
+    LightDir = normalize(EndVertex - gLightPos);
+    l = LightDir * EPSILON;
+    gl_Position = gVP * vec4((EndVertex + l), 1.0);
+    EmitVertex();
+
+    gl_Position = gVP * vec4(LightDir, 0.0);
+    EmitVertex();
+
+    EndPrimitive();
+}
+</code></pre>
+<p>
+    Для того, что бы пустить трапецию из стороны мы проецируем обе вершины в бесконечность вдоль направления вектора
+    света и создаем линию треугольников. Заметим, что исходные вершины так же немного сдвинуты, дабы соответствовать
+    основанию.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">shadow_volume.glsl:118</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>program ShadowVolume
+{
+    vs(420)=VSmain();
+    gs(420)=GSmain() : in(triangles_adjacency), out(triangle_strip, <b>max_vertices = 18</b>);
+    fs(420)=FSmain();
+};
+</code></pre>
+<p>
+    Вот как мы задаем теневой объем в файле GLFX. Очень важно правильно установить максимум вершин для GS. У нас имеется
+    3 вершины для верхнего основания, 3 для нижнего и 4 для каждой стороны силуэта. Когда я работал над этим уроком, я
+    случайно установил значение в 10 и получил очень странные нарушения. Не повторяйте моих ошибок...
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">glut_backend.cpp:108</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void GLUTBackendRun(ICallbacks* pCallbacks)
+{
+    ...
+        glEnable(GL_DEPTH_CLAMP);
+    ...
+}
+</code></pre>
+<p>
+    Последнее, но тем не менее важное замечание - мы включаем сжатие глубины (depth clamp). Это значит, что хотя дальнее
+    основание продлено до бесконечности, результат не будет обрезан, а останется на плоскости клиппера. Без этого мы
+    потеряем основание.
+</p>
+

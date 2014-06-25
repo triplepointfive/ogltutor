@@ -1,0 +1,312 @@
+---
+title: Урок 24 - Карта теней - часть 2
+---
+<a href="http://ogldev.atspace.co.uk/www/tutorial24/tutorial24.html"><h2>Теоретическое введение</h2></a>
+<p>
+В прошлом уроке мы изучили основной принцип, лежащий в методе отображения теней, и увидели как рендерить глубину в текстуру, а затем отображать ее на экран посредством сэмплера из буфера глубины. В этом уроке мы увидим как ее использовать для отображения тени.
+</p>
+<p>
+Мы уже знаем, что отображение теней проходит в 2 этапа: в первом сцена рендерится с позиции источника света. Давайте вспомним, что в нем происходит с Z координатой вершины:
+</p>
+<ol>
+<li>Позиции вершин, которые попадают в вершинный шейдер, указаны в локальном пространстве.</li>
+<li>Шейдер преобразует позицию из локального пространства в клип и далее по конвейеру (загляните в урок 12, если нужно освежить память).</li>
+<li>Растеризатор производит деление перспективы (деление вектора позиции на его W элемент). Тем самым мы переходим из пространства клипа в NDC. В пространстве NDC все, что попадет на экран, имеет координаты X, Y и Z в отрезке [-1,1]. Все, что мимо - обрежется на совсем.</li>
+<li>Затем растеризатор отображает X и Y координаты в разрешение буфера кадра (например 800x600, 1024x768 и прочие). Результат - координаты пространства экрана у позиции вершины.</li>
+<li>Растеризатор принимает эти координаты у 3-х вершин треугольника и интерполирует их для создания уникальных координат для каждого пикселя, который попадает в треугольник. Значение Z (в отрезке [0,1]) так же интерполируется, поэтому у каждого пикселя собственная глубина.</li>
+<li>Так как мы отключили рендер в буфер цвета в первом проходе, то фрагментный шейдер не требуется. А тест глубины по-прежнему происходит. Сравнивая значения Z для каждого пикселя с тем, который расположен в той же точке экрана, мы выбираем наименьшее, и оно будет записано в буфер (и даже если запись в буфер цвета была бы включена, наш буфер так же обновился).</li>
+</ol>
+<p>
+В методе выше мы увидели как вычисляется и записывается значение глубины относительно позиции источника света. Во втором проходе мы рендерим из позиции камеры, поэтому очевидно, что мы получим различные значения глубины. Но нам требуются оба значения - 1 для правильного расположения треугольников на экране, и другое для проверки что в тени, а что - нет. Трюк отображения теней в том, что будут поддерживаться сразу 2 позиции вектора и 2 матрицы WVP в проходе по 3D конвейеру. Одна матрица WVP вычисляется из позиции источника света, а другая из позиции камеры. Вершинный шейдер будет получать один вектор позиции в локальных координатах, как обычно, но на выход пойдут сразу 2 вектора:
+</p>
+<ol>
+<li>Встроенный gl_Position, который является результатом преобразований позиции матрицей WVP камеры.</li>
+<li>"Обычный" вектор, который получается преобразованием позиции матрицей WVP света.</li>
+</ol>
+<p>
+Первый вектор пойдет по плану выше (--&gt; пространство NDC ... и т.д.) и будет использован для обычной растеризации. Второй вектор так же будет интерполирован растеризатором по поверхности треугольника и каждый вызов фрагментного шейдера будет получать собственное значение. Поэтому теперь для каждого физического пикселя мы имеем координаты в пространстве клипа одной и той же точки, когда смотрим на нее из позиции источника света. Высока вероятность, что физические пиксели из 2 точек зрения различаются, но в целом позиция треугольника не изменилась. Все что осталось, это как то использовать координаты пространства клипа, и если записанное значение меньше, то это значит, что пиксель в тени (поскольку другой пиксель имеет те же координаты клипа, но с меньшей глубиной).
+</p>
+<p>
+Так как мы можем получить глубину в фрагментном шейдере через координаты пространства клипа, которые вычислили умножив позицию на матрицу WVP источника света? Мы начинаем со 2 шага выше.
+<ol>
+<li>Так как фрагментный шейдер получает координаты пространства клипа в виде обычного вершинного атрибута, растеризатор не производит в них деления перспективы (только у gl_Position). Но это просто сделать вручную в шейдере. Мы делим координаты на компонент W и получаем координаты в пространстве NDC.</li>
+<li>Мы знаем, что в пространстве NDC X и Y в отрезке от -1 до 1. В шаге 4 выше растеризатор отображает координаты NDC в пространство экрана и использует их для хранения глубины. Мы собираемся брать сэмплер глубины, и для этого нам потребуются координаты текстуры в отрезке [0,1]. Если мы линейно отобразим отрезок [-1,1] в [0,1], то получим координаты текстуры, которые отображаются в одинаковую позицию в карте теней. Пример: X в NDC равен 0, а ширина текстуры равна 800. Ноль в NDC требуется отобразить в 0.5 в пространстве координат текстур (поскольку это половина между -1 и 1). Координата текстуры 0.5 отображается в 400 в текстуре, что равно позиции, которую растеризатор вычислит когда будет производит преобразования в пространство экрана.</li>
+<li>Преобразования X и Y из пространства NDC в пространство текстуры осуществляется следующим образом:</li>
+<ul>
+<li>u = 0.5 * X + 0.5</li>
+<li>v = 0.5 * Y + 0.5</li>
+</ul>
+</ol>
+</p>
+
+<a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial24"><h2>Прямиком к коду!</h2></a>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">lighting_technique.h:80</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>class LightingTechnique : public Technique {
+	public:
+	...	
+		void SetLightWVP(const Matrix4f&amp; LightWVP);
+		void SetShadowMapTextureUnit(unsigned int TextureUnit);
+	...
+	private:
+		GLuint m_LightWVPLocation;
+		GLuint m_shadowMapLocation;
+		...
+</code></pre>
+<p>
+Классу света требуется набор новых свойств. Матрица WVP, которая вычисляется из позиции источника света, и модуль текстуры для карты теней. Мы продолжим использовать модуль 0 для обычной текстуры, которая накладывается на объект, и забронируем модуль 1 для карты.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">lighting_technique.cpp:26</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>#version 330
+
+layout (location = 0) in vec3 Position;
+layout (location = 1) in vec2 TexCoord;
+layout (location = 2) in vec3 Normal;
+
+uniform mat4 gWVP;
+<b>uniform mat4 gLightWVP;</b>
+uniform mat4 gWorld;
+
+<b>out vec4 LightSpacePos;</b>
+out vec2 TexCoord0;
+out vec3 Normal0;
+out vec3 WorldPos0;
+
+void main()
+{
+	 gl_Position= gWVP * vec4(Position, 1.0);
+	 <b>LightSpacePos= gLightWVP * vec4(Position, 1.0);</b>
+	 TexCoord0= TexCoord;
+	 Normal0= (gWorld * vec4(Normal, 0.0)).xyz;
+	 WorldPos0= (gWorld * vec4(Position, 1.0)).xyz;
+}
+</code></pre>
+<p>
+Это обновленный шейдер класса LightingTechnique с дополнениями, помеченными жирным шрифтом. Мы добавили матрицу WVP как uniform-переменную и 4-вектор в качестве выходного параметра, который содержит координаты в пространстве клипа, вычисленные через преобразование позиции матрицей WVP источника света. Как вы можете увидеть, в вершинном шейдере в первом проходе переменная gWVP хранит такую же матрицу, как и gLightWVP здесь, и gl_Position получит то же значение, что и LightSpacePos. Но так как LightSpacePos простой вектор, он не получит деления перспективы как у gl_Position. Мы сделаем это вручную в фрагментном шейдере ниже.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">lighting_technique.cpp:108</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>float CalcShadowFactor(vec4 LightSpacePos)
+{
+	vec3 ProjCoords = LightSpacePos.xyz / LightSpacePos.w;
+	vec2 UVCoords;
+	UVCoords.x = 0.5 * ProjCoords.x + 0.5;
+	UVCoords.y = 0.5 * ProjCoords.y + 0.5;
+	float z= 0.5 * ProjCoords.z + 0.5;
+	float Depth = texture(gShadowMap, UVCoords).x;
+	if (Depth &lt; (z + 0.00001))
+		return 0.5;
+	else
+		return 1.0;
+}
+</code></pre>
+<p>
+Эта функция используется в фрагментном шейдере для вычисления эффекта затенения для пикселя. Коэффициент тени - это новый параметр в формуле света. Мы просто умножаем результат нашего текущего значения света на этот коэффициент, и это вызовет некоторое затенение света в пикселе, который определен как в тени. Функция принимает интерполированный вектор LightSpacePos, который передается из вершинного шейдера. Первый этап - деление перспективы - мы делим координаты XYZ  на W компонент. Это переведет вектор в пространство NDC. Далее мы подготавливаем 2D вектор, который будет использован для координат текстуры и инициализируем его через преобразование вектора LightSpacePos из NDC в пространство текстуры согласно формуле в разделе теории. Координаты текстуры используются для получения глубины из карты теней. Это глубина ближайшей позиции из всех точек сцены, которые проецируются в этот пиксель. Мы сравниваем эту глубину с глубиной текущего пикселя, и если она меньше, возвращаем коэффициент тени равный 0.5, иначе 
+коэффициент тени равен 1.0 (нет тени). Z из пространства NDC так же проходит преобразование из отрезка (-1,1) в (0,1), потому что мы должны находится в одном пространстве для сравнения. Заметим, что мы добавили небольшое значение для глубины текущего пикселя. Это для избежания ошибок, которые бывают при работе с вещественными числами.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">lighting_technique.cpp:121</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>vec4 CalcLightInternal(struct BaseLight Light, vec3 LightDirection, vec3 Normal<b>, float ShadowFactor</b>)
+{
+			...
+	return (AmbientColor + <b>ShadowFactor * </b>(DiffuseColor + SpecularColor));
+}	
+</code></pre>
+<p>
+Изменения в главной функции вычисления света минимальны. Вызов должен вернуть рассеянный и отраженный свет, умножаный на коэффициент теней. Фоновый свет остается без изменений - он всюду по определению.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">lighting_technique.cpp:146</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>vec4 CalcDirectionalLight(vec3 Normal)
+{
+	return CalcLightInternal(gDirectionalLight.Base, gDirectionalLight.Direction, Normal<b>, 1.0</b>);
+}
+</code></pre>
+<p>
+Наша реализация отображения теней ограниченна прожектором. Для того, что бы найти матрицу WVP света нам требуются из позиция и направление, из-за которых нельзя использовать точечный и рассеянный свет. Мы добавим этот функционал в будущем, пока что мы просто указываем коэффициент теней равным 1 для направленного света.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">lighting_technique.cpp:151</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>vec4 CalcPointLight(struct PointLight l, vec3 Normal<b>, vec4 LightSpacePos</b>)
+{
+	 vec3 LightDirection = WorldPos0 - l.Position;
+	 float Distance = length(LightDirection);
+	 LightDirection = normalize(LightDirection);
+	<b>float ShadowFactor = CalcShadowFactor(LightSpacePos);</b>
+
+	 vec4 Color = CalcLightInternal(l.Base, LightDirection, Normal<b>, ShadowFactor</b>);
+	 float Attenuation =l.Atten.Constant +
+	 	 l.Atten.Linear * Distance +
+	 	 l.Atten.Exp * Distance * Distance;
+
+	 return Color / Attenuation;
+}
+</code></pre>
+<p>
+Так как прожектор вычисляется используя точечный свет, эта функция принимает дополнительный параметр позиции источника света и вычисляет коэффициент теней. Он передается в CalcLightInternal(), которая описана выше.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">lighting_technique.cpp:166</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>
+vec4 CalcSpotLight(struct SpotLight l, vec3 Normal<b>, vec4 LightSpacePos</b>)
+{
+	vec3 LightToPixel = normalize(WorldPos0 - l.Base.Position);
+	float SpotFactor = dot(LightToPixel, l.Direction);
+
+	if (SpotFactor &gt; l.Cutoff) {
+		vec4 Color = CalcPointLight(l.Base, Normal<b>, LightSpacePos</b>);
+		return Color * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - l.Cutoff));
+	}
+	else {
+		return vec4(0,0,0,0);
+	}
+}
+</code></pre>
+<p>
+Функция прожектора просто передает позицию в пространстве источника света в функцию точечного света.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">lighting_technique.cpp:180</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void main()
+{
+	vec3 Normal = normalize(Normal0);
+	vec4 TotalLight = CalcDirectionalLight(Normal);
+
+	for (int i = 0 ; i &lt; gNumPointLights ; i++) {
+		TotalLight += CalcPointLight(gPointLights[i], Normal<b>, LightSpacePos</b>);
+	}
+
+	for (int i = 0 ; i &lt; gNumSpotLights ; i++) {
+		TotalLight += CalcSpotLight(gSpotLights[i], Normal<b>, LightSpacePos</b>);
+	}
+
+	vec4 SampledColor = texture2D(gSampler, TexCoord0.xy);
+	FragColor = SampledColor * TotalLight;
+}
+</code></pre>
+<p>
+Наконец, главная функция фрагментного шейдера. Мы используем один и тот же вектор позиции и для прожектора и для точечного света, даже если поддерживается только прожектор. Это ограничение будет исправлено в будущем. Мы закончили осмотр изменений в методе света и теперь обратим внимание на код приложения.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">main.cpp:86</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>m_pLightingEffect = new LightingTechnique();
+
+if (!m_pLightingEffect-&gt;Init()) {
+	 printf("Error initializing the lighting technique\n");
+	 return false;
+}
+
+m_pLightingEffect-&gt;Enable();
+m_pLightingEffect-&gt;SetSpotLights(1, &amp;m_spotLight);
+m_pLightingEffect-&gt;SetTextureUnit(0);
+m_pLightingEffect-&gt;SetShadowMapTextureUnit(1);
+</code></pre>
+<p>
+Этот код настраивает часть LightingTechnique в функции Init(), поэтому он вызывается только раз при старте. Здесь мы устанавливаем uniform-значения, которые не изменяются из кадра в кадр. Наш модуль текстур по умолчанию имеет номер 0, и мы решили, что модуль 1 будет для карты теней. Вспомним, что программа шейдера должна быть разрешена, прежде чем устанавливать ее uniform-переменные, и они останутся не низменными до тех пор, пока программа не будет слинкована еще раз. Это удобно, поскольку вам может потребоваться переключиться на другой шейдер, а значения у старого не сбросятся. Uniform-переменные, которые не изменяются в течении всей программы, могут быть установлены лишь раз при запуске.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">main.cpp:129</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>virtual void RenderSceneCB()
+{
+	m_pGameCamera-&gt;OnRender();
+	m_scale += 0.05f;
+
+	ShadowMapPass();
+	RenderPass();
+
+	glutSwapBuffers();
+}
+</code></pre>
+<p>
+Главной функции рендера никаких изменений - сначала заботимся о глобальных вещах, таких как камера и коэффициент масштабирования, который используется для вращения меша. А затем идет проход для теней, перед проходом рендера.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">main.cpp:141</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>virtual void ShadowMapPass()
+{
+	m_shadowMapFBO.BindForWriting();
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	<b>m_pShadowMapEffect-&gt;Enable();</b>
+
+	Pipeline p;
+	p.Scale(0.1f, 0.1f, 0.1f);
+	p.Rotate(0.0f, m_scale, 0.0f);
+	p.WorldPos(0.0f, 0.0f, 3.0f);
+	p.SetCamera(m_spotLight.Position, m_spotLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));
+	p.SetPerspectiveProj(30.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1.0f, 50.0f);
+	m_pShadowMapEffect-&gt;SetWVP(p.GetWVPTrans());
+	m_pMesh-&gt;Render();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+</code></pre>
+<p>
+Это практически тот же код прохода теней, что и в предыдущем уроке. Единственное изменение - это то, что мы разрешаем метод отображения теней каждый раз, поскольку мы переключаемся от метода теней к методу света. Заметим, что хоть мы и используем и меш и квадрат, который служит землей, только меш рендерится в карту теней. Причина в том, что земля не может давать тень. Это один из способов оптимизации, когда мы знаем что-либо о типе объекта. 
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">main.cpp:162</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>virtual void RenderPass()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	m_pLightingEffect-&gt;Enable();
+ 
+	m_shadowMapFBO.BindForReading(GL_TEXTURE1);
+
+	Pipeline p;
+	p.SetPerspectiveProj(30.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1.0f, 50.0f);
+	p.Scale(10.0f, 10.0f, 10.0f);
+	p.WorldPos(0.0f, 0.0f, 1.0f);
+	p.Rotate(90.0f, 0.0f, 0.0f);
+	<b>p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());</b>
+	<b>m_pLightingEffect-&gt;SetWVP(p.GetWVPTrans());</b>
+	m_pLightingEffect-&gt;SetWorldMatrix(p.GetWorldTrans());
+	<b>p.SetCamera(m_spotLight.Position, m_spotLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));</b>
+	<b>m_pLightingEffect-&gt;SetLightWVP(p.GetWVPTrans());</b>
+	m_pLightingEffect-&gt;SetEyeWorldPos(m_pGameCamera-&gt;GetPos());
+	m_pGroundTex-&gt;Bind(GL_TEXTURE0);
+	m_pQuad-&gt;Render();
+
+	p.Scale(0.1f, 0.1f, 0.1f);
+	p.Rotate(0.0f, m_scale, 0.0f);
+	p.WorldPos(0.0f, 0.0f, 3.0f);
+	 <b> p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());</b>
+	 <b> m_pLightingEffect-&gt;SetWVP(p.GetWVPTrans());</b>
+	m_pLightingEffect-&gt;SetWorldMatrix(p.GetWorldTrans());
+	 <b> p.SetCamera(m_spotLight.Position, m_spotLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));</b>
+	 <b>m_pLightingEffect-&gt;SetLightWVP(p.GetWVPTrans());</b>
+
+	m_pMesh-&gt;Render();
+}
+</code></pre>
+<p>
+Проход рендера начинается с того же, что и в прошлом уроке - мы очищаем и буфер глубины и буфер цвета, заменяем метод теней на свет и привязываем карту теней для чтения в модуль текстур 1. Далее мы рендерим плоскость так, что бы она служила землей, на которую падает тень. Она немного увеличена, повернута на 90 градусов вокруг оси Х (потому, что изначально она вертикальная) и размещаем. Заметим как обновляется WVP полагаясь на позицию света через перемещение камеры в его позицию. Так как модель квадрата идет без текстуры, мы в ручную привязываем собственную. Меш рендерится тем же способом.
+</p>
+ 

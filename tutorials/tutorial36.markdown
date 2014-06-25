@@ -1,0 +1,261 @@
+---
+title: Урок 36 - Deferred Shading - Часть 2
+---
+<a href="http://ogldev.atspace.co.uk/www/tutorial36/tutorial36.html"><h2>Теоретическое введение</h2></a>
+<p>
+В <a href="http://ogltutor.netau.net/tutorial35.html">предыдущем уроке</a> мы рассмотрели основы deferred shading и заполнили G буфер комбинацией результатов работы геометрического прохода. Если вы запустите демо, то увидите как выглядит содержимое G буфера. Сегодня мы завершим основную реализацию deferred shading, а наша сцена будет выглядить также (ну, почти также), как и при forward rendering. К концу урока будет очевидна одна проблема, но мы ее исправим в следующей части.
+</p>
+<p>
+Теперь, когда G буфер правильно заполнен, мы хотим использовать его для вычисления света. Выражения для световых эффектор принципиально не изменились. Концепции фонового, рассеянного и ораженного света не изменились, только данные для них теперь хранятся в G буфере. Для каждого пикселя на экране мы берем сэмпл из различных текстур, а затем происходят привычные вычисления. Вопрос только один: как нам узнать какой пиксель мы обрабатываем? В forward rendering это делалось просто - VS предоставлял позицию в пространстве клипа, для этого был автоматический шаг, который переводил в простаранство экрана вершины, а затем растеризатор вызывал FS для каждого пикселя внутри треугольника. И в итоге для этих пикселей и вычислялся свет. Но теперь, после того, как завершинлся геометрический этап, мы не хотим снова использовать исходный объект. Это нарушит принцип deferred shading.
+</p>
+<p>
+Вместо этого мы смотрим на объекты с точки зрения источника света. Если у нас есть направленный свет, то все пиксели на экране будут ему подвержены. В таком случае мы можем просто нарисовать прямоугольник во весь экран. FS будет вызван для каждого пикселя и добавит привычный эффект. Для точечного света мы можем рендерить грубую модель сферы с центром в источнике света. Размер сферы будет напрямую зависить от силы света. И снова FS будет вызываться для всех пикселей внутри сферы, и мы будем использовать его для освещения. Это главное правило deferred shading - уменьшение колличества пикселей, на которые будет оказан эффект. Вместо того, что бы вычислять эффект небольшого источника света для всех объектов на сцене, мы принимаем его во внимание только вокруг небольшой его окрестности. Нам требуется только установить размер сферы так, что бы она содержала всю область, в которой свет действительно имеет эффект.
+</p>
+<p>
+Демо к этому уроку очень не большое - несколько коробок и 3 источника света. Не большая ирония в том, что колличетсво вершин в сфере больше, чем в остальной сцене. Хотя, вам следует вспомнить, что сцены в современных играх содержат сотни тысяч вершин. В данном случае не страшно добавить несколько дюжин вершин для рендера сфер вокруг каждого источника света. На следующем изображении вы можете увидеть объем света от 3 источников:
+</p>
+<img src="/images/t36_bsphere.jpg" style="border: 0px solid ; width: 1000px; height: 800px;">
+<p>
+Если мы будем запуска FS только для пикселей внутри серых участков, то мы значительно уменьшим итоговое колличество вызовов FS. Для больших сцен с тяжелой глубиной разрыв станет только увеличиваться. Остался только один вопрос: как установить размер сферы?
+</p>
+<p>
+Он должен быть достаточно большим, что бы свет резко не обрезался, но и не слишком, что бы не вычислять эффект света для пикселей, для которых он мал. Решение очевидно - использовать физику. Мы знаем, что сила света обратно пропорциональна квадрату расстояния. Так как наш FS умножает цвет света на его интенсивность (обычно от 0.0 и 1.0) и делит на затухание, то нам требуется узнать расстояние, на котором результат деления будет меньше некоторого порога. 8 бит на цвет дают 16,777,216 различных оттенков, это соответсвует стандартной цветовой схеме. Каждый канал дает 256 различных значения, так что давайте установим порог равным 1/256(достаточно близко к 0). Вот так мы находим это расстояние:
+</p>
+<img src="/images/t36_threshold.jpg">
+
+
+<a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial36"><h2>Прямиком к коду!</h2></a>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">tutorial36.cpp:138</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>virtual void RenderSceneCB()
+{	 
+	CalcFPS();		
+	m_scale += 0.05f;
+	m_pGameCamera->OnRender();
+	DSGeometryPass();
+<b>
+	BeginLightPasses();
+	DSPointLightsPass();
+	DSDirectionalLightPass();
+</b>			
+	RenderFPS();		
+	glutSwapBuffers();
+}
+</code></pre>
+<p>
+Давайте рассмотрим изменения кода сверху вниз. Не так много изменилось в главной функции рендера. Мы добавили функцию для подготовки к этапу света (BeginLightPasses()) и разделили проход на 2 функции. Первая для точечного света, а вторая для направленного (прожектор - домашнее задание).
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">tutorial36.cpp:160</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void DSGeometryPass()
+{
+	m_DSGeomPassTech.Enable();
+
+	m_gbuffer.BindForWriting();
+
+	// Only the geometry pass updates the depth buffer
+	<b>glDepthMask(GL_TRUE);</b>
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	<b>glEnable(GL_DEPTH_TEST);
+		
+	glDisable(GL_BLEND);</b>
+
+	Pipeline p;
+	p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
+	p.SetPerspectiveProj(m_persProjInfo);		
+	p.Rotate(0.0f, m_scale, 0.0f);
+	
+	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_boxPositions) ; i++) {
+		p.WorldPos(m_boxPositions[i]);
+		m_DSGeomPassTech.SetWVP(p.GetWVPTrans());
+		m_DSGeomPassTech.SetWorldMatrix(p.GetWorldTrans());
+		m_box.Render();			
+	}
+			
+	// When we get here the depth buffer is already populated and the stencil pass
+	// depends on it, but it does not write to it.
+	<b>glDepthMask(GL_FALSE);</b>
+
+	<b>glDisable(GL_DEPTH_TEST);</b>
+}
+</code></pre>
+<p>
+Вот 3 главных изменения в геометрическом проходе. Первое - использование функции glDepthMask() для запрета записи в буфер глубины где-либо кроме геометрического прохода. Нам требуется буфер глубины что бы записать в G буфер ближайшие точки. В проходе света у нас будет только 1 тексель на пиксель экрана, поэтому мы ничего не записываем в буфер глубины. Нет никакого смысла проверять глубину, если нет конкурирующих точек. Важно не забыть очистить буфер глубины перед записью, а glClear() не даст нужного эффекта, если маска глубины установлена в FALSE. Последнее изменение - отключение смешивания. Позднее мы увидим, как проход света использует смешивание для объединения нескольких источников света вместе. В геометрическом проходе это не требуется.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">tutorial36.cpp:195</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void BeginLightPasses()
+{
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+
+	m_gbuffer.BindForReading();
+	glClear(GL_COLOR_BUFFER_BIT);
+}	
+</code></pre>
+<p>
+Прежде чем мы начнет проход света, вызывем функцию выше, которая обо всем позаботится. Как уже объяснялось, нам требуется смешивание для обоих типов освещения, так как для каждого из них будет свой вызов отрисовки. В forward rendering мы складываем результат всех источников света в FS, но теперь каждый вызов FS имеет дело только с одним типом источника света. Нам требуется сложить свет вместе и смешать результат. Смешивание (Blending) - простая функция, которая принимает источник цвета (вывод из FS) и получателя (буфер кадра) и производит некоторые вычисления над ним. Смешивание часто используется для создания эффекта прозрачности, поскольку оно способно взять часть цвета из источника и получателя и смешать их вместе. В нашем случае мы устанавливаем смешивание по формуле GL_FUNC_ADD. Это значит, что GPU будет просто добавлять источник в получателя. Так как мы хотим равного сложения, то назначаем смешивание в GL_ONE и для источника, и для получателя. В результате: 1 * src + 1 * dst. Ах да, смешивание нужно предворительно разрешить...
+</p>
+<p>
+После того, как мы позаботились о смешивании мы устанавливаем G буфер на чтение и очищаем буфер цвета. Мы готовы для прохода света.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">tutorial36.cpp:206</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void DSPointLightsPass()
+{
+	m_DSPointLightPassTech.Enable();
+	m_DSPointLightPassTech.SetEyeWorldPos(m_pGameCamera->GetPos());		
+	
+	Pipeline p;
+	p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
+	p.SetPerspectiveProj(m_persProjInfo);
+	
+	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_pointLight); i++) {
+		m_DSPointLightPassTech.SetPointLight(m_pointLight[i]);
+		p.WorldPos(m_pointLight[i].Position);
+		float BSphereScale = CalcPointLightBSphere(m_pointLight[i].Color, 
+			m_pointLight[i].DiffuseIntensity);
+		p.Scale(BSphereScale, BSphereScale, BSphereScale);		
+		m_DSPointLightPassTech.SetWVP(p.GetWVPTrans());
+		m_bsphere.Render();	
+	}		
+}
+</code></pre>
+<p>
+Для точечного света мы просто рендерим сферу для каждого источника. Центр сферы установлен в позиции источника света, а функция CalcPointLightBSphere() вычисляет радиус сферы согласно параметрам источника света.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">tutorial36.cpp:271</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>float CalcPointLightBSphere(const Vector3f&amp; Color, float Intensity)
+{
+	float MaxChannel = fmax(fmax(Color.x, Color.y), Color.z);
+	float c = MaxChannel * Intensity;
+	return (8.0f * sqrtf(c) + 1.0f);
+}	
+</code></pre>
+<p>
+Эта функция вычисляет размер сферы для указанного источника света. Это прямая реализация формулы из раздела теории. Мы добавляем 1 так как соответствующая интенсивность как раз на расстоянии в 1 от источника света.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">tutorial36.cpp:227</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void DSDirectionalLightPass()	
+{
+	m_DSDirLightPassTech.Enable();
+	m_DSDirLightPassTech.SetEyeWorldPos(m_pGameCamera->GetPos());
+	Matrix4f WVP;
+	WVP.InitIdentity();		
+	m_DSDirLightPassTech.SetWVP(WVP);
+	m_quad.Render();	
+}
+</code></pre>
+<p>
+Обрабатывать направленный свет (мы поддерживаем только один такой источник света) еще проще. Нам нужен один прямоугольник для охвата всех пикселей. Модель прямоугольника идет из (-1,-1) в (1,1), поэтому матрица WVP будет единичной. Тогда вершины останутся в прежнем состоянии и после деления перспективы (perspective divide) и преобразования в пространтсво экрана, он будет иметь координаты из (0,0) в (SCREEN_WIDTH,SCREEN_HEIGHT).
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">light_pass.glsl:3</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>shader VSmain(in vec3 Position)
+{		
+	gl_Position = gWVP * vec4(Position, 1.0);
+}
+</code></pre>
+<p>
+VS элементарный. В случае направленного света матрица WVP - единичная, поэтому его координаты не изменятся. Для точечного света мы получим проекцию сферы на экран. Эти пиксели мы и хотим затемнить.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">light_pass.glsl:113</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>shader FSmainDirLight(out vec4 FragColor)
+{
+	<b>vec2 TexCoord = CalcTexCoord();</b>
+	vec3 WorldPos = texture(gPositionMap, TexCoord).xyz;
+	vec3 Color = texture(gColorMap, TexCoord).xyz;
+	vec3 Normal = texture(gNormalMap, TexCoord).xyz;
+	Normal = normalize(Normal);
+
+	FragColor = vec4(Color, 1.0) * <b>CalcDirectionalLight</b>(WorldPos, Normal);
+}
+</code></pre>
+
+
+<pre><code>shader FSmainPointLight(out vec4 FragColor)
+{
+	<b>vec2 TexCoord = CalcTexCoord();</b>
+	vec3 WorldPos = texture(gPositionMap, TexCoord).xyz;
+	vec3 Color = texture(gColorMap, TexCoord).xyz;
+	vec3 Normal = texture(gNormalMap, TexCoord).xyz;
+	Normal = normalize(Normal);
+
+	FragColor = vec4(Color, 1.0) * <b>CalcPointLight</b>(WorldPos, Normal);
+}
+</code></pre>
+<p>
+Это фрагментный шейдер для направленного и точечного света. Мы разделили функции для них, так как используется разная логика. В нашем случае это дает выигрыш в произмодительности - использование ветвлений в шейдере. Внутреннии функции для света не изменились. Мы берем сэмпл из G буфера для получения мировых координат, цвета и нормалей. В предыдущем уроке мы так же отвели место для координат текстуры в G буфере, но лучше вычислять их на лету для экономии места. Это очень просто и делается в функции ниже.
+</p>
+
+</div></article><article class="hero clearfix"><div class="col_33">
+<p class="message">light_pass.glsl:107</p>
+</div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>vec2 CalcTexCoord()
+{
+	return gl_FragCoord.xy / gScreenSize;
+}
+</code></pre>
+<p>
+Нам нужен сэмпл из G буфера соответсвующий позиции пикселя на экране. GLSL предоставляет встроенную переменную под названием gl_FragCoord, это именно то, что мы и хотели. Это вектор 4D, который содержит координаты текущего пикселя в пространтсве экрана в компонентах XY, глубина пикселя в Z и 1/W - это часть W. Нам требуется предоставить ширину и высоту экрана в FS и разделив позицию на экране на разрешение экрана, мы получим значения между 0 и 1, которые будут координатами текстуры в G буфере.
+</p>
+<pre><code>bool GBuffer::Init(unsigned int WindowWidth, unsigned int WindowHeight)
+{
+	...
+	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_textures) ; i++) {
+		...
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		...
+	}
+	...
+}
+</code></pre>
+<p>
+Нам требуются незначительные добавления в инициализации G буфера. В предыдущем уроке мы рендерели в него и затем использовали побитовое копирование в стандартный буфер кадра. Так как мы хотим использовать его для обычного сэмплинга, а отображение между пикселями экрана и G буфера 1 к 1, то мы устанавливаем тип фильтрации GL_NEAREST. Это предотвратит не нужную интерполяцию между текселями, что могло создать искажения.
+</p>
+<pre><code>void GBuffer::BindForReading()
+{
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_textures); i++) {
+		glActiveTexture(GL_TEXTURE0 + i);		
+		glBindTexture(GL_TEXTURE_2D, m_textures[GBUFFER_TEXTURE_TYPE_POSITION + i]);
+	}
+}
+</code></pre>
+<p>
+Так же нам нужно сделать некоторые изменения в том, как мы привязывали G буфер для чтения перед началом прохода света. Вместо того, что бы привязывать его к GL_READ_FRAMEBUFFER мы отсоединяем его от GL_DRAW_FRAMEBUFFER, привязав вместо него стандартный FB. Наконец, мы привязываем три текстуры в соответствующие текстурные блоки, так что мы можем брать сэмплы из них в FS.
+</p>
+<p>
+<b>Проблемы, проблемы... </b>
+У нас набор проблем с текущей реализацией deferred shading. Первая: когда камера в пространстве света, то он исчезает. Причина в том, что мы ренерим только лицевую часть сферы, а внутренняя - вырезана. Если отключить обрезание, то при смешивании свет будет усилен (так как рендерятся обе стороны) вне сферы, а внутри как обычно.
+</p>
+<p>
+Вторая проблема - сфера на самом деле не ограничивает свет, и иногда освещаются объекты, которые не должны - из за наложения в пространстве экрна.
+</p>
+<p>
+Мы решим эти проблемы в следующем уроке.
+</p>

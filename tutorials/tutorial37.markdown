@@ -1,0 +1,455 @@
+---
+title: Урок 37 - Deferred Shading - Часть 3
+---
+<a href="http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html"><h2>Теоретическое введение</h2></a>
+
+
+    <p>
+        Может показаться, что наша реализация технологии deferred shading верна, но если пригледеться, то мы можем
+        заметить ряд недостатков, перечисленных в конце прошлого урока. Во-первых, из-за обрезания задних сторон свет
+        пропадает при входе камеры в область действия источника света. Вторая проблема связанна с ограничениями области
+        действия света. Дело в том, что так как мы выбираем пиксели, для которых производить расчеты с помощью сферы
+        вокруг источника света, а сфера проецирется в пространство экрана до растеризатора, то каждый пиксель покрытый
+        сферой в пространстве экрана будет использоваться в вычислениях, даже если он очень далеко (и, скорее всего,
+        недостежим для источника света).
+    </p>
+    <p>
+        В этой ситуации нам поможет возможность OpenGL под названием <i>Stencil Buffer (буфер шаблона или буфер
+        трафарета)</i>. Stencil Buffer взаимодействует бок о бок с буферами цвета и глубины и обменивается из
+        разрешениями (для каждого пикселя в буфере цвета найдется пиксель в буфере трафарета). Тип пикселя в буфере
+        шаблона задается целым числом и обычно размера 1 байт. Stencil Buffer выполняет ту же задачу, что и трафарет
+        из бумаги в реальном мире. Трафарет обычно используется для печати букв или других элементов путем их вырезания
+        в бумаге. В OpenGL буфер шаблона используется для ограничения пикселей, для которых будет вызван фрагментный
+        шейдер.
+    </p>
+    <p>
+        Буфер трафарета присоединяется в помощью <i>Stencil Test (теста трафарета)</i>, который является функцией для
+        одного пикселя, с ней мы позномимся сталкнемся впервые. В схожей манере с тестом глубины тест трафарета может
+        быть использован для отброса пикселей до вызова пиксельного шейдера. Работает он сравнивая текущий пиксель с
+        с контрольным значением. Нам доступны несколько функций:
+    </p>
+    <ul>
+        <li>Всегда проходит</li>
+        <li>Всегда не проходит</li>
+        <li>Больше / меньше чем</li>
+        <li>Больше или равен / меньше или равен</li>
+        <li>Равен</li>
+        <li>Не равен</li>
+    </ul>
+    <p>
+        По результатам теста трафарета <b>и</b> теста глубины мы можем установить операции над записанным в трафарете
+        значением. Доступны следующие операции:
+    </p>
+    <ul>
+        <li>Сохранить значение без изменений</li>
+        <li>Заменить значение в трафарете на 0</li>
+        <li>Увеличить / уменьшить значение</li>
+        <li>Инвертировать биты в значении</li>
+    </ul>
+    <p>
+        Можно настроить различные операции для следующих случаев:
+    </p>
+    <ul>
+        <li>Тест трафарета провалился</li>
+        <li>Тест глубины провалился</li>
+        <li>Тест глубины пройдет успешно</li>
+    </ul>
+    <p>
+        Кроме того, мы можем задать различные тесты и операции трафарета для каждой стороны полигона. Например,
+        возможно задать функцию сравнения для лицевой стороны как "Меньше чем" с опорным значением 3, а для обратной
+        "Равна" 5. Аналогично и для операций трафарета.
+    </p>
+    <p>
+        В этом, в 2 словах, и состоит тест трафарета. И так, чем это нам поможет с нашими проблемами? Для начала
+        воспользуемся способностью увеличивать и уменьшать значение трафарета в зависимости от теста глубины для лицевой
+        и обратной сторон. Посмотрим на изображение:
+    </p>
+    <img src="/images/t37_light_volume.jpg">
+    <p>
+        На изображении 3 объекта: A, B и C и желтая сфера, в центре которой источник света. Сфера проецируется на
+        виртуальный экран и согласно предыдущему уроку нам требуется рендерить свет для каждого растеризованного
+        пикселя. Легко заметить, что из всей красной линии (на самом деле это прямоугольник, мы смотрим сверху)
+        вызываться фрагментный шейдер будет только для небольной части, поскольку только объект B внутри источника
+        света. И А и С вне сферы, поэтому G буфер не содержет никаких данных, так объекты не на этом пути.
+    </p>
+    <p>
+        Что бы ограничить вычисления света только для пикселей, покрытых объектом B мы будем использовать ту же
+        концепцию, что и в технологии затенения <i>Stencil Shadow Volumes</i> (подробнее будет рассмотрена в 40 уроке).
+        Наша техника основывается на следующем интересном свойстве, заметном на изображении выше: когда мы смотрим на
+        сферу с точки зрения камеры, то и лицевая и обратная сторона сферы позади объекта А, перед объектом С, и только
+        для объекта B лицевая сторона спереди и обратная сзади. Давайте расмотрим, как это можно использовать для
+        теста трафарета.
+    </p>
+    <p>
+        Алгоритм метода:
+    </p>
+    <ol>
+        <li>Как обычно рендерим объекты в G буфер, при этом буфер глубины верно заполнился.</li>
+        <li>Выключаем запись в буфер глубины, режим только-чтения.</li>
+        <li>Выключаем обрезание обратной стороны. Мы хотим, что бы растеризатор обработал обе стороны сферы.</li>
+        <li>Устанавливаем тест трафарета в "Всегда проходит". Нам важна только операция трафарета.</li>
+        <li>Для <b>обратной</b> стороны полигона значение будет <b>увеличиваться</b> если тест глубины завален и
+            оставаться не изменным, если тест трафарета или буфера успешен.</li>
+        <li>Для <b>лицевой</b> стороны полигона значение будет <b>уменьшаться</b> если тест глубины завален и
+            оставаться не изменным, если тест трафарета или буфера успешен.</li>
+        <li>Рендерим сферу света.</li>
+    </ol>
+    <p>
+        Давайте рассмотрим получаемый эффект на схеме ниже:
+    </p>
+    <img src="/images/t37_light_volume1.jpg">
+    <p>
+        На изображении исходит 3 вектора из камеры на экран, все пересекают сферу и один из объектов. Каждый вектор
+        представляет все пиксели, покрытые объектом. Так как геометрия уже рендерилась и буфер глубины заполнен, то мы
+        можем проверить результат теста глубины когда вектор прошел через передний и задний пиксели сферы и обновить
+        значения буфера трафарета как полагается. Обратная сторона увеличивает значение в трафарете, но это аннулируется
+        передним пикселем, который уменьшает значение. Для объекта С оба пикселя выиграли тест глубины и остаются без
+        изменения. Теперь рассмотрим объект B, для него 1 пиксель увеличил значение, а другой проиграл тест глубины а
+        значит не изменился. Итого, значение увеличилось на 1.
+    </p>
+    <p>
+        В этом вся суть метода. Мы рендерим геометрию в G буфер, настраиваем тест и операции трафарета согласно
+        алгоритму и рендерим сферу каждого источника света в буфер трафарета. Особенность трафарета в том, что мы
+        гарантируем, что для пикселей <b>внутри</b> сферы значение больше 0. Мы назовем этот этап <i>Stencil Pass (
+        этап трафарета)</i>, и так как нам интересен только буфер трафарета, то фрагметный шейдер мы занулим. После мы
+        снова рендерим сферу с световым пиксельным шейдером, но в этот раз мы настроим тест трафарета на проверку не
+        равенства с 0. Все пиксели вне действия света завалят тест и мы будем вычислять свет только на небольшом участке
+        пикселей, которые действительно покрыты сферой.
+    </p>
+    <p>
+        Давайте еще раз взглянем для большего числа источников света:
+    </p>
+    <img src="/images/t37_light_volume2.jpg">
+    <p>
+        Как вы видите, логика все та же (случай, когда камера внутри источника света - домашнее задание).
+    </p>
+    <p>
+        И последнее замечание о буфере трафарета - это не отдельный буфер, а часть буфера глубины. Буфер глубины может
+        быть с 24 или 32 битам, а трафарета только с 8 на пиксель.
+    </p>
+
+<a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial37"><h2>Прямиком к коду!</h2></a>
+
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:146</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>virtual void RenderSceneCB()
+{
+    CalcFPS();
+
+    m_scale += 0.05f;
+
+    m_pGameCamera-&gt;OnRender();
+
+    <b>m_gbuffer.StartFrame();</b>
+
+    DSGeometryPass();
+
+    // Для того, что бы обновился буфер трафарета нужно его активировать,
+    // так же он потребуется и в проходе света, так как свет рендерится
+    // только при успешном проходе трафарета.
+    <b>glEnable(GL_STENCIL_TEST);
+
+    for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_pointLight); i++) {
+        DSStencilPass(i);
+        DSPointLightPass(i);
+    }
+
+    // Направленному свету не требуется трафарет
+    // так как его действие не ограничено расстоянием.
+    glDisable(GL_STENCIL_TEST);</b>
+
+    DSDirectionalLightPass();
+
+    <b>DSFinalPass();</b>
+
+     RenderFPS();
+
+     glutSwapBuffers();
+}
+</code></pre>
+<p>
+    Кусок кода выше - главная функция рендера; изменения выделены жирным. Первое отличие - это вызов функции
+    StartFrame() из API класса GBuffer. GBuffer немного усложнится в этом уроке и теперь должен быть уведомлен о новом
+    кадре (изменения класса будут даны позже, пока нам достаточно знать, что мы не рендерим напрямую на экран, а в
+    промежуточный буфер, которых будет скопирован в FBO. Далее мы активируем тест трафарета, т.к. он понадобится нам для
+    2 следующих проходов. Теперь время для главного изменения - проход трафарета для каждого источника света (в
+    результате будут помечены подходящие пиксели), а затем проход для точечного источника света, для которого нужны
+    данные трафарета. Причина, по которой мы обрабатываем каждый источник по отдельности проста - иначе мы не сможем
+    понять какой именно источник света изменил значение в трафарете.
+</p>
+<p>
+    После того, как мы обработали все точечные источники света, мы отключаем тест трафарета, т.к. напрвленный свет
+    должен обрабатывать все пиксели. Последний этап - главный проход, который теперь вызывается отдельно из-за
+    усложнения класса GBuffer.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:182</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void DSGeometryPass()
+{
+    m_DSGeomPassTech.Enable();
+
+    <b>m_gbuffer.BindForGeomPass();</b>
+
+    // Только геометрический проход обновляет тест глубины
+    glDepthMask(GL_TRUE);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_DEPTH_TEST);
+
+    Pipeline p;
+    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetPerspectiveProj(m_persProjInfo);
+    p.Rotate(0.0f, m_scale, 0.0f);
+
+    for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_boxPositions) ; i++) {
+        p.WorldPos(m_boxPositions[i]);
+        m_DSGeomPassTech.SetWVP(p.GetWVPTrans());
+        m_DSGeomPassTech.SetWorldMatrix(p.GetWorldTrans());
+        m_box.Render();
+    }
+
+    // К этому моменту буфер глубины уже заполнен и, хоть проход трафарета
+    // и основывается на нем, запись не потребуется.
+    glDepthMask(GL_FALSE);
+}
+</code></pre>
+<p>
+    В геометрическом проходе присутствуют небольшие изменения. Метод GBuffer::BindForWriting() переименован в
+    GBuffer::BindForGeomPass(). Кроме того, самые внимательные из вас заметили, что больше мы не оключаем смешивание и
+    тест глубины. И тот и другой теперь используются повсюду.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:212</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void DSStencilPass(unsigned int PointLightIndex)
+{
+    m_nullTech.Enable();
+
+    // Отключаем запись цвета / глубины и включаем трафарет
+    m_gbuffer.BindForStencilPass();
+    glEnable(GL_DEPTH_TEST);
+
+         glDisable(GL_CULL_FACE);
+
+    glClear(GL_STENCIL_BUFFER_BIT);
+
+    // Нам нужен тест трафарета, но мы хотим, что бы он всегда
+    // успешно проходил. Важен только тест глубины.
+    glStencilFunc(GL_ALWAYS, 0, 0);
+
+    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR, GL_KEEP);
+    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR, GL_KEEP);
+
+    Pipeline p;
+    p.WorldPos(m_pointLight[PointLightIndex].Position);
+        float BBoxScale = CalcPointLightBSphere(m_pointLight[PointLightIndex].Color,
+                                                m_pointLight[PointLightIndex].DiffuseIntensity);
+    p.Scale(BBoxScale, BBoxScale, BBoxScale);
+         p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+         p.SetPerspectiveProj(m_persProjInfo);
+
+    m_nullTech.SetWVP(p.GetWVPTrans());
+    m_bsphere.Render();
+}
+</code></pre>
+<p>
+    Здесь вся суть урока - проход трафарета. Давайте изучим его шаг за шагом. Мы начинаем с использования нулевого
+    прохода. Он очень просто устроен. VS включает только преобразования вектора матрицей WVP, а FS вообще пустой.
+    Нам не нужен никакой фрагментный шейдер, т.к. мы не хотим обновлять буфер цвета. Важен только буфер трафарета,
+    поэтому таким образом мы ускоряем растеризатор. Мы привязываем GBuffer для этого прохода и включаем тест глубины.
+    Позже мы отключим его в проходе для точечного света, но сейчас он важен, т.к. операция трафарета его использует.
+    Далее мы отключаем обрезание сторон, т.к. мы хотим обработать и лицевую и обратную сторону каждого полигона. После
+    этого мы очищаем буфер тарфарета, а тест трафарета ставим в режим "Всегда успешен", а операцию трафарета согласно
+    теоретической части урока. Далее все как обычно - мы рендерим сферу согласно параметрам источника света. Когда мы
+    закончим буфер тарфарета будет содержать положительные числа только для пикселей объектов внутри действия света.
+    Можно переходить к расчетам освещения.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:244</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void DSPointLightPass(unsigned int PointLightIndex)
+{
+    m_gbuffer.BindForLightPass();
+
+    m_DSPointLightPassTech.Enable();
+    m_DSPointLightPassTech.SetEyeWorldPos(m_pGameCamera-&gt;GetPos());
+
+    glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+
+    Pipeline p;
+    p.WorldPos(m_pointLight[PointLightIndex].Position);
+    float BBoxScale = CalcPointLightBSphere(m_pointLight[PointLightIndex].Color,
+                                            m_pointLight[PointLightIndex].DiffuseIntensity);
+    p.Scale(BBoxScale, BBoxScale, BBoxScale);
+    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetPerspectiveProj(m_persProjInfo);
+    m_DSPointLightPassTech.SetWVP(p.GetWVPTrans());
+    m_DSPointLightPassTech.SetPointLight(m_pointLight[PointLightIndex]);
+    m_bsphere.Render();
+    glCullFace(GL_BACK);
+
+    glDisable(GL_BLEND);
+}
+</code></pre>
+<p>
+    Так же, как и другие проходы, проход света начинается с настройки G буфера (с помощью вызова
+    GBuffer::BindForLightPass()). Внутри настраивается тест трафарета, который проходит, если значение не равно 0. Затем
+    выключается тест глубины (он нам не нужен, а на некоторых GPU возможен прирост производительности) и включаем
+    смешивание. Следующий шаг очень важен - мы включаем обрезание лицевой стороны полигона. Причина, по которой мы
+    делаем это - камера может оказаться внутри действия источника света, и если мы будем обрезать обратную сторону,
+    как мы делали ранее, то мы не заметим свет, пока не покинем радиус его действия. После рендерим сферу как обычно.
+</p>
+<p>
+    Проход для направленного света практически не изменился, его рассматривать не будем.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:295</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void DSFinalPass()
+{
+    m_gbuffer.BindForFinalPass();
+    glBlitFramebuffer(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT,
+                      0, 0, WINDOW_WIDTH,
+                      WINDOW_HEIGHT, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+}
+</code></pre>
+<p>
+    В итоговом проходе мы блиттим (blit) из буфера цвета в G буфере на экран. Самое время обсудить зачем мы используем
+    промежуточный буфер цвета вместо рендера напрямую на экран. Причина в том, что наш G буфер сочетает в себе как
+    буферы для аттрибутов так и буферы глубины / трафарета. При запуске прохода точечного источника света мы настраиваем
+    буфер трафарета, а так же нам требуется использовать значения из буфера глубины. Вот тут мы и сталкиваемся с
+    проблемой - если мы захотим рендерить в FBO по-умолчанию, то не сможем получить доступ к буферу глубины из G буфера.
+    Но G буфер должен иметь свой буфер глубины, поскольку когда мы рендерим в его FBO мы не имеем доступа к буферу
+    глубины FBO по-умолчанию. Но есть решение - добавить в FBO G буфера буфер цвета, а после блиттить его в буфер цвета
+    FBO по-умолчанию. В этом суть итогового прохода.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.h:23</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>class GBuffer
+{
+    public:
+        enum GBUFFER_TEXTURE_TYPE {
+            GBUFFER_TEXTURE_TYPE_POSITION,
+            GBUFFER_TEXTURE_TYPE_DIFFUSE,
+            GBUFFER_TEXTURE_TYPE_NORMAL,
+            GBUFFER_NUM_TEXTURES
+        };
+
+        GBuffer();
+
+        ~GBuffer();
+
+        bool Init(unsigned int WindowWidth, unsigned int WindowHeight);
+
+        <b>void StartFrame();
+        void BindForGeomPass();
+        void BindForStencilPass();
+        void BindForLightPass();
+        void BindForFinalPass();</b>
+
+    private:
+        GLuint m_fbo;
+        GLuint m_textures[GBUFFER_NUM_TEXTURES];
+        GLuint m_depthTexture;
+        <b>GLuint m_finalTexture;</b>
+};
+</code></pre>
+<p>
+    Мы добавили итоговую текстуру в класс GBuffer для цвета, а также слегка перегруппировали API с прошлого урока.
+    Рассмотрим изменения.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:51</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>bool GBuffer::Init(unsigned int WindowWidth, unsigned int WindowHeight)
+{
+    ...
+    glGenTextures(1, &amp;m_finalTexture);
+    ...
+    // depth
+    glBindTexture(GL_TEXTURE_2D, m_depthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, <b>GL_DEPTH32F_STENCIL8</b>, WindowWidth, WindowHeight, 0, GL_DEPTH_COMPONENT,
+                                      GL_FLOAT, NULL);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, <b>GL_DEPTH_STENCIL_ATTACHMENT</b>, GL_TEXTURE_2D, m_depthTexture, 0);
+
+    // final
+    glBindTexture(GL_TEXTURE_2D, m_finalTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WindowWidth, WindowHeight, 0, GL_RGB, GL_FLOAT, NULL);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_finalTexture, 0);
+    ...
+}
+</code></pre>
+<p>
+    При инициализации G буфера нам требуется выделить еще 1 текстуру для итоговой текстуры. Последняя привязывается под
+    номером 4. Текстура глубины больше не создается с типом GL_DEPTH_COMPONENT32F, вместо этого используем
+    GL_DEPTH32F_STENCIL8, тем самым выделяя 1 байт на пиксель в трафарете. Этот буфер привязывается как
+    GL_DEPTH_STENCIL_ATTACHMENT вместо GL_DEPTH_COMPONENT.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:96</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void GBuffer::StartFrame()
+{
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+    glDrawBuffer(GL_COLOR_ATTACHMENT4);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+</code></pre>
+<p>
+    Перед началом кажого кадра мы должны очистить итоговую текстуру, которая привязана под номером 4.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:104</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void GBuffer::BindForGeomPass()
+{
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+
+    <b>GLenum DrawBuffers[] = { GL_COLOR_ATTACHMENT0,
+                                 GL_COLOR_ATTACHMENT1,
+                                 GL_COLOR_ATTACHMENT2 };
+
+    glDrawBuffers(ARRAY_SIZE_IN_ELEMENTS(DrawBuffers), DrawBuffers);</b>
+}
+</code></pre>
+<p>
+    До этого момента FBO в G буфере был статическим (в терминах его конфигурации) и создавался заранее, поэтому мы его
+    только привязывали для записи только в геометрическом проходе. Теперь для изменения FBO мы задаем буферы для записи
+    каждый раз.
+</p></div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:116</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void GBuffer::BindForStencilPass()
+{
+    // должны отключить буфер цвета
+    glDrawBuffer(GL_NONE);
+}
+</code></pre>
+<p>
+    Как объяснялось ранее, в тесте трафарета мы не записываем в буфер цвета, только в буфер трафарета. Даже с пустым FS.
+    Хотя, в таком случае цвет по-умолчанию черный. Что бы не захламлять итоговый буфер черным изображением сферы мы
+    полностью отключаем рисование в буфер.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:124</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void GBuffer::BindForLightPass()
+{
+    glDrawBuffer(GL_COLOR_ATTACHMENT4);
+
+    for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_textures); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, m_textures[GBUFFER_TEXTURE_TYPE_POSITION + i]);
+    }
+}
+</code></pre>
+<p>
+    Проход света очевиден. Назначаем целью итоговый буфер и привязываем аттрибуты буфера как источник.
+</p>
+</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:135</p> </div></article><article class="hero clearfix"><div class="col_100">
+<pre><code>void GBuffer::BindForFinalPass()
+{
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
+    glReadBuffer(GL_COLOR_ATTACHMENT4);
+}
+</code></pre>
+<p>
+    Когда мы дойдем до последнего прохода наш итоговый буфер заполнен финальным изображением. Здесь же мы настраиваем
+    блиттинг, который осуществляется в главном коде. FBO по-умолчанию ставим целью, а FBO G буфера - источником.
+</p>
+<p>
+    Этот урок завершает наше введение в deferred shading. Это не единственная "правильная" реализация, и вы можете
+    найти в сети альтернативы, но суть не изменится. Как и у всего в жизни есть свои плюсы и минусы. В будущем мы
+    потратим время и на опережающий (forward) и deferred рендеры и дополним их конструкции новыми возможностями.
+</p>
