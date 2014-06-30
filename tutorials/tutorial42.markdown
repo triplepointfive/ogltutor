@@ -36,7 +36,7 @@ title: Урок 42 - Percentage Closer Filtering
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial42"><h2>Прямиком к коду!</h2></a>
 
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">lighting.glsl:80</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">lighting.glsl:80</p>
 <pre><code>uniform <b>sampler2DShadow</b> gShadowMap;
 
 #define EPSILON 0.00001
@@ -89,7 +89,7 @@ float CalcShadowFactor(vec4 LightSpacePos)
     результатов и делим их на 18. Таким образом мы получаем значение между 0 и 0.5. Мы добавляем его к базовым 0.5 и
     получаем теневой коэффициент.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">shadow_map_fbo.cpp:39</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">shadow_map_fbo.cpp:39</p>
 <pre><code>bool ShadowMapFBO::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
     // Создаем FBO
@@ -136,7 +136,7 @@ float CalcShadowFactor(vec4 LightSpacePos)
     GL_EQUAL, GL_NOTEQUAL для аналогичных типов сравнения. Ну вы поняли. Также доступны GL_ALWAYS, который всегда
     возвращает 1.0 и GL_NEVER, который всегда возвращает 0.0.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial42.cpp:174</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial42.cpp:174</p>
 <pre><code>void ShadowMapPass()
 {
    glCullFace(GL_FRONT);

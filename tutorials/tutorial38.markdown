@@ -125,7 +125,7 @@ title: Урок 38 - Скелетная анимация с Assimp
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial38"><h2>Прямиком к коду!</h2></a>
 
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:77</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:77</p>
 <pre><code>bool Mesh::LoadMesh(const string&amp; Filename)
 {
     // Очищаем данные прошлого меша (если был загружен)
@@ -171,14 +171,14 @@ title: Урок 38 - Скелетная анимация с Assimp
     Это потребуется в дальнейшем. Также заметьте, что код для нахождения обратной матрицы был скопирован из Assimp в
     наш класс Matrix4f.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.h:69</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.h:69</p>
 <pre><code>struct VertexBoneData
 {
     uint IDs[NUM_BONES_PER_VEREX];
     float Weights[NUM_BONES_PER_VEREX];
 }
 </code></pre>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:109</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:109</p>
 <pre><code>bool Mesh::InitFromScene(const aiScene* pScene, const string&amp; Filename)
 {
     ...
@@ -204,7 +204,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     glVertexAttrib<b>I</b>Pointer вместо glVertexAttribPointer для привязывания ID. Причина в том, что ID - целое число,
     а не значение с плавующей точкой. Не упустите это или данные в шейдере повредятся.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:215</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:215</p>
 <pre><code>void Mesh::LoadBones(uint MeshIndex, const aiMesh* pMesh, vector<vertexbonedata>&amp; Bones)
 {
     for (uint i = 0 ; i &lt; pMesh-&gt;mNumBones ; i++) {
@@ -240,7 +240,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     вычисляется id кости. Так как id соответствует одному мешу и мы храним все меши в одном векторе, то мы добавляем
     к базовому значению id вершины текущего aiMesh id вершины из массива mWeights для получения абсолютного значения.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:31</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:31</p>
 <pre><code>void Mesh::VertexBoneData::AddBoneData(uint BoneID, float Weight)
 {
     for (uint i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(IDs) ; i++) {
@@ -260,7 +260,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     Некоторые вершины находятся под влиянием менее, чем 4 кости, но т.к. вес не существующей кости равен 0 (подробнее в
     конструкторе VertexBoneData), это значит, что мы можем использовать эти вычисления для любого кол-ва костей.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:469</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:469</p>
 <pre><code>Matrix4f Mesh::BoneTransform(float TimeInSeconds, vector&lt;Matrix4f&gt;&amp; Transforms)
 {
     Matrix4f Identity;
@@ -288,7 +288,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     матриц, которые мы должны обновить. Относительное время мы найдем внутри цикла анимации и обработки листов иерархии.
     Результат - массив преобразований, которые вернутся в место вызова.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:424</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:424</p>
 <pre><code>void Mesh::ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const Matrix4f&amp; ParentTransform)
 {
     string NodeName(pNode-&gt;mName.data);
@@ -363,7 +363,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     Заметим, что мы используем код Assimp для всего матана. Я не вижу смысла в дублировании кода из библиотеки в наш,
     лучше использовать Assimp.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:383</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:383</p>
 <pre><code>void Mesh::CalcInterpolatedRotation(aiQuaternion&amp; Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
     // для интерполирования требуется не менее 2 значений...
@@ -393,7 +393,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     код Assimp для интерполяции и нормализации результата. Аналогичные методы для позиции и масштабирования очень
     похожи и не приведены здесь.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:335</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:335</p>
 <pre><code>uint Mesh::FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
     assert(pNodeAnim-&gt;mNumRotationKeys &gt; 0);
@@ -412,7 +412,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     ключевых вращений, то результат может быть от 0 до N-2. Время анимации всегда внутри продолжительности канала,
     поэтому последний элемент (N-1) - не подходящее значение.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">skinning.glsl</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">skinning.glsl</p>
 <pre><code>struct VSInput
 {
     vec3  Position;
@@ -457,7 +457,7 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     веса. Итоговая матрица используется для преобразования позиции и нормали их пространства кости в локальное. Дальше
     все как обычно.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial38.cpp:140</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial38.cpp:140</p>
 <pre><code>float RunningTime = CalcRunningTime();
 
 m_mesh.BoneTransform(RunningTime, Transforms);

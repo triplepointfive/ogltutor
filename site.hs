@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 import Data.Monoid (mappend)
+import Control.Monad (liftM)
+import System.FilePath (takeFileName)
 import Hakyll
 
 main :: IO ()
@@ -8,23 +11,29 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
-    match "css/default.sass" $do
-        route   $ gsubRoute "css/" (const "css/") `composeRoutes` setExtension "css"
-        compile $ getResourceString
-            >>= withItemBody (unixFilter "sass" ["-s"])
-            >>= return . fmap compressCss
+    match "images/logo/*" $ do
+        route   idRoute
+        compile copyFileCompiler
 
-    match (fromList ["instr.markdown", "contact.markdown"]) $ do
+    match "css/style.sass" $do
+        route   $ gsubRoute "css/" (const "css/") `composeRoutes` setExtension "css"
+        compile $ liftM (fmap compressCss) (getResourceString >>= withItemBody (unixFilter "sass" ["-s"]))
+
+    match "css/*.css" $ do
+        route   idRoute
+        compile compressCssCompiler
+
+    match (fromList ["instr.markdown", "cont.markdown"]) $ do
         route   $ setExtension "html"
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
-    match "tutorials/*" $ do
+    match "tutorials/*2.markdown" $ do
         route $ setExtension "html"
         compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/post.html"    defaultContext
-            >>= loadAndApplyTemplate "templates/default.html" defaultContext
+            >>= loadAndApplyTemplate "templates/post.html"    postCtx
+            >>= loadAndApplyTemplate "templates/default.html" postCtx
             >>= relativizeUrls
 
     match "index.html" $ do
@@ -32,8 +41,8 @@ main = hakyll $ do
         compile $ do
             tutorials <- loadAll "tutorials/*"
             let indexCtx =
-                    listField "tutorials" defaultContext (return tutorials) `mappend`
-                    constField "title" "Home"                               `mappend`
+                    listField "tutorials" postCtx (return tutorials) `mappend`
+                    constField "title" "Home"                        `mappend`
                     defaultContext
 
             getResourceBody
@@ -42,3 +51,14 @@ main = hakyll $ do
                 >>= relativizeUrls
 
     match "templates/*" $ compile templateCompiler
+
+postCtx :: Context String
+postCtx = tutorialNumber `mappend` defaultContext
+
+tutorialNumber :: Context a
+tutorialNumber = field "number" ( getNumber . itemIdentifier )
+
+getNumber :: MonadMetadata m => Identifier -> m String
+getNumber id' = maybe invalid return $ Just $ take 2 $ drop 8 $ takeFileName $ toFilePath id'
+  where
+    invalid = fail $ "getNumber: could not number for " ++ show id'

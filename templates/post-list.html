@@ -1,7 +1,11 @@
-<ul>
+<div class="list">
     $for(tutorials)$
-        <li>
-            <a href="$url$">$title$</a>
-        </li>
+        <a href="$url$">
+            <div class="row">
+                <div class="large-2 columns preview"><img src="/images/logo/$number$.png" alt=""/></div>
+                <div class="large-10 columns"><p>$title$</p></div>
+            </div>
+        </a>
+        <hr/>
     $endfor$
-</ul>
+</div>

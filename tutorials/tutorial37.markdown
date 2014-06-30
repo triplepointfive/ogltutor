@@ -130,7 +130,7 @@ title: Урок 37 - Deferred Shading - Часть 3
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial37"><h2>Прямиком к коду!</h2></a>
 
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:146</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial37.cpp:146</p>
 <pre><code>virtual void RenderSceneCB()
 {
     CalcFPS();
@@ -181,7 +181,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     должен обрабатывать все пиксели. Последний этап - главный проход, который теперь вызывается отдельно из-за
     усложнения класса GBuffer.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:182</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial37.cpp:182</p>
 <pre><code>void DSGeometryPass()
 {
     m_DSGeomPassTech.Enable();
@@ -217,7 +217,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     GBuffer::BindForGeomPass(). Кроме того, самые внимательные из вас заметили, что больше мы не оключаем смешивание и
     тест глубины. И тот и другой теперь используются повсюду.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:212</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial37.cpp:212</p>
 <pre><code>void DSStencilPass(unsigned int PointLightIndex)
 {
     m_nullTech.Enable();
@@ -261,7 +261,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     закончим буфер тарфарета будет содержать положительные числа только для пикселей объектов внутри действия света.
     Можно переходить к расчетам освещения.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:244</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial37.cpp:244</p>
 <pre><code>void DSPointLightPass(unsigned int PointLightIndex)
 {
     m_gbuffer.BindForLightPass();
@@ -305,7 +305,7 @@ title: Урок 37 - Deferred Shading - Часть 3
 <p>
     Проход для направленного света практически не изменился, его рассматривать не будем.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial37.cpp:295</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial37.cpp:295</p>
 <pre><code>void DSFinalPass()
 {
     m_gbuffer.BindForFinalPass();
@@ -324,7 +324,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     глубины FBO по-умолчанию. Но есть решение - добавить в FBO G буфера буфер цвета, а после блиттить его в буфер цвета
     FBO по-умолчанию. В этом суть итогового прохода.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.h:23</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">gbuffer.h:23</p>
 <pre><code>class GBuffer
 {
     public:
@@ -358,7 +358,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     Мы добавили итоговую текстуру в класс GBuffer для цвета, а также слегка перегруппировали API с прошлого урока.
     Рассмотрим изменения.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:51</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">gbuffer.cpp:51</p>
 <pre><code>bool GBuffer::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
     ...
@@ -383,7 +383,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     GL_DEPTH32F_STENCIL8, тем самым выделяя 1 байт на пиксель в трафарете. Этот буфер привязывается как
     GL_DEPTH_STENCIL_ATTACHMENT вместо GL_DEPTH_COMPONENT.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:96</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">gbuffer.cpp:96</p>
 <pre><code>void GBuffer::StartFrame()
 {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
@@ -394,7 +394,7 @@ title: Урок 37 - Deferred Shading - Часть 3
 <p>
     Перед началом кажого кадра мы должны очистить итоговую текстуру, которая привязана под номером 4.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:104</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">gbuffer.cpp:104</p>
 <pre><code>void GBuffer::BindForGeomPass()
 {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
@@ -410,7 +410,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     До этого момента FBO в G буфере был статическим (в терминах его конфигурации) и создавался заранее, поэтому мы его
     только привязывали для записи только в геометрическом проходе. Теперь для изменения FBO мы задаем буферы для записи
     каждый раз.
-</p></div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:116</p> </div></article><article class="hero clearfix"><div class="col_100">
+</p><p class="message">gbuffer.cpp:116</p>
 <pre><code>void GBuffer::BindForStencilPass()
 {
     // должны отключить буфер цвета
@@ -422,7 +422,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     Хотя, в таком случае цвет по-умолчанию черный. Что бы не захламлять итоговый буфер черным изображением сферы мы
     полностью отключаем рисование в буфер.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:124</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">gbuffer.cpp:124</p>
 <pre><code>void GBuffer::BindForLightPass()
 {
     glDrawBuffer(GL_COLOR_ATTACHMENT4);
@@ -436,7 +436,7 @@ title: Урок 37 - Deferred Shading - Часть 3
 <p>
     Проход света очевиден. Назначаем целью итоговый буфер и привязываем аттрибуты буфера как источник.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">gbuffer.cpp:135</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">gbuffer.cpp:135</p>
 <pre><code>void GBuffer::BindForFinalPass()
 {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

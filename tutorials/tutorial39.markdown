@@ -73,7 +73,7 @@ title: Урок 39 - Обнаружение силуэта
 </p>
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial39"><h2>Прямиком к коду!</h2></a>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:200</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:200</p>
 <pre><code>void Mesh::FindAdjacencies(const aiMesh* paiMesh, vector&lt;unsigned int&gt;&amp; Indices)
 {
     for (uint i = 0 ; i &lt; paiMesh-&gt;mNumFaces ; i++) {
@@ -117,7 +117,7 @@ title: Урок 39 - Обнаружение силуэта
     треугольников. Это усложняет наш алгоритм смежности, нам лучше иметь одну вершину один раз. Хотя мы и создали связь
     между позицией и первым индексом, в дальнейшем мы будем исользовать только индексы.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">mesh.cpp:216</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">mesh.cpp:216</p>
 <pre><code>    for (uint i = 0 ; i &lt; paiMesh-&gt;mNumFaces ; i++) {
         const Face&amp; face = m_uniqueFaces[i];
 
@@ -150,7 +150,7 @@ title: Урок 39 - Обнаружение силуэта
     убедиться, что ничего не пропущено. Главное изменение - мы используем топологию GL_TRIANGLES_ADJACENCY вместо
     GL_TRIANGLES в вызове glDrawElementsBaseVertex(). Если забыть об этом, то GL передаст испорченные данные в GS.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">silhouette.glsl</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">silhouette.glsl</p>
 <pre><code>struct VSInput
 {
     vec3  Position;
@@ -240,7 +240,7 @@ shader GSmain(in VSOutput GSin[])
     Если смежный треугольник не освещен, то мы вызываем функцию EmitLine(), которая, очевидно, выпускает общую сторону
     между треугольником (на который падает свет) и его соседом (на который нет). FS просто задает цвет грани красным.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial39.cpp:175</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial39.cpp:175</p>
 <pre><code>void RenderScene()
 {
     // Рендерим объект как-есть

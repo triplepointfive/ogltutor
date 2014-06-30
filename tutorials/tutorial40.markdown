@@ -138,7 +138,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial40"><h2>Прямиком к коду!</h2></a>
 
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">glut_backend.cpp:80</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">glut_backend.cpp:80</p>
 <pre><code>glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH<b>|GLUT_STENCIL</b>);
 </code></pre>
 <p>
@@ -146,7 +146,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     будет создан без буфера трафарета и ничего не будет работать. Я потратил время, прежде чем осознал, что пропустил его,
     поэтому убедитесь, что добавили его.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:162</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial40.cpp:162</p>
 <pre><code>virtual void RenderSceneCB()
 {
     CalcFPS();
@@ -185,7 +185,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     попадут в фрагментный шейдер. Когда мы использовали карту теней, у нас была возможность вычислять окружающий свет
     для затемненных пикселей. Здесь у нас нет такой возможности. Поэтому мы добавили фоновый проход вне теста трафарета.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:223</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial40.cpp:223</p>
 <pre><code>void RenderSceneIntoDepth()
 {
     glDrawBuffer(GL_NONE);
@@ -216,7 +216,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     буфер глубины требуется заполнить только 1 раз, так как он общий для всех окклюдеров. Так как нам важна только
     глубина, мы используем нулевую технологию в качестве пустого FS.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:247</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial40.cpp:247</p>
 <pre><code>void RenderShadowVolIntoStencil()
 {
     glDrawBuffer(GL_NONE);
@@ -255,7 +255,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     методе) на прохождение всегда, а операции трафарета для лицевоц и обратной сторон назначаются согласно технике
     depth fail. После этого мы просто устанавливаем все, что потребуется шейдеру и рендерим окклюдер.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:278</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial40.cpp:278</p>
 <pre><code>void RenderShadowedScene()
 {
     glDrawBuffer(GL_BACK);
@@ -297,7 +297,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     только когда значение трафарета для пикселя равно нулю. Вот и все! Далее мы можем использовать стандартный шейдер
     света для рендера сцены. Только не забудьте включить запись в буфер цвета прежде чем начать...
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial40.cpp:315</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial40.cpp:315</p>
 <pre><code>void RenderAmbientLight()
 {
     glDrawBuffer(GL_BACK);
@@ -344,7 +344,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     диффузную интенсивность (так как она перекрыта тенью) и включили смешивание (для слияния результатов предыдущего
     прохода с этим). Давайте перейдем к шейдерам.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">shadow_volume.glsl:0</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">shadow_volume.glsl:0</p>
 <pre><code>struct VSInput
 {
     vec3  Position;
@@ -368,7 +368,7 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     Наш VS крайне прост - все, что нам требуется - это преобразовать позицию вершины в пространство экрана. Все остальное
     происходит в GS.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">shadow_volume.glsl:48</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">shadow_volume.glsl:48</p>
 <pre><code>shader GSmain(in VSOutput GSin[])
 {
     vec3 e1 = GSin[2].WorldPos - GSin[0].WorldPos;
@@ -445,7 +445,7 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     Для нижнего основания мы просто проецируем исходные вершины в бесконечность вдоль вектора света и задаем обратный
     порядок.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">shadow_volume.glsl:20</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">shadow_volume.glsl:20</p>
 <pre><code>uniform mat4 gVP;
 
 uniform vec3 gLightPos;
@@ -478,7 +478,7 @@ void EmitQuad(vec3 StartVertex, vec3 EndVertex)
     света и создаем линию треугольников. Заметим, что исходные вершины так же немного сдвинуты, дабы соответствовать
     основанию.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">shadow_volume.glsl:118</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">shadow_volume.glsl:118</p>
 <pre><code>program ShadowVolume
 {
     vs(420)=VSmain();
@@ -491,7 +491,7 @@ void EmitQuad(vec3 StartVertex, vec3 EndVertex)
     3 вершины для верхнего основания, 3 для нижнего и 4 для каждой стороны силуэта. Когда я работал над этим уроком, я
     случайно установил значение в 10 и получил очень странные нарушения. Не повторяйте моих ошибок...
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">glut_backend.cpp:108</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">glut_backend.cpp:108</p>
 <pre><code>void GLUTBackendRun(ICallbacks* pCallbacks)
 {
     ...

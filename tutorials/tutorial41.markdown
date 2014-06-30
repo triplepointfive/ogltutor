@@ -40,7 +40,7 @@ title: Урок 41 - Размытие (Motion Blur)
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial41"><h2>Прямиком к коду!</h2></a>
 
 
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial41.cpp:175</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial41.cpp:175</p>
 <pre><code>virtual void RenderSceneCB()
 {
     CalcFPS();
@@ -60,7 +60,7 @@ title: Урок 41 - Размытие (Motion Blur)
     Это главная функция рендера, она крайне проста. У нас имеется проход рендера для всех объектов сцены и проход
     постобработки для размытия.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial41.cpp:190</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial41.cpp:190</p>
 <pre><code>void RenderPass()
 {
     <b>m_intermediateBuffer.BindForWriting();</b>
@@ -109,7 +109,7 @@ title: Урок 41 - Размытие (Motion Blur)
     преобразований костей из предыдущего кадра. Мы поставляем его в метод скининга с текущими преобразованиями костей.
     Мы увидим, как он используется в коде GLSL.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">tutorial41.cpp:227</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">tutorial41.cpp:227</p>
 <pre><code>void MotionBlurPass()
 {
     m_intermediateBuffer.BindForReading();
@@ -126,7 +126,7 @@ title: Урок 41 - Размытие (Motion Blur)
     прямоугольник на весь экран. Каждый пиксель экрана будет обработан 1 раз и в этот момент и будет вычислен эффект
     размытия.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">skinning.glsl</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">skinning.glsl</p>
 <pre><code>struct VSInput
 {
     vec3  Position;
@@ -182,7 +182,7 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     предыдущего кадра, он будет использован для нахождения позиции текущей вершины в пространстве клиппера в предыдущем
     кадре. Эта позиция, так же, как и позиция текущей вершины в пространстве клиппера в текущем кадре, будет передана в FS.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">skinning.glsl:165</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">skinning.glsl:165</p>
 <pre><code><b>struct FSOutput
 {
     vec3 Color;
@@ -221,7 +221,7 @@ shader FSmain(in VSOutput FSin, out <b>FSOutput FSOut</b>)
 <p>
     Заметим, что вектор позиции - всего 2D вектор. Это из-за того, что он 'живет' только на экране. Соответствующий
     буфер размытия создан с типом GL_RG для соответствия.</p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">motion_blur.glsl</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">motion_blur.glsl</p>
 <pre><code>struct VSInput
 {
     vec3  Position;
@@ -243,7 +243,7 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
 <p>
     Это VS техники размытия. Мы просто передаем позицию и координаты текстуы каждой вершины полноэкранного прямоугольника.
 </p>
-</div></article><article class="hero clearfix"><div class="col_33"> <p class="message">motion_blur.glsl:19</p> </div></article><article class="hero clearfix"><div class="col_100">
+<p class="message">motion_blur.glsl:19</p>
 <pre><code>
     uniform sampler2D gColorTexture;
     uniform sampler2D gMotionTexture;
