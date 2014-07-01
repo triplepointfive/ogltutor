@@ -1,7 +1,7 @@
 ---
 title: Урок 32 - Vertex Array Objects
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial32/tutorial32.html"><h2>Теоретическое введение</h2></a>
+
 
 
 <p>

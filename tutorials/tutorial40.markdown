@@ -1,7 +1,7 @@
 ---
 title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial40/tutorial40.html"><h2>Теоретическое введение</h2></a>
+
 
 <p>
     В <a href="tutorial23.html">уроках 23 &amp; 24</a> мы изучили карту теней,

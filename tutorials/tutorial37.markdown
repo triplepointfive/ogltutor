@@ -1,7 +1,7 @@
 ---
 title: Урок 37 - Deferred Shading - Часть 3
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html"><h2>Теоретическое введение</h2></a>
+
 
 
     <p>

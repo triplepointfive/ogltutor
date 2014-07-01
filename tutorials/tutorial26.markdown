@@ -6,7 +6,7 @@ title: Урок 26 - Карта нормалей
 		Lengyel, Eric. "Computing Tangent Space Basis Vectors for an Arbitrary Mesh". 
 	Terathon Software 3D Graphics Library, 2001. <a href="http://www.terathon.com/code/tangent.html">http://www.terathon.com/code/tangent.html</a></b>
 </p>
-<a href="http://ogldev.atspace.co.uk/www/tutorial26/tutorial26.html"><h2>Теоретическое введение</h2></a>
+
 
 <p>
 Результат нашего освещения не так уж и плох. Он прекрасно интерполируется по модели и усиливает чувство реализма сцены. Хотя это можно многократно улучшить. Фактически такая интерполяция только помеха, особенно когда текстура пытается изобразить неровности поверхности, это выглядит очень плоско. Для примера взглянем на следующее изображение:

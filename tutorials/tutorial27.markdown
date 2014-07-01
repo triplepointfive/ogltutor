@@ -1,7 +1,7 @@
 ---
 title: Урок 27 - Billboarding и Геометрический шейдер
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html"><h2>Теоретическое введение</h2></a>
+
 
 
 <p>

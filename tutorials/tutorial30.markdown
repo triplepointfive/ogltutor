@@ -1,7 +1,7 @@
 ---
 title: Урок 30 - Основы Тесселяции
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial30/tutorial30.html"><h2>Теоретическое введение</h2></a>
+
 
 
 

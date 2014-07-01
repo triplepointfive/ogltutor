@@ -15,6 +15,10 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
+    match "js/*" $ do
+        route   idRoute
+        compile copyFileCompiler
+
     match "css/style.sass" $do
         route   $ gsubRoute "css/" (const "css/") `composeRoutes` setExtension "css"
         compile $ liftM (fmap compressCss) (getResourceString >>= withItemBody (unixFilter "sass" ["-s"]))
@@ -29,7 +33,7 @@ main = hakyll $ do
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
-    match "tutorials/*2.markdown" $ do
+    match "tutorials/tutorial0*.markdown" $ do
         route $ setExtension "html"
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/post.html"    postCtx

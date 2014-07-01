@@ -1,7 +1,7 @@
 ---
 title: Урок 28 - Система частиц и Transform Feedback
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial28/tutorial28.html"><h2>Теоретическое введение</h2></a>
+
 
 
 <p>

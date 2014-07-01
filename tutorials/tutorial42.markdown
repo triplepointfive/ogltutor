@@ -1,7 +1,7 @@
 ---
 title: Урок 42 - Percentage Closer Filtering
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial42/tutorial42.html"><h2>Теоретическое введение</h2></a>
+
 
 <p>
     В <a href="tutorial24.html">уроке 24</a> мы видели, как реализованы тени с помощью техники Карта Теней. Тени,

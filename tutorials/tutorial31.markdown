@@ -1,7 +1,7 @@
 ---
 title: Урок 31 - Тесселяция PN треугольников
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial31/tutorial31.html"><h2>Теоретическое введение</h2></a>
+
 
 
 <p>

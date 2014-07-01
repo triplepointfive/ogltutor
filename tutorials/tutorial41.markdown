@@ -1,7 +1,7 @@
 ---
 title: Урок 41 - Размытие (Motion Blur)
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial41/tutorial41.html"><h2>Теоретическое введение</h2></a>
+
 
 <p>
     Размытие (Motion Blur) - очень популярная техника для быстрых 3D игр, чья идея добавить размытия движущимся объектам.

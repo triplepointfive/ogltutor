@@ -1,7 +1,7 @@
 ---
 title: Урок 33 - Дублирующий рендер (Instanced Rendering)
 ---
-<a href="http://ogldev.atspace.co.uk/www/tutorial33/tutorial33.html"><h2>Теоретическое введение</h2></a>
+
 
 
 <p>
