@@ -29,10 +29,10 @@ title: Урок 25 - Скайбокс
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial25"><h2>Прямиком к коду!</h2></a>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">cubemap_texture.h:28</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class CubemapTexture
+    
+> cubemap_texture.h:28</p>
+    
+    class CubemapTexture
 {
 public:
 
@@ -55,16 +55,16 @@ private:
 	string m_fileNames[6];
 	GLuint m_textureObj;
 };
-</code></pre>
+
 <p>
 Этот класс включает в себя реализацию кубической текстуры и предоставляет простой интерфейс для ее загрузки и использования. Конструктор принимает директорию и 6 имен файлов, которые содержат стороны куба. Для удобства мы предполагаем, что все файлы лежат в одной директории. В начале нам требуется единожды вызвать функцию Load() для того, что бы загрузить все изображения и создать объект текстуры OpenGL. Свойствами класса являются имена файлов изображении (на данный момент записываются с полным путем) и указатель на объект текстуры OpenGL. Этот единый указатель дает доступ ко всем 6 граням кубической текстуры. Во время выполнения должен быть вызван Bind() с подходящим модулем текстуры для того, что бы сделать текстуру доступной для шейдера. 
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">cubemap_texture.cpp:28</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>bool CubemapTexture::Load()
+    
+> cubemap_texture.cpp:28</p>
+    
+    bool CubemapTexture::Load()
 {
 	glGenTextures(1, &m_textureObj);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureObj);
@@ -98,30 +98,30 @@ private:
 
 	return true;
 }
-</code></pre>	
+	
 <p>
 Функция, которая загружает текстуру, начинается с генерации объекта текстуры. Этот объект привязывается к специальной метке GL_TEXTURE_CUBE_MAP. После этого мы попадаем в цикл, который содержит перечисление GL, которое представляет стороны кубической текстуры (GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X и т.д). Это перечисление совпадает с вектором строк 'm_fileNames', что упрощает цикл. Файлы изображении загружаются один за другим через ImageMagick и затем указываются в OpenGL через glTexImage2D(). Заметим, что каждый вызов этой функции производится через соответствующий GL enum для этой стороны (вот почем массивы 'types' и 'm_fileNames' должны совпадать). После того, как кубическая текстура загружена и заполнена, мы устанавливаем некоторые флаги. Вы должны быть уже знакомы с ними всеми, кроме GL_TEXTURE_WRAP_R. Это перечисление просто означает использование 3-мерных координат текстуры. Для них всех мы также добавили режим сжатия.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">cubemap_texture.cpp:95</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void CubemapTexture::Bind(GLenum TextureUnit)
+    
+> cubemap_texture.cpp:95</p>
+    
+    void CubemapTexture::Bind(GLenum TextureUnit)
 {
 	glActiveTexture(TextureUnit);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureObj);
 }
-</code></pre>
+
 <p>
 Эта функция должна быть вызвана до того, как мы будем использовать текстуру для рисования скайбокса. Привязываться текстура будет к GL_TEXTURE_CUBE_MAP, мы уже использовали это значение в функции Load().
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">skybox_technique.h:25</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class SkyboxTechnique : public Technique {
+    
+> skybox_technique.h:25</p>
+    
+    class SkyboxTechnique : public Technique {
 public:
 
 	SkyboxTechnique();
@@ -136,16 +136,16 @@ private:
 	GLuint m_WVPLocation;
 	GLuint m_textureLocation;
 };
-</code></pre>
+
 <p>
 Для рендера скайбокса будет использоваться его собственный метод. Он имеет набор свойств, которые мы должны указать через вызовы - матрица WVP для преобразования куба или сферы и текстуру, которая будет накладываться. Давайте заглянем внутрь класса.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">skybox_technique.cpp:28</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>layout (location = 0) in vec3 Position;
+    
+> skybox_technique.cpp:28</p>
+    
+    layout (location = 0) in vec3 Position;
 
 uniform mat4 gWVP;
 
@@ -157,7 +157,7 @@ void main()
 	gl_Position = WVP_Pos.<b>xyww</b>;
 	TexCoord0 = Position;
 }
-</code></pre>
+
 <p>
 Это вершинный шейдер для скайбокса. Он довольно прост, но вы должны обратить внимание на некоторые трюки. Первый трюк в том, что мы преобразуем входящий вектор позиции как обычно через матрицу WVP, но затем в векторе, который будет передан в фрагментный шейдер, мы заменяем координату Z на W. После того, как завершится вершинный шейдер, растеризатор получит вектор gl_Position vector и произведет деление перспективы (деление на W) для того, что бы закончить проекцию. Когда мы установим Z в W, мы гарантируем, что итоговое значения позиции Z будет равно 1.0. Это значит, что скайбокс всегда будет проигрывать тест глубины другим моделям сцены. Так скайбокс всегда будет фоном для всего, что находится на сцене, это именно то, что мы и хотели. 
 </p>
@@ -166,10 +166,10 @@ void main()
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">skybox_technique.cpp:44</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>in vec3 TexCoord0;
+    
+> skybox_technique.cpp:44</p>
+    
+    in vec3 TexCoord0;
 
 out vec4 FragColor;
 
@@ -179,16 +179,16 @@ void main()
 {
 	FragColor = texture(gCubemapTexture, TexCoord0);
 }	
-</code></pre>
+
 <p>
 Фрагментный шейдер бесконечно прост. Все, что мы делаем, это используем 'samplerCube' вместо 'sampler2D' для получения доступа к кубической текстуры.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">skybox.h:27</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class SkyBox
+    
+> skybox.h:27</p>
+    
+    class SkyBox
 {
 public:
 	SkyBox(const Camera* pCamera, const PersProjInfo& p);
@@ -212,11 +212,11 @@ private:
 	Mesh* m_pMesh;
 	PersProjInfo m_persProjInfo;
 };
-</code></pre>
+
 <p>
 Класс скайбокса включает несколько различных элементов - метод, кубическая текстура и модель сферы или куба. Для упрощения его использования, этот класс включает все элементы, которые требуются для его правильного использования, внутри себя. Он единожды инициализируется в начале с директорией и именами файлов кубической текстуры и затем используется во время работы приложения через функцию Render(). Единственный вызов функции заботится обо всем. Заметим, что в дополнение к компонентам выше класс так же имеет доступ к камере и значениям для проекции перспективы (FOV, Z и разрешение экрана). Это нужно для правильного заполнения экземпляра класса конвейера Pipeline.
 </p>
-<pre><code>void SkyBox::Render()
+    void SkyBox::Render()
 {
 	m_pSkyboxTechnique->Enable();
 
@@ -241,7 +241,7 @@ private:
 	glCullFace(OldCullFaceMode);
 	glDepthFunc(OldDepthFuncMode);
 }	
-</code></pre>
+
 <p>
 Эта функция рендерит скайбокс. Мы начинаем с разрешения метода скайбокса. Затем мы встречаемся с новым API OpenGL - glGetIntegerv(). Эта функция возвращает значение состояния OpenGL для перечисления, указанного в первом параметре. Второй параметр - это адрес на массив типа int, который получит состояние (в нашем случае достаточно одного значения в массиве). Нам необходимо использовать соответствующую функцию Get* согласно типу состояния - glGetIntegerv(), glGetBooleanv(), glGetInteger64v(), glGetFloatv() и	glGetDoublev(). Причина использования здесь glGetIntegerv() в том, что мы собираемся изменить несколько основным состояний, которые мы установили в glut_backend.cpp для всех уроков. Мы хотим изменить состояния только для рендера в данной части кода, после чего устанавливаем старые значения обратно. Остальная часть программы ничего не узнает об изменениях.
 </p>

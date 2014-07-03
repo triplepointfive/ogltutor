@@ -12,10 +12,10 @@ title: Урок 21 - Прожектор
 <img style="width: 932px; height: 426px;" alt="" src="/images/t21_map00000.png">
 <p>Принцип очень прост - вычисляем соотношение между меньшим и большим отрезками и умножаем указанный отрезок, который вы хотите отобразить, на этот коэффициент.</p>
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial21"><h2>Прямиком к коду!</h2></a>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:68</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>struct SpotLight : public PointLight
+    
+> lighting_technique.cpp:68</p>
+    
+    struct SpotLight : public PointLight
 {
 	Vector3f Direction;
 	float Cutoff;
@@ -25,12 +25,12 @@ title: Урок 21 - Прожектор
 		Direction = Vector3f(0.0f, 0.0f, 0.0f);
 		Cutoff = 0.0f;
 	}
-};</code></pre>
+};
 <p>Структура, которая определяет прожектор, наследуется от точечного света и добавляет 2 новых параметра: вектор направления и значение отсекания. Последнее означает максимальный угол между направлением света и вектором до пикселей, которые еще попадут под влияние света. Прожектор не затрагивает другие пиксели. Мы так же добавили в класс LightingTechnique массив адресов для шейдера (не показано здесь). Он позволит получить доступ к массиву прожекторов в шейдере.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:86</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>struct SpotLight
+    
+> lighting_technique.cpp:86</p>
+    
+    struct SpotLight
 {
 	  struct PointLight Base;
 	  vec3 Direction;
@@ -39,12 +39,12 @@ title: Урок 21 - Прожектор
 ...
 uniform int gNumSpotLights;
 ...
-uniform SpotLight gSpotLights[MAX_SPOT_LIGHTS];</code></pre>
+uniform SpotLight gSpotLights[MAX_SPOT_LIGHTS];
 <p>Это аналогичная структура для прожектора в GLSL. Так как мы не можем здесь использовать наследование как в C++, мы используем структуру PointLight как член и добавлять атрибуты будем в него. Важное отличие здесь в том, что в C++ отсекание это значение угла, а в шейдере - его косинус, из-за того, что он одинаков для всех пикселей, и нет необходимости вычислять его вновь и вновь. Мы так же объявляем массив прожекторов и указываем их количество, названное 'gNumSpotLights', для того, что бы приложение могло сообщить сколько прожекторов мы используем.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:146</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>vec4 CalcPointLight(struct PointLight l, vec3 Normal)
+    
+> lighting_technique.cpp:146</p>
+    
+    vec4 CalcPointLight(struct PointLight l, vec3 Normal)
 {
 	 vec3 LightDirection = WorldPos0 - l.Position;
 	 float Distance = length(LightDirection);
@@ -56,12 +56,12 @@ uniform SpotLight gSpotLights[MAX_SPOT_LIGHTS];</code></pre>
 			      l.Atten.Exp * Distance * Distance;
 
 	 return Color / Attenuation;
-}</code></pre>
+}
 <p>Функция для точечного источника прошла через небольшое изменение - она теперь принимает экземпляр структуры PointLight в качестве параметра вместо обращения к глобальному массиву. Это упрощает взаимодействие с прожектором. Других изменений нет.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:146</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>vec4 CalcSpotLight(struct SpotLight l, vec3 Normal)
+    
+> lighting_technique.cpp:146</p>
+    
+    vec4 CalcSpotLight(struct SpotLight l, vec3 Normal)
 {
 	  vec3 LightToPixel = normalize(WorldPos0 - l.Base.Position);
 	  float SpotFactor = dot(LightToPixel, l.Direction);
@@ -73,22 +73,22 @@ uniform SpotLight gSpotLights[MAX_SPOT_LIGHTS];</code></pre>
 	  else {
 		return vec4(0,0,0,0);
 	  }
-}</code></pre>
+}
 <p>Здесь мы вычисляем эффект прожектора. Мы начинаем с взятия вектора из позиции источника света до пикселя. И как часто это бывает, мы нормируем его для того, что бы он был готов для предстоящего скалярного произведения между этим вектором и направлением света (которое уже нормировано в приложении), и получаем косинус угла между ними. Затем мы сравниваем полученное значение с коэффициентом отсекая света. Это косинус угла между направлением света и вектором, который определяет круг света. Если косинус меньше, это значит, что угол между направлением света и вектором к пикселю вне круга. В этом случае эффект от прожектора равен 0. Это ограничит прожектор малым или большим кругом, в зависимости от значения отсекания. В другом случае мы вычисляем основной цвет как если бы у нас был точечный источник. Затем мы берем результат скалярного произведения, который только что нашли ('SpotFactor'), и помещаем в формулу, описанную выше. Она даст коэффициент, который будет линейно интерполироваться от 0 до 1. Мы умножим 
 его на цвет света и получим итоговый цвет прожектора.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:169</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>	...
+    
+> lighting_technique.cpp:169</p>
+    
+    	...
   for (int i = 0 ; i &lt; gNumSpotLights ; i++) {
 	TotalLight += CalcSpotLight(gSpotLights[i], Normal);
   }
-  ...</code></pre>
+  ...
 <p>В той же манере, что и для точечного света, мы создаем цикл в главной функции, которая складывает влияние всех прожекторов в итоговый цвет пикселя.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:367</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void LightingTechnique::SetSpotLights(unsigned int NumLights, const SpotLight* pLights)
+    
+> lighting_technique.cpp:367</p>
+    
+    void LightingTechnique::SetSpotLights(unsigned int NumLights, const SpotLight* pLights)
 {
 	glUniform1i(m_numSpotLightsLocation, NumLights);
 
@@ -105,6 +105,6 @@ uniform SpotLight gSpotLights[MAX_SPOT_LIGHTS];</code></pre>
 		glUniform1f(m_spotLightsLocation[i].Atten.Linear,   pLights[i].Attenuation.Linear);
 		glUniform1f(m_spotLightsLocation[i].Atten.Exp,      pLights[i].Attenuation.Exp);
 	}
-}</code></pre>
+}
 <p>Эта функция обновляет программу шейдера массивом структур SpotLight. Это аналогично соответствующей функции для точечного света, с 2 новыми дополнениями. Вектор направления так же передается в шейдер, после нормирования. Кроме него значение отсекание поставляется как угол, но в шейдер идет его косинус (позволит сразу же сравнить результат скалярного произведения). Заметим, что функция cosf() принимает значение угла в радианах, поэтому мы используем макрос ToRadian для преобразования.</p>
  

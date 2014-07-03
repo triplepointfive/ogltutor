@@ -19,21 +19,21 @@ title: Урок 18 - Рассеянное освещение
 <img style="width: 650px; height: 300px;" alt="" src="/images/t18_vertex_normals.png">
 <p>Последнее о чем осталось беспокоиться, это координаты, в которых мы собираемся рассчитывать рассеянный свет. Вершины и их нормали указаны в пространстве локальных координат, а преобразования полностью в вершинном шейдере для обрезания пространства матрицей WVP, которая поставляется в шейдер. Хотя, указание направления света в мировом пространстве наиболее логический шаг. В конце концов, направление света - это результат некоторого источника света, который находится где-то в мире (хоть солнце и находится где-то в "мире", но все равно далеко-далеко) и проливает свет в каком-то направлении. Поэтому нам требуется преобразовать нормали в мировое пространство перед вычислениями.</p>
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial18"><h2>Прямиком к коду!</h2></a>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.h:25</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>struct DirectionalLight
+    
+> lighting_technique.h:25</p>
+    
+    struct DirectionalLight
 {
 	Vector3f Color;
 	float AmbientIntensity;
 	Vector3f Direction;
 	float DiffuseIntensity;
-};</code></pre>
+};
 <p>Это новая структура направленного света. Появились 2 новых члена: направление в виде 3 вектора, указываемое в мировом пространстве, и интенсивность как вещественное число (будет использоваться так же, как и фоновая интенсивность).</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:22</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 330
+    
+> lighting_technique.cpp:22</p>
+    
+    #version 330
 
 layout (location = 0) in vec3 Position;
 layout (location = 1) in vec2 TexCoord;
@@ -50,12 +50,12 @@ void main()
 	gl_Position = gWVP * vec4(Position, 1.0);
 	TexCoord0 = TexCoord;
 	Normal0 = (gWorld * vec4(Normal, 0.0)).xyz;
-}</code></pre>
+}
 <p>Это обновленный вершинный шейдер. У нас добавился новый атрибут вершины - нормаль, которую будет поставлять приложение. К тому же, матрица мировых преобразований будет поставляться отдельно, помимо матрицы WVP. Вершинный шейдер преобразовывает с ее помощью нормаль. Обратим внимание на то, как преобразовывается 4вектор, полученный умножением матрицы 4х4 на 4вектор, обратно в 3вектор (...).xyz. Эта возможность языка GLSL называется "мошенничеством" (swizzling) и дает великолепную гибкость в работе с векторами. Например, если у вас 3-х мерный вектор v(1,2,3), то вы можете написать: vec4 n = v.zzyy и вектор n будет содержать (3,3,2,2). Вспомним, что нам требуется увеличить нормаль до 4-х элементов, 4-й будет 0. Это сведет эффект преобразований в 4 столбце на нет. Причина в том, что вектор не может быть перемещен как точка. Он может быть только вращаться и изменяться в размерах.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:42</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 330
+    
+> lighting_technique.cpp:42</p>
+    
+    #version 330
 
 in vec2 TexCoord0;
 in vec3 Normal0;
@@ -68,22 +68,22 @@ struct DirectionalLight
 	float AmbientIntensity;
 	float DiffuseIntensity;
 	vec3 Direction;
-};</code></pre>
+};
 <p>Это начало фрагментного шейдера. Теперь он получает интерполированное значение нормали, которая была преобразована в вершинном шейдере в мировое пространство. Структура DirectionalLight была увеличена для совпадение с аналогом в коде C++ и содержит новые атрибуты света.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:60</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void main()
+    
+> lighting_technique.cpp:60</p>
+    
+    void main()
 {
 	vec4 AmbientColor = vec4(gDirectionalLight.Color, 1.0f) *
-			    gDirectionalLight.AmbientIntensity;</code></pre>
+			    gDirectionalLight.AmbientIntensity;
 <p>Никаких изменений в подсчете фонового цвета. Мы вычисляем и храним его для формулы ниже.</p>
-<pre><code>	float DiffuseFactor = dot(normalize(Normal0), -gDirectionalLight.Direction);</code></pre>    
+    	float DiffuseFactor = dot(normalize(Normal0), -gDirectionalLight.Direction);    
 <p>Это суть расчетов рассеянного света. Мы вычисляем косинус угла между вектором света и нормалью через их скалярное произведение. Здесь нужно обратить внимание на 3 момента:</p>
 <ol><li>Нормаль, полученная из вершинного шейдера, нормируется перед вычислениями. Это происходит из-за того, что вектор интерполяции может изменить свою длину и перестать быть единичным вектором.</li>
 <li>Направление света требуется обратить. Если вы задумаетесь, то поймете, что свет, который падает на поверхность под прямым углом, противоположен нормали, то есть, угол между ними 180 градусов. Обратив направление света в этом случае мы получим вектор, который эквивалентен нормали. Тогда угол между ними будет 0 градусов, чего мы и добивались.</li>
 <li>Вектор света не нормирован. Но это будет пустой тратой ресурсов GPU, если мы будем нормировать его снова и снова для каждого пикселя. Вместо этого мы будем передавать уже нормированный вектор.</li></ol>
-<pre><code>	vec4 DiffuseColor;
+    	vec4 DiffuseColor;
 
 	if (DiffuseFactor &gt; 0){
 	DiffuseColor = vec4(gDirectionalLight.Color, 1.0f) * gDirectionalLight.DiffuseIntensity * 
@@ -91,15 +91,15 @@ struct DirectionalLight
 	}
 	else{
 		DiffuseColor = vec4(0, 0, 0, 0);
-	}</code></pre>
+	}
 <p>Здесь мы вычисляем условие рассеивания, которое полагается на цвет света, рассеянную интенсивность и направление света. Если коэффициент рассеивания отрицательный или равен 0, то свет падает под тупым углом (либо "сбоку", либо "сзади"). В данном случае рассеянный свет никак не влияет на цвет, поэтому его значения будут (0,0,0,0). Если угол больше 0, мы вычисляем цвет рассеивания как произведение основного цвета света на интенсивность рассеивания и уменьшаем на коэффициент рассеивания. Если угол между светом и нормалью равен 0, то коэффициент равен 1, что даст наибольшую яркость.</p>
-<pre><code>	FragColor = texture2D(gSampler, TexCoord0.xy) * (AmbientColor + DiffuseColor);
-}</code></pre>
+    	FragColor = texture2D(gSampler, TexCoord0.xy) * (AmbientColor + DiffuseColor);
+}
 <p>Это итог расчетов света. Мы суммируем фоновый и рассеянный коэффициенты и умножаем результат на цвет, который получаем их текстуры. Теперь вы видите, что даже если рассеянный свет не падает на поверхность (зависит от направления), фоновый по прежнему будет светить, если, конечно, он есть.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:144</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void LightingTechnique::SetDirectionalLight(const DirectionalLight&amp; Light)
+    
+> lighting_technique.cpp:144</p>
+    
+    void LightingTechnique::SetDirectionalLight(const DirectionalLight&amp; Light)
 {
 	glUniform3f(m_dirLightLocation.Color, Light.Color.x, Light.Color.y, Light.Color.z);
 	glUniform1f(m_dirLightLocation.AmbientIntensity, Light.AmbientIntensity);
@@ -107,12 +107,12 @@ struct DirectionalLight
 	Direction.Normalize();
 	glUniform3f(m_dirLightLocation.Direction, Direction.x, Direction.y, Direction.z);
 	glUniform1f(m_dirLightLocation.DiffuseIntensity, Light.DiffuseIntensity);
-}</code></pre>
+}
 <p>Эта функция назначает параметры направленного света в шейдере. Она была расширена для охвата вектора направления и интенсивности рассеивания. Заметим, что вектор направления нормируется перед передачей в шейдер. Класс The LightingTechnique извлекает адреса uniform-переменных из шейдера так же, как и для матрицы. Добавилась функция для отправления матрицы мировых преобразований. Все это очень рутинно и знакомо, нет необходимости приводить код здесь. Смотрите исходники для подробностей.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:35</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>struct Vertex
+    
+> main.cpp:35</p>
+    
+    struct Vertex
 {
 	Vector3f m_pos;
 	Vector2f m_tex;
@@ -126,12 +126,12 @@ struct DirectionalLight
 		m_tex    = tex;
 		m_normal = Vector3f(0.0f, 0.0f, 0.0f);
 	}
-};</code></pre>
+};
 <p>Обновленная структура Vertex теперь включает нормали. Она автоматически инициализируется в 0 через конструктор и мы добавили функцию, которая просканирует все вершины и подсчитает нормали.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:197</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void CalcNormals(const unsigned int* pIndices, unsigned int IndexCount, Vertex* pVertices, unsigned int VertexCount)
+    
+> main.cpp:197</p>
+    
+    void CalcNormals(const unsigned int* pIndices, unsigned int IndexCount, Vertex* pVertices, unsigned int VertexCount)
 {
 	for (unsigned int i = 0 ; i &lt; IndexCount ; i += 3) {
 		unsigned int Index0 = pIndices[i];
@@ -150,12 +150,12 @@ struct DirectionalLight
 	for (unsigned int i = 0 ; i &lt; VertexCount ; i++) {
 		    pVertices[i].m_normal.Normalize();
 	}
-}</code></pre>
+}
 <p>Эта функция принимает массив индексов, получает вершины треугольников, полагаясь на них, и вычисляет нормали. В первом цикле мы только набираем нормали для каждой тройки вершин. Для каждого треугольника она вычисляется как векторное произведение двух сторон, которые получаются из вершин треугольника. Перед добавлением нормаль в массив, ее нормируем. Причина в том, что результат векторного произведения не обязательно единичный вектор. Во втором цикле мы сканируем массив вершин напрямую (больше нам не нужны индексы) и нормируем нормаль каждой вершины. Эта операция равносильна усреднению  суммы нормалей и выдает нам нормаль единичной длины. Функция вызывается до того, как создать буфер вершин, что бы буфер нормалей был создан с другими атрибутами одновременно.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:131</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>	const Matrix4f&amp; WorldTransformation = p.GetWorldTrans();
+    
+> main.cpp:131</p>
+    
+    	const Matrix4f&amp; WorldTransformation = p.GetWorldTrans();
 	m_pEffect-&gt;SetWorldMatrix(WorldTransformation);
 	...
 	glEnableVertexAttribArray(2);
@@ -163,6 +163,6 @@ struct DirectionalLight
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)20);
 	...
 	glDisableVertexAttribArray(2);
-</code></pre>
+
 <p>2 существенных изменения в цикле рендера. Класс конвейера получил новую функцию, которая предоставляет матрицу мировых преобразований (отдельно от матрицы WVP). Матрица мировых преобразований вычисляется как произведение матрицы масштабирования на вращения и, наконец, перемещения. Мы включаем и выключаем 3 атрибут вершины и указываем смещение нормалей внутри вершинного буфере. Смещение равно 20, так как перед нормалью позиция (12 байт) и координаты текстуры (8 байт).</p> 
 <p>Для завершения демо, которое мы видели на привью, мы должны указать интенсивность рассеивания и направление света. Это сделано в конструкторе класса Main. Интенсивность рассеивания равна 0 и направление слева направо. Фоновая интенсивность была уменьшена до 0, для усиления эффекта рассеянного света. Вы можете изменить параметры через кнопки 'z' и 'x' для управления интенсивностью рассеивания (аналогично 'a' и 's' из предыдущего урока для фоновой интенсивности).</p>

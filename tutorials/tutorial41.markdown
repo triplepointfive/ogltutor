@@ -40,8 +40,8 @@ title: Урок 41 - Размытие (Motion Blur)
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial41"><h2>Прямиком к коду!</h2></a>
 
 
-<p class="message">tutorial41.cpp:175</p>
-<pre><code>virtual void RenderSceneCB()
+> tutorial41.cpp:175</p>
+    virtual void RenderSceneCB()
 {
     CalcFPS();
 
@@ -55,13 +55,13 @@ title: Урок 41 - Размытие (Motion Blur)
 
     glutSwapBuffers();
 }
-</code></pre>
+
 <p>
     Это главная функция рендера, она крайне проста. У нас имеется проход рендера для всех объектов сцены и проход
     постобработки для размытия.
 </p>
-<p class="message">tutorial41.cpp:190</p>
-<pre><code>void RenderPass()
+> tutorial41.cpp:190</p>
+    void RenderPass()
 {
     <b>m_intermediateBuffer.BindForWriting();</b>
 
@@ -97,7 +97,7 @@ title: Урок 41 - Размытие (Motion Blur)
 
     <b>m_prevTransforms = Transforms;</b>
 }
-</matrix4f></code></pre>
+</matrix4f>
 <p>
     Это наш проход рендера. Он почти такой же, как и в уроке Скелетной Анимации, изменения выделены жирным. Промежуточный
     буфер (intermediate) - простой класс, который хранит буферы цвета, глубины и вектора движения в едином буфере кадра.
@@ -109,8 +109,8 @@ title: Урок 41 - Размытие (Motion Blur)
     преобразований костей из предыдущего кадра. Мы поставляем его в метод скининга с текущими преобразованиями костей.
     Мы увидим, как он используется в коде GLSL.
 </p>
-<p class="message">tutorial41.cpp:227</p>
-<pre><code>void MotionBlurPass()
+> tutorial41.cpp:227</p>
+    void MotionBlurPass()
 {
     m_intermediateBuffer.BindForReading();
 
@@ -120,14 +120,14 @@ title: Урок 41 - Размытие (Motion Blur)
 
     m_quad.Render();
 }
-</code></pre>
+
 <p>
     В проходе размытия мы привязываем промежуточный буфер для чтения (т.е. рендер будет происходить на экран) и рендерим
     прямоугольник на весь экран. Каждый пиксель экрана будет обработан 1 раз и в этот момент и будет вычислен эффект
     размытия.
 </p>
-<p class="message">skinning.glsl</p>
-<pre><code>struct VSInput
+> skinning.glsl</p>
+    struct VSInput
 {
     vec3  Position;
     vec2  TexCoord;
@@ -176,14 +176,14 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     vec4 PrevPosL      = PrevBoneTransform * vec4(VSin.Position, 1.0);
     VSout.PrevClipSpacePos = gWVP * PrevPosL;</b>
 }
-</code></pre>
+
 <p>
     Выше мы видим изменения в VS в алгоритме скиннинга. Мы добавили uniform-массив с преобразованиями костей из
     предыдущего кадра, он будет использован для нахождения позиции текущей вершины в пространстве клиппера в предыдущем
     кадре. Эта позиция, так же, как и позиция текущей вершины в пространстве клиппера в текущем кадре, будет передана в FS.
 </p>
-<p class="message">skinning.glsl:165</p>
-<pre><code><b>struct FSOutput
+> skinning.glsl:165</p>
+    <b>struct FSOutput
 {
     vec3 Color;
     vec2 MotionVector;
@@ -212,7 +212,7 @@ shader FSmain(in VSOutput FSin, out <b>FSOutput FSOut</b>)
     vec3 PrevNDCPos = (FSin.PrevClipSpacePos / FSin.PrevClipSpacePos.w).xyz;
     FSOut.MotionVector = (NDCPos - PrevNDCPos).xy;</b>
 }
-</code></pre>
+
 <p>
     FS техники скиннинга обновлен так, что теперь он выдает 2 вектора в 2 отдельных буфера (буферы цвета и вектора
     движения). Цвет вычисляется как обычно. Для вычисления вектора движения мы проецируем позиции в пространстве
@@ -221,8 +221,8 @@ shader FSmain(in VSOutput FSin, out <b>FSOutput FSOut</b>)
 <p>
     Заметим, что вектор позиции - всего 2D вектор. Это из-за того, что он 'живет' только на экране. Соответствующий
     буфер размытия создан с типом GL_RG для соответствия.</p>
-<p class="message">motion_blur.glsl</p>
-<pre><code>struct VSInput
+> motion_blur.glsl</p>
+    struct VSInput
 {
     vec3  Position;
     vec2  TexCoord;
@@ -239,12 +239,12 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     gl_Position    = vec4(VSin.Position, 1.0);
     VSout.TexCoord = VSin.TexCoord;
 }
-</code></pre>
+
 <p>
     Это VS техники размытия. Мы просто передаем позицию и координаты текстуы каждой вершины полноэкранного прямоугольника.
 </p>
-<p class="message">motion_blur.glsl:19</p>
-<pre><code>
+> motion_blur.glsl:19</p>
+    
     uniform sampler2D gColorTexture;
     uniform sampler2D gMotionTexture;
     
@@ -266,7 +266,7 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     
           FragColor = Color;
     }
-</code></pre>
+
 <p>
     Вот здесь все веселье размытия. Мы берем вектор движения из текущего пикселя и используем его для выборки 4-х
     текселей из буфера цвета. Цвет текущего пикселя взят из исходной позиции и получает наибольший вес (0.4). Далее мы

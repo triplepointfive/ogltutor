@@ -17,10 +17,10 @@ title: Урок 20 - Точечный источник света
 
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial20"><h2>Прямиком к коду!</h2></a>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.h:24</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>struct BaseLight
+    
+> lighting_technique.h:24</p>
+    
+    struct BaseLight
 {
 	Vector3f Color;
 	float AmbientIntensity;
@@ -54,18 +54,18 @@ struct PointLight : public BaseLight
 		Attenuation.Linear = 0.0f;
 		Attenuation.Exp = 0.0f;
 	}
-}</code></pre>
+}
 <p>Несмотря на различия, направленный и точечный свет по прежнему имеют много общего. Все это было перемещено в структуру BaseLight, которую наследуют оба типа света. Направленный свет добавляет еще и направление в свой класс, в то время как точечный добавил свою позицию (в мировых координатах) и три коэффициента затухания.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.h:81</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>	void SetPointLights(unsigned int NumLights, const PointLight* pLights);
-	GLuint m_numPointLightsLocation;</code></pre>
+    
+> lighting_technique.h:81</p>
+    
+    	void SetPointLights(unsigned int NumLights, const PointLight* pLights);
+	GLuint m_numPointLightsLocation;
 <p>В дополнении к реализации точечного источника, этот урок еще покажет и как использовать сразу несколько источников света. Мы допускаем, что может использоваться один источник направленного света (выступающий в роли солнца) и / или несколько точечных источников (лампочки в комнате, факелы в пещере и т.д.). Функция принимает массив структур PointLight и размер массива и обновляет соответствующие значения в шейдере.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.h:103</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>struct {
+    
+> lighting_technique.h:103</p>
+    
+    struct {
 	...
 } m_dirLightLocation;
 
@@ -80,17 +80,17 @@ struct {
 		GLuint Linear;
 		GLuint Exp;
 	} Atten;
-} m_pointLightsLocation[MAX_POINT_LIGHTS];</code></pre>
+} m_pointLightsLocation[MAX_POINT_LIGHTS];
 <p>Для поддержки нескольких источников света шейдер хранит массив структур аналогичных PointLight (только в GLSL). Есть основных способа обновить массив структур в шейдере:
 <ol><li>Вы можете получить адрес каждого поля структуры в массиве элементов (например, если массив из 5 элементов с 4 полями, то получим 20 uniform-адресов), и придется в каждый передавать значения по отдельности.</li>
 <li>Вы можете получить адреса полей только первого элемента в массиве и использовать функцию GL которая назначит массив переменных для каждого указанного поля атрибутов. Например, если первое поле вещественного типа и второе целочисленное, то вы можете задать все значения первого вещественного поля в одном вызове и для второго поля во втором.</li></ol></p>
 <p>Первый метод более расточителен с точки зрения количества uniform-адресов, которые вам потребуются, но он более гибок в использовании. Он позволяет обновить значение любой переменной во всем массиве просто получив ее адрес и не не требует преобразований данных как во втором способе.</p>
 <p>Второму методу требуется меньше управления uniform-адресами, но если вы хотите обновить сразу несколько элементов, а вы получаете массив структур (как в SetPointLights()), то вам потребуется преобразовать их в структуру массивов, так как каждому uniform-адресу потребуется обновиться на массив переменных одного типа. Когда используете массив структур, то в нем разрыв в памяти между одинаковыми полями последовательных элементов, которые требуют перемещения их в отдельный массив. В этом уроке мы воспользуемся первым способом. Вам рекомендую попробовать оба и выбрать понравившийся.</p>
 <p>MAX_POINT_LIGHTS - это константа, которая ограничивает максимальное количество точечных источников света, которые могут быть использованы и должны быть синхронизированы с их значениями в шейдере. Значение по умолчанию 3. При увеличении количества источников в вашем приложении у вас могут появиться проблемы с производительностью, которая ухудшается при увеличении количества источников света. Эта проблема может быть смягчена при использовании технологии под названием "отложенное затенение" (deferred shading), которая будет рассмотрена в будущем.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:93</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>vec4 CalcLightInternal(struct BaseLight Light, vec3 LightDirection, vec3 Normal)
+    
+> lighting_technique.cpp:93</p>
+    
+    vec4 CalcLightInternal(struct BaseLight Light, vec3 LightDirection, vec3 Normal)
 {
 	vec4 AmbientColor = vec4(Light.Color, 1.0f) * Light.AmbientIntensity;
 	float DiffuseFactor = dot(Normal, -LightDirection);
@@ -111,21 +111,21 @@ struct {
 	}
 
 	return (AmbientColor + DiffuseColor + SpecularColor);
-}</code></pre>
+}
 <p>Это не будет сюрпризом, что мы вполне можем поделить большую часть кода на направленный и точечный свет. Часть алгоритма не изменилась. Разница в том, что коэффициент затухания требуется только для точечного источника света. К тому же направление света предоставляется приложением в случае направленного света, а в случае точечного источника вычисляться для каждого пикселя.</p>
 <p>Функция выше инкапсулирует общую часть между 2 типами света. Структура BaseLight хранит интенсивность и цвет. LightDirection подается отдельно по причине выше. Вершинная нормаль так же предоставляется потому, что мы нормируем ее только при входе в фрагментный шейдер и используем во многих вызовах в этой функции.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:117</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>vec4 CalcDirectionalLight(vec3 Normal)
+    
+> lighting_technique.cpp:117</p>
+    
+    vec4 CalcDirectionalLight(vec3 Normal)
 {
 	 return CalcLightInternal(gDirectionalLight.Base, gDirectionalLight.Direction, Normal);
-}</code></pre>
+}
 <p>С помощью общей функции, функция для расчета направленного света просто становится оболочкой, принимая большую часть своих аргументов из глобальных переменных.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:122</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>vec4 CalcPointLight(int Index, vec3 Normal)
+    
+> lighting_technique.cpp:122</p>
+    
+    vec4 CalcPointLight(int Index, vec3 Normal)
 {
 	vec3 LightDirection = WorldPos0 - gPointLights[Index].Position;
 	float Distance = length(LightDirection);
@@ -137,12 +137,12 @@ struct {
 			     gPointLights[Index].Atten.Exp * Distance * Distance;
 
 	return Color / Attenuation;
-}</code></pre>
+}
 <p>Вычисления точечного источника света немного сложнее чем направленного. Эта функция будет подсчитана для каждого настроенного точечного источника света, поэтому она принимает индекс света в качестве и использует его в глобальном массиве. Она вычисляет вектор из источника света (поступает в мировом пространстве из приложения) в мировую позицию, полученную из вершинного шейдера. Расстояние из источника до пикселя находится через встроенную функцию length(). Когда дистанция найдена, мы нормируем вектор направления. Вспомним, что CalcLightInternal() ожидает уже нормированный вектор и в случае направленного света класс LightingTechnique берет заботу об этом на себя. Мы получаем обратно цвет из CalcInternalLight() и используем расстояние, которое нашли ранее, для вычисления затухания. Итоговый цвет точечного источника получается делением цвета, который только что получили, на затухание.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:136</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void main()
+    
+> lighting_technique.cpp:136</p>
+    
+    void main()
 {
 	 vec3 Normal = normalize(Normal0);
 	 vec4 TotalLight = CalcDirectionalLight(Normal);
@@ -152,12 +152,12 @@ struct {
 	 }
 
 	 FragColor = texture2D(gSampler, TexCoord0.xy) * TotalLight;
-}</code></pre>
+}
 <p>Как только мы получили все инфраструктуры, фрагментный шейдер очень упрощается. Он нормирует нормаль вершины и затем скапливает результат всех типов света вместе. Результат умножается на сэмплер и используется в качестве итогового цвета пикселя.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:279</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void LightingTechnique::SetPointLights(unsigned int NumLights, const PointLight* pLights)
+    
+> lighting_technique.cpp:279</p>
+    
+    void LightingTechnique::SetPointLights(unsigned int NumLights, const PointLight* pLights)
 {
 	 glUniform1i(m_numPointLightsLocation, NumLights);
     
@@ -170,6 +170,6 @@ struct {
 	 	     glUniform1f(m_pointLightsLocation[i].Atten.Linear, pLights[i].Attenuation.Linear);
 	 	     glUniform1f(m_pointLightsLocation[i].Atten.Exp, pLights[i].Attenuation.Exp);
 	 }
-}</code></pre>
+}
 <p>Эта функция обновляет шейдер с значениями точечных источников через перебор элементов массива и передачи каждого атрибута элемента одного за другим. В нашем списке методов передачи данных этот способ был первым.</p>
 <p>Демо к уроку показывает 3 точечных источника, гоняющихся друг за другом. Одна координата полагается на косинус, а другая на синус. Площадка легко делается из 2 треугольников. Нормаль идет строго вверх. При некоторых положениях камеры может показаться, что источники света выходят за пределы площадки, но это не так. Попробуйте объяснить эту иллюзию.</p> 

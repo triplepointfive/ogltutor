@@ -103,10 +103,10 @@ title: Урок 26 - Карта нормалей
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial26"><h2>Прямиком к коду!</h2></a>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">mesh.h:33</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>struct Vertex
+    
+> mesh.h:33</p>
+    
+    struct Vertex
 {
 	Vector3f m_pos;
 	Vector2f m_tex;
@@ -126,11 +126,11 @@ title: Урок 26 - Карта нормалей
 		<b>m_tangent = Tangent;</b>                
 	}
 };
-</code></pre>
+
 <p>
 Это наша новая структура для вершины с дополнительным вектором тангентом. Мы будем вычислять битангент в фрагментном шейдере. Заметим, что нормаль тангентного пространства идентична нормали обычного треугольника (так как текстура и треугольник параллельны). Поэтому вершинная нормаль в обоих координатных системах одинакова.
 </p>
-<pre><code>for (unsigned int i = 0 ; i &lt; Indices.size() ; i += 3) {
+    for (unsigned int i = 0 ; i &lt; Indices.size() ; i += 3) {
 	Vertex&amp; v0 = Vertices[Indices[i]];
 	Vertex&amp; v1 = Vertices[Indices[i+1]];
 	Vertex&amp; v2 = Vertices[Indices[i+2]];
@@ -163,7 +163,7 @@ title: Урок 26 - Карта нормалей
 for (unsigned int i = 0 ; i &lt; Vertices.size() ; i++) {
 	Vertices[i].m_tangent.Normalize(); 
 }
-</code></pre>
+
 <p>
 Этот участок кода реализует алгоритм вычисления вектора тангента (описан в разделе теории). Проход идет по массиву индексов и вектора треугольников извлекаются из массива вершин по их индексу. Мы вычисляем 2 стороны через вычитание первой вершины из второй и третьей. Аналогично поступаем с координатами текстуры и вычисляем разность вдоль  U и V осей на 2 сторонах. 'f' обозначает дробь, которая будет участвовать в вычислениях справа. После нахождения 'f' мы можем вычислить и тангент и битангент через умножение его на произведение 2 матриц. Заметим, что вычисления битангента находятся для полноты картины. На самом деле нам требуется только тангент, который мы передаем на 3 вершины. В конце нам требуется только пройтись по массиву вершин и нормировать тангент.
 </p>
@@ -171,10 +171,10 @@ for (unsigned int i = 0 ; i &lt; Vertices.size() ; i++) {
 Теперь, когда вы все это поняли в теории и на практике, я могу вам сообщить, что мы не будем использовать этот код в уроке. Assimp имеет флаг пост-обработки, называемый 'aiProcess_CalcTangentSpace', который для нас вычисляет именно вектор тангент (в любом случае хорошо знать реализацию, возможно потребуется ее использовать в будущих проектах). Нам только требуется указать это во время загрузки модели, и затем мы можем получить доступ к массиву 'mTangents' в классе aiMesh и взять значения тангента отсюда. Смотрите код для деталей.
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">mesh.cpp:195</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void Mesh::Render()
+    
+> mesh.cpp:195</p>
+    
+    void Mesh::Render()
 {
 	...
 	glEnableVertexAttribArray(3);
@@ -186,15 +186,15 @@ for (unsigned int i = 0 ; i &lt; Vertices.size() ; i++) {
 			...
 			glDisableVertexAttribArray(3);
 }
-</code></pre>
+
 <p>
 Так как структура вершин разрастается, нам требуется добавить несколько модификаций в функцию рендера класса Mesh. Четвертый атрибут вершины разрешен к использованию и мы указываем позицию тангента в 32 байте (стразу после нормали) от начала вершины. В конце 4-й атрибут отключается.
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:28</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>layout (location = 0) in vec3 Position;
+    
+> lighting_technique.cpp:28</p>
+    
+    layout (location = 0) in vec3 Position;
 layout (location = 1) in vec2 TexCoord;
 layout (location = 2) in vec3 Normal;
 <b>layout (location = 3) in vec3 Tangent</b>;
@@ -218,16 +218,16 @@ void main()
 		<b>    Tangent0      = (gWorld * vec4(Tangent, 0.0)).xyz</b>;
 		WorldPos0     = (gWorld * vec4(Position, 1.0)).xyz;
 }
-</code></pre>
+
 <p>
 Это обновленный вершинный шейдер. Здесь не так много нового, большая часть изменений в фрагментном шейдере. Добавился тангент, который принимается, трансформируется в мировое пространство и идет на выход.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:185</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>vec3 CalcBumpedNormal()
+    
+> lighting_technique.cpp:185</p>
+    
+    vec3 CalcBumpedNormal()
 {
 	vec3 Normal = normalize(Normal0);
 	vec3 Tangent = normalize(Tangent0);
@@ -246,7 +246,7 @@ void main()
 {
 	vec3 Normal = CalcBumpedNormal();
 	...		
-</code></pre>
+
 <p>
 Код выше содержит большую часть изменений фрагментного шейдера. Вся обработка нормалей инкапсулирована в функцию CalcBumpedNormal(). Мы начинаем с нормирования векторов нормали и тангента. Третья строка - это процесс Грама-Шмидта. dot(Tangent, Normal) дает длину проекции тангента на вектор нормали. Произведение этой длины на саму нормаль - компонент тангента вдоль нормали. Вычтем ее из тангента и получим новый вектор, который перпендикулярен к нормали. Это наш новый тангент (не забудьте его нормировать!). Векторное произведение между тангентом и нормалью дает нам битангент. Затем мы берем сэмпл из карты нормалей и получаем нормаль для этого пикселя (в пространстве тангента). 'gNormalMap' - новая uniform-переменная типа sampler2D, для которой мы заранее должны привязать карту нормалей перед вызовом отрисовки. Нормаль записана как цвет, поэтому ее компоненты в отрезке [0-1]. Мы преобразуем ее обратно через функцию 'f(x) = 2 * x - 1'. Она отображает 0 в -1 и 1 в 1, это обратно тому, что происходило при записи 
 нормали.

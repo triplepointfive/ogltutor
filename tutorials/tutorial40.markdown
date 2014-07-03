@@ -138,16 +138,16 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial40"><h2>Прямиком к коду!</h2></a>
 
-<p class="message">glut_backend.cpp:80</p>
-<pre><code>glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH<b>|GLUT_STENCIL</b>);
-</code></pre>
+> glut_backend.cpp:80</p>
+    glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH<b>|GLUT_STENCIL</b>);
+
 <p>
     Прежде чем начать работать над этим уроком, убедитесь, что вы добавили код выделенный жирным. Без него буфер кадра
     будет создан без буфера трафарета и ничего не будет работать. Я потратил время, прежде чем осознал, что пропустил его,
     поэтому убедитесь, что добавили его.
 </p>
-<p class="message">tutorial40.cpp:162</p>
-<pre><code>virtual void RenderSceneCB()
+> tutorial40.cpp:162</p>
+    virtual void RenderSceneCB()
 {
     CalcFPS();
 
@@ -173,7 +173,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
     glutSwapBuffers();
 }
-</code></pre>
+
 <p>
     Главная функция рендера вызывает 3 этапа алгоритма. В первом мы рендерим всю сцену в буфер глубины (не трогая буфер
     цвета). Затем мы рендерим теневой объем в буфер трафарета, настройка теста трафарета уже объяснена в разделе теории.
@@ -185,8 +185,8 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     попадут в фрагментный шейдер. Когда мы использовали карту теней, у нас была возможность вычислять окружающий свет
     для затемненных пикселей. Здесь у нас нет такой возможности. Поэтому мы добавили фоновый проход вне теста трафарета.
 </p>
-<p class="message">tutorial40.cpp:223</p>
-<pre><code>void RenderSceneIntoDepth()
+> tutorial40.cpp:223</p>
+    void RenderSceneIntoDepth()
 {
     glDrawBuffer(GL_NONE);
     glDepthMask(GL_TRUE);
@@ -209,15 +209,15 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     m_nullTech.SetWVP(p.GetWVPTrans());
     m_quad.Render();
 }
-</code></pre>
+
 <p>
     Здесь мы рендерим всю сцену в буфер глубины, при этом отключив запись в буфер цвета. Этот шаг важен, поскольку когда
     вы будете иметь несколько окклюдеров на сцене, то их потребуется рендерить один за другим в буфер трафарета, но
     буфер глубины требуется заполнить только 1 раз, так как он общий для всех окклюдеров. Так как нам важна только
     глубина, мы используем нулевую технологию в качестве пустого FS.
 </p>
-<p class="message">tutorial40.cpp:247</p>
-<pre><code>void RenderShadowVolIntoStencil()
+> tutorial40.cpp:247</p>
+    void RenderShadowVolIntoStencil()
 {
     glDrawBuffer(GL_NONE);
     glDepthMask(GL_FALSE);
@@ -246,7 +246,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
     glEnable(GL_CULL_FACE);
 }
-</code></pre>
+
 <p>
     Вот где все самое интересное. Мы используем специальную технику, которая основывается на методе обнаружения силуэта
     из предыдущего урока. Она создает объем (и его основания) из силуэта окклюдера. Для начала мы отключаем запись в
@@ -255,8 +255,8 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     методе) на прохождение всегда, а операции трафарета для лицевоц и обратной сторон назначаются согласно технике
     depth fail. После этого мы просто устанавливаем все, что потребуется шейдеру и рендерим окклюдер.
 </p>
-<p class="message">tutorial40.cpp:278</p>
-<pre><code>void RenderShadowedScene()
+> tutorial40.cpp:278</p>
+    void RenderShadowedScene()
 {
     glDrawBuffer(GL_BACK);
 
@@ -291,14 +291,14 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
     m_quad.Render();
 }
-</code></pre>
+
 <p>
     Теперь мы можем установить обновленный буфер трафарета на использование. Согласно алгоритму мы настраиваем рендер
     только когда значение трафарета для пикселя равно нулю. Вот и все! Далее мы можем использовать стандартный шейдер
     света для рендера сцены. Только не забудьте включить запись в буфер цвета прежде чем начать...
 </p>
-<p class="message">tutorial40.cpp:315</p>
-<pre><code>void RenderAmbientLight()
+> tutorial40.cpp:315</p>
+    void RenderAmbientLight()
 {
     glDrawBuffer(GL_BACK);
     glDepthMask(GL_TRUE);
@@ -336,7 +336,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
     glDisable(GL_BLEND);
 }
-</code></pre>
+
 <p>
     Фоновый проход поможет нам избежать полностью черных пикселей, которые были отброшенны тестом трафарета. В реальной
     жизни мы обычно не видим таких глубоких теней, поэтому мы добавим немного фонового света для всех пикселей. Для
@@ -344,8 +344,8 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     диффузную интенсивность (так как она перекрыта тенью) и включили смешивание (для слияния результатов предыдущего
     прохода с этим). Давайте перейдем к шейдерам.
 </p>
-<p class="message">shadow_volume.glsl:0</p>
-<pre><code>struct VSInput
+> shadow_volume.glsl:0</p>
+    struct VSInput
 {
     vec3  Position;
     vec2  TexCoord;
@@ -363,13 +363,13 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
 {
     VSout.WorldPos = (gWorld * vec4(VSin.Position, 1.0)).xyz;
 }
-</code></pre>
+
 <p>
     Наш VS крайне прост - все, что нам требуется - это преобразовать позицию вершины в пространство экрана. Все остальное
     происходит в GS.
 </p>
-<p class="message">shadow_volume.glsl:48</p>
-<pre><code>shader GSmain(in VSOutput GSin[])
+> shadow_volume.glsl:48</p>
+    shader GSmain(in VSOutput GSin[])
 {
     vec3 e1 = GSin[2].WorldPos - GSin[0].WorldPos;
     vec3 e2 = GSin[4].WorldPos - GSin[0].WorldPos;
@@ -432,7 +432,7 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
         EndPrimitive();
     }
 }
-</code></pre>
+
 <p>
     GS начинается так же, как и шейдер для силуэта, нам интересны только освещенные треугольники. Когда мы обнаружим
     стороны силуэта, мы продлеваем трапецию из нее до бесконечности (это ниже). Вспомните, что индексы вершин исходного
@@ -445,8 +445,8 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     Для нижнего основания мы просто проецируем исходные вершины в бесконечность вдоль вектора света и задаем обратный
     порядок.
 </p>
-<p class="message">shadow_volume.glsl:20</p>
-<pre><code>uniform mat4 gVP;
+> shadow_volume.glsl:20</p>
+    uniform mat4 gVP;
 
 uniform vec3 gLightPos;
 
@@ -472,33 +472,33 @@ void EmitQuad(vec3 StartVertex, vec3 EndVertex)
 
     EndPrimitive();
 }
-</code></pre>
+
 <p>
     Для того, что бы пустить трапецию из стороны мы проецируем обе вершины в бесконечность вдоль направления вектора
     света и создаем линию треугольников. Заметим, что исходные вершины так же немного сдвинуты, дабы соответствовать
     основанию.
 </p>
-<p class="message">shadow_volume.glsl:118</p>
-<pre><code>program ShadowVolume
+> shadow_volume.glsl:118</p>
+    program ShadowVolume
 {
     vs(420)=VSmain();
     gs(420)=GSmain() : in(triangles_adjacency), out(triangle_strip, <b>max_vertices = 18</b>);
     fs(420)=FSmain();
 };
-</code></pre>
+
 <p>
     Вот как мы задаем теневой объем в файле GLFX. Очень важно правильно установить максимум вершин для GS. У нас имеется
     3 вершины для верхнего основания, 3 для нижнего и 4 для каждой стороны силуэта. Когда я работал над этим уроком, я
     случайно установил значение в 10 и получил очень странные нарушения. Не повторяйте моих ошибок...
 </p>
-<p class="message">glut_backend.cpp:108</p>
-<pre><code>void GLUTBackendRun(ICallbacks* pCallbacks)
+> glut_backend.cpp:108</p>
+    void GLUTBackendRun(ICallbacks* pCallbacks)
 {
     ...
         glEnable(GL_DEPTH_CLAMP);
     ...
 }
-</code></pre>
+
 <p>
     Последнее, но тем не менее важное замечание - мы включаем сжатие глубины (depth clamp). Это значит, что хотя дальнее
     основание продлено до бесконечности, результат не будет обрезан, а останется на плоскости клиппера. Без этого мы

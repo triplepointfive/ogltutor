@@ -35,10 +35,10 @@ title: Урок 29 - 3D Выбор
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial29"><h2>Прямиком к коду!</h2></a>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">picking_texture.h:23</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class PickingTexture
+    
+> picking_texture.h:23</p>
+    
+    class PickingTexture
 {
 public:
 	PickingTexture();
@@ -71,16 +71,16 @@ private:
 	GLuint m_pickingTexture;
 	GLuint m_depthTexture;
 };
-</code></pre>
+
 <p>
 Класс PickingTexture представляет FBO, в который мы будем рендерить примитивы. Он инкапсулирует указатель на объект буфера кадров, объект текстуры для записи индексов и объект текстуры для буфера глубины. Он инициализируется с теми же параметрами, что и у нашего главного окна, и представляет 3 функции. EnableWriting() должна быть вызвана вначале фазы выбора. Затем мы рендерим все требуемый объекты. В конце мы вызываем DisableWriting() для возврата к стандартному буферу кадра. Для чтения обратно индекса пикселя мы вызываем ReadPixel() и его экранными координатами. Эта функция возвращает структуру с тремя индексами (или индивидуальными номерами (ID)), которые были разобраны в разделе теории. Если мышь кликнула мимо всех объектов, то все поля PrimID структуры PixelInfo будут содержать 0xFFFFFFFF. 
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">picking_texture.cpp:48</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>bool PickingTexture::Init(unsigned int WindowWidth, unsigned int WindowHeight)
+    
+> picking_texture.cpp:48</p>
+    
+    bool PickingTexture::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
 	// Создание FBO
 	glGenFramebuffers(1, &amp;m_fbo);    
@@ -116,7 +116,7 @@ private:
 
 	return GLCheckError();
 }	
-</code></pre>
+
 <p>
 Код выше иницализирует класс PickingTexture. Мы создаем FBO и привязываем его к метке GL_DRAW_FRAMEBUFFER (так как мы собираемся рисовать в него). Затем мы генерируем 2 объекта текстуры (для информации о пикселе и глубине). Заметим, что внутренний формат текстуры, которая будет содержать информацию о пикселе, - GL_RGB32UI. Это означает, что каждый пиксель - вектор из 3-х беззнаковых целочисленных переменных. Этот выбор позволяет нам дойти до 4-х миллиардов объектов, вызовов отрисовки и примитивов (должно хватить большинству сцен...). Кроме того, не смотря на то, что мы инициализируем эту текстуру без данных (последний параметр glTexImage2D - NULL), нам по-прежнему требуется указать соответствующий формат и тип (7-й и 8-й параметры). Формат и тип, который соответствуют GL_RGB32UI - GL_RGB_INTEGER и GL_UNSIGNED_INT. Наконец, мы привязываем эту текстуру к метке GL_COLOR_ATTACHMENT0 у FBO. Так мы обозначаем куда будут выходить данные из фрагментного шейдера.
 </p>
@@ -125,31 +125,31 @@ private:
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">picking_texture.cpp:82</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void PickingTexture::EnableWriting()
+    
+> picking_texture.cpp:82</p>
+    
+    void PickingTexture::EnableWriting()
 {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
 }
-</code></pre>
+
 <p>
 Прежде чем мы начнем рендерить в текстуру выбора, нам требуется включить ее для записи. Это означает привязать FBO к GL_DRAW_FRAMEBUFFER.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">picking_texture.cpp:88</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void PickingTexture::DisableWriting()
+    
+> picking_texture.cpp:88</p>
+    
+    void PickingTexture::DisableWriting()
 {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
-</code></pre>
+
 <p>
 После того, как мы завершим рендерить в текстуру выбора, мы сообщаем OpenGL, что начиная с этого момента мы хотим рендерить в стандартный буфер кадра, передав 0 в метку GL_DRAW_FRAMEBUFFER.
 </p>
-<pre><code>PickingTexture::PixelInfo PickingTexture::ReadPixel(unsigned int x, unsigned int y)
+    PickingTexture::PixelInfo PickingTexture::ReadPixel(unsigned int x, unsigned int y)
 {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -162,16 +162,16 @@ private:
     
 	return Pixel;
 }
-</code></pre>
+
 <p>
 Эта функция принимает координаты на экране и возвращает соответствующий тексель из текстуры выбора. Этот тексель является 3-вектором 32-битной целочисленной переменной, которая содержится в структуре PixelInfo. Для чтения из FBO мы должны сначало привязать его к метке GL_READ_FRAMEBUFFER. Затем нам требуется указать из какого буфера считывать через функцию glReadBuffer(). Причина в том, что FBO может содержать несколько буферов цвета (в которые FS может рендерить по-отдельности), но мы можем только считывать из одного буфера в один момент. Функция glReadPixels и производит соответсвующее чтение. Она принимает прямоугольник, который указывается через левый нижний угол (первая пара параметров) и его ширину / высоту (вторая пара) и считавает результат в адрес, который передан последним параметром. Прямоугольник в нашем случае размером с один тексель. Нам так же требуется сообщить этой функции формат и тип данных из-за того, для некоторых внутренних форматов (таких как знаковая / беззнаковая фиксированная точка) функция способна перевести внутренний формат в другой. В нашем случае мы хотим получить не обработанные данные, поэтому и используем GL_RGB_INTEGER как формат и GL_UNSIGNED_INT как тип. После того, как мы завершили, нам требуется сбросить буфер для чтения и буфер кадра.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">picking_technique.cpp:22</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 410
+    
+> picking_technique.cpp:22</p>
+    
+    #version 410
 
 layout (location = 0) in vec3 Position;
 
@@ -181,16 +181,16 @@ void main()
 {
 	gl_Position = gWVP * vec4(Position, 1.0);
 }	
-</code></pre>
+
 <p>
 Это VS класса PickingTechnique. Этот метод отвечает за рендер пикселя в объект PickingTexture. Как вы видите, он очень прост, так как нам требуется только преобразовать позицию вершины.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">picking_technique.cpp:35</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 410
+    
+> picking_technique.cpp:35</p>
+    
+    #version 410
 
 #extension GL_EXT_gpu_shader4 : enable 
 
@@ -203,7 +203,7 @@ void main()
 {
 	FragColor = uvec3(gObjectIndex, gDrawIndex, gl_PrimitiveID + 1);
 }
-</code></pre>
+
 <p>
 FS класса PickingTechnique записывает информацию о пикселе в текстуру выбора. Индекс объекта и индекс отрисовки совпадает для всех пикселей (в одном вызове), поэтому они поступают из uniform-переменных. Для того, что бы получить индекс примитива мы используем встроенную переменную gl_PrimitiveID. Это индекс примитива, который автоматически поступает из системы. Заметим, что расширение GL_EXT_gpu_shader4 должно быть включено в начале шейдера для его использования. gl_PrimitiveID может быть использована только для GS PS. Если GS включен, и FS хочет использовать gl_PrimitiveID, то GS должен записывать gl_PrimitiveID в одну из выходных переменных, и FS должен объявить ее с аналогичным именем на вход. В нашем случае GS отсутствует, поэтому мы можем просто использовать gl_PrimitiveID.
 </p>
@@ -212,24 +212,24 @@ FS класса PickingTechnique записывает информацию о п
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">render_callbacks.h:21</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class IRenderCallbacks
+    
+> render_callbacks.h:21</p>
+    
+    class IRenderCallbacks
 {
 public:
 	virtual void DrawStartCB(unsigned int DrawIndex) = 0;
 };
-</code></pre>
+
 <p>
 Метод выбора требует от приложения обновлять индекс отрисовки перед каждым ее вызовом. Это создает проблему, поскольку текущий класс меша (в случае меша с несколькими VB) внутри проходит по буферам и посылает отдельные вызовы отрисовки для комбинации IB/VB. Это не дает нам шанса для обновления индекса отрисовки. Решение, которое мы применим здесь, это интерфейс выше. Класс PickingTechnique происходит от него и наследует методы выше. Функция Mesh::Render() теперь принимает указатель на этот интерфейс и вызывает только функцию в нем перед началом новой отрисовки. Это обеспечивает прекрасное разделение между классом Mesh и любым методом, который хочет получить обратный вызов перед отрисовкой.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">mesh.cpp:201</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void Mesh::Render(<b>IRenderCallbacks* pRenderCallbacks</b>)
+    
+> mesh.cpp:201</p>
+    
+    void Mesh::Render(<b>IRenderCallbacks* pRenderCallbacks</b>)
 {
 	...
 		
@@ -246,29 +246,29 @@ public:
 
 	...
 }
-</code></pre>
+
 <p>
 Код выше показывает часть обновленной функции Mesh::Render() с выделеным жирным новым кодом. Если мы не заинтересованны в обратном вызове для каждой отрисовки, мы просто передаем NULL как аргумент функции.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">picking_technique.cpp:93</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void PickingTechnique::DrawStartCB(unsigned int DrawIndex)
+    
+> picking_technique.cpp:93</p>
+    
+    void PickingTechnique::DrawStartCB(unsigned int DrawIndex)
 {
 	glUniform1ui(m_drawIndexLocation, DrawIndex);
 }	
-</code></pre>
+
 <p>
 Это реализация IRenderCallbacks::DrawStartCB() от класса PickingTechnique. Функция Mesh::Render() предоставляет индекс отрисовки, который передается как uniform-переменная. Заметим, что PickingTechnique так же имеет функцию для установки индекса объекта, но она вызывается напрямую главным приложением без механизма выше.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">tutorial29.cpp:107</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>virtual void RenderSceneCB()
+    
+> tutorial29.cpp:107</p>
+    
+    virtual void RenderSceneCB()
 {
 	m_pGameCamera-&gt;OnRender();        
 
@@ -277,16 +277,16 @@ public:
            
 	glutSwapBuffers();
 }
-</code></pre>
+
 <p>
 Это главная функция рендера. Функционал был разделен на 2 центральных фазы, одна для отрисовки в текстуру выбора, и другая для рендера объектов и обработки щелчка мыши.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">tutorial29.cpp:118</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void PickingPhase()
+    
+> tutorial29.cpp:118</p>
+    
+    void PickingPhase()
 {
 	Pipeline p;
 	p.Scale(0.1f, 0.1f, 0.1f);
@@ -308,16 +308,16 @@ public:
     
 	m_pickingTexture.DisableWriting();        
 }
-</code></pre>	
+	
 <p>
 Фаза выбора начинается с установки объектов Pipeline стандартным способом. Затем мы включаем текстуру выбора для записи и очищаем буферы цвета и глубины. glClear() работает с текущим буфером кадра - в нашем случае текстура выбора. Массив 'm_worldPos' содержит мировые координаты двух объектов, которые рендерятся в демо (оба используют один и тот же меш для простоты). Мы проходим по массиву, устанавливаем позицию в конвейер одну за другой и рендерем объект. Для каждой итерации мы так же обновляем индекс объекта внутри метода выбора. Заметим как функция Mesh::Render() принимает адрес объекта метода выбора в качестве параметра. Это позволяет попасть обратно в метод перед каждым вызовом отрисовки. Прежде чем выйти мы отключаем запись в текстуру выбора, которая записана в стандартный буфер.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">tutorial29.cpp:118</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void RenderPhase()
+    
+> tutorial29.cpp:118</p>
+    
+    void RenderPhase()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -352,16 +352,16 @@ public:
 	tm_pMesh-&gt;Render(NULL);
 	}        
 }
-</code></pre>
+
 <p>
 После фазы выбора идет фаза рендера. Мы настраиваем конвейер так же как и раньше. Затем идет проверка был ли щелчек мыши. Если был, мы используем PickingTexture::ReadPixel() для захвата информации о пиксели. Так как FS увеличивает ID примитива, то у всех фоновых пикселей ID = 0, а у покрытых от 1 и далее. Если пикслель покрыт объектом, мы включаем очень простой метод, который просто возвращает красный цвет из FS. Мы обновляем объект Pipeline с мировой позицией выбраного объекта используя информацию о пикселе. Мы используем новую функцию рендера класса Mesh, которая принимает ID примитива и требует красный примитив (заметим, что мы должны уменьшать ID примитива, так как у класса Mesh отсчет идет от 0). Наконец мы рендерим примитивы как обычно.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">glut_backend.cpp:60</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>static void MouseCB(int Button, int State, int x, int y)
+    
+> glut_backend.cpp:60</p>
+    
+    static void MouseCB(int Button, int State, int x, int y)
 {
 	s_pCallbacks-&gt;MouseCB(Button, State, x, y);
 }
@@ -372,7 +372,7 @@ static void InitCallbacks()
 			...
 	glutMouseFunc(MouseCB);
 }
-</code></pre>	
+	
 <p>
 Этот урок запрашивает у приложения отслеживать клики мыши. Функция glutMouseFunc() занимается этим. Для нее добавилась дополнительная функция обратного вызова в интерфейс ICallbacks (который наследует класс главного приложения). Вы можеье использовать перечисления такие как GLUT_LEFT_BUTTON, GLUT_MIDDLE_BUTTON и GLUT_RIGHT_BUTTON для обработки нажатой кнопки (первый аргумент MouseCB()). Параметр 'State' сообщает была ли клавиша нажата (GLUT_DOWN) или отпущена (GLUT_UP).
 </p>

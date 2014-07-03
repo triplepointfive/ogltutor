@@ -23,10 +23,10 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
 
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial33"><h2>Прямиком к коду!</h2></a>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">mesh.h:50</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class Mesh
+    
+> mesh.h:50</p>
+    
+    class Mesh
 {
 public:
 	...
@@ -44,16 +44,16 @@ private:
 	GLuint m_VAO;
 	<b>GLuint m_Buffers[6];</b>
 ...
-</code></pre>
+
 <p>
 Это изменения в классе меша. Функция Render() теперь принимает 2 массива, которые содержат матрицы WVP и мировую для всех образцов и NumInstances - количество матриц в каждом массиве. Мы так же добавили 2 VBs для их хранения.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">mesh.cpp:91</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>bool Mesh::InitFromScene(const aiScene* pScene, const string&amp; Filename)
+    
+> mesh.cpp:91</p>
+    
+    bool Mesh::InitFromScene(const aiScene* pScene, const string&amp; Filename)
 {  
 		...
 	// Generate and populate the buffers with vertex attributes and the indices
@@ -99,7 +99,7 @@ private:
     
 	return GLCheckError();
 }
-</code></pre>
+
 <p>
 Код выше создает и заполняет различные VBs меша данными вершин. Была добавлена выделенная жирным часть, которая показывает, как заставить VBs хранить дублирующиеся данные. Мы начинаем, как обычно, с привязывания буфера матриц WVP. Так как матрица WVP - 4x4 и мы планируем передавать ее как входящую переменную в VS, то мы не можем использовать только один вершинный атрибут для нее, поскольку вершинные атрибуты могут содержать не более 4-х вещественных и целых чисел. Поэтому у нас используется цикл, который включает и настраивает 4 последовательных вершинных атрибута. Каждый атрибут будет содержать один вектор из матрицы. Затем мы настраиваем атрибуты. Каждый из 4-х состоит из 4-ки вещественных чисел, и расстояние между атрибутами соседних матриц равно размеру матрицы 4x4. Кроме того, мы не хотим, что бы OpenGL нормировал входящие данные. Это объяснения для 2-5 параметров glVertexAttribPointer(). Последний параметр - смещение атрибута внутри экземпляра данных. Первый вектор имеет смещение 0, второй - 16 и т.д.
 </p>
@@ -111,10 +111,10 @@ private:
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">mesh.cpp:253</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void Mesh::Render(<b>unsigned int NumInstances, const Matrix4f* WVPMats, const Matrix4f* WorldMats</b>)
+    
+> mesh.cpp:253</p>
+    
+    void Mesh::Render(<b>unsigned int NumInstances, const Matrix4f* WVPMats, const Matrix4f* WorldMats</b>)
 {        
 	<b>glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WVP_MAT_VB]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Matrix4f) * NumInstances, WVPMats, GL_DYNAMIC_DRAW);
@@ -145,7 +145,7 @@ private:
 	// Убедимся, что VAO не изменится из вне
 	glBindVertexArray(0);
 }
-</code></pre>
+
 <p>
 Это обновленная функция Render() класса Mesh. Она теперь принимает 2 массива матриц - матрицы WVP и мировых преобразований (NumInstances - это размер обоих массивов). До привязывания нашего VAO (подробнее об этом в предыдущем уроке) мы привязываем и загружаем матрицы в соответствующие им буферы вершин. Мы вызываем glDrawElements<b>Instanced</b>BaseVertex вместо glDrawElementsBaseVertex. Единственное изменение в этой функции в том, что она принимает количество образцов пятым параметром. Это означает, что одинаковые индексы (согласно другим параметрам) будут отрисовываться опять и опять - всего NumInstances раз. OpenGL будет получать данные для каждой вершины из VBs, чей делитель равен 0 (по старому). Он будет получать новые данные из VBs, чей делитель - 1 только после того, как весь образец будет отрисован. Общий алгоритм этого вызова таков:
 </p>
@@ -165,10 +165,10 @@ private:
 
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lightning_technique.cpp:25</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 410
+    
+> lightning_technique.cpp:25</p>
+    
+    #version 410
                                                                                 
 layout (location = 0) in vec3 Position;                                        
 layout (location = 1) in vec2 TexCoord;                                        
@@ -189,13 +189,13 @@ void main()
 	WorldPos0   = World * vec4(Position, 1.0)).xyz;                          
 	<b>InstanceID = gl_InstanceID</b>;                                                
 };
-</code></pre>
+
 <p>Это новый VS. Вместо получения WVP и мировой матриц как uniform-переменных, они теперь приходят как обычные вершинные атрибуты. VS не волнует, что значения будут обновляться только один раз за образец. Как объяснено выше, матрица WVP занимает позиции, а мировая матрица 7-10. 
 </p>
 <p>
 В последней строке вершинного буфера мы видим второй способ реализации дублирующего рендера (первый заключен в том, что бы передавать данные как вершинные атрибуты). 'gl_InstanceID' - встроенная переменная, которая доступна только в VS. Так как мы планируем использовать ее в FS, то мы получаем ее здесь и передаем дальше как выходящую переменную. Тип gl_InstanceID - int, поэтому и выходящая переменная целочисленная. Так как целые числа не могут быть интерполированы растеризатором, то мы помечаем ее как 'flat' (если этого не сделать, то получим ошибку компиляции). Следует заметить, что gl_InstanceID доступна только в OpenGL 4.1 и выше. Если у вас старая видеокарта, то возможно вы не сможете использовать ее.
 </p>
-<pre><code>flat in int InstanceID;
+    flat in int InstanceID;
 ...
 uniform vec4 gColor[4];
 
@@ -216,16 +216,16 @@ void main()
                                                                     
 	FragColor = texture(gColorMap, TexCoord0.xy) * TotalLight <b>* gColor[InstanceID % 4]</b>; 
 };
-</code></pre>
+
 <p>
 Чтобы продемонстрировать использование gl_InstanceID я добавил uniform-массив из 4 вещественных векторов в FS. FS получает ID образца из VS и использует остаток от деления как индекс в массиве. Цвет, который был вычислен по формулам света умножается на один из цветов из массива. Помещая различные цвета в массив мы сможем получить интересную расцветку образцов.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:137</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>Pipeline p;
+    
+> main.cpp:137</p>
+    
+    Pipeline p;
 p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
 p.SetPerspectiveProj(m_persProjInfo);   
 p.Rotate(0.0f, 90.0f, 0.0f);
@@ -243,7 +243,7 @@ for (unsigned int i = 0 ; i &lt; NUM_INSTANCES ; i++) {
 }
         
 m_pMesh-&gt;Render(NUM_INSTANCES, WVPMatrics, WorldMatrices);
-</code></pre>
+
 <p>
 Код выше взят из главной функции рендера и показывает как вызвать обновленную функцию Mesh::Render(). Мы создаем объект конвейера и заполняем его. Все, что изменяется от образца к образцу - мировая позиция, которую мы оставляем до цикла. Мы подготавливаем 2 массива для матриц мировых и WVP. Затем в цикле мы пробегаем по всем образцам и получаем их начальную позицию из массива m_positions (который был инициализирован случайными числами при запуске). Мы вычисляем текущую позицию и устанавливаем ее в объекте конвейера. Мы можем теперь получить матрицы WVP и мировую из объекта конвейера, а затем поместить в соответствующий слот массива. Но прежде чем это сделать, мы сделаем кое-что действительно важное, что может вызвать головную боль у новичков. Мы должны транспонировать матрицы.
 </p>

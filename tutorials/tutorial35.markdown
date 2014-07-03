@@ -30,10 +30,10 @@ Deferred shading - популярная технология, используе
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial35"><h2>Прямиком к коду!</h2></a>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">gbuffer.h:28</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class GBuffer
+    
+> gbuffer.h:28</p>
+    
+    class GBuffer
 {
 public:
 
@@ -60,7 +60,7 @@ private:
 	GLuint m_fbo;
 	GLuint m_textures[GBUFFER_NUM_TEXTURES];
 	GLuint m_depthTexture;
-};</code></pre>
+};
 <p>
 Класс GBuffer содержит все текстуры, которые потребуются для deferred shading. У нас есть текстуры для аттрибутов вершин, и еще текстура для буффера глубины. Она нам потребуется, так как мы хотим запаковать все текстуры в FBO, поэтому стандартный буффер глубины нам не потребуется. FBO уже был рассмотрен в <a href="http://ogltutor.netau.net/tutorial23.html">уроке 23</a>.
 </p>
@@ -69,10 +69,10 @@ private:
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">gbuffer.cpp:48</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>bool GBuffer::Init(unsigned int WindowWidth, unsigned int WindowHeight)
+    
+> gbuffer.cpp:48</p>
+    
+    bool GBuffer::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
 	// Создаем FBO
 	glGenFramebuffers(1, &amp;m_fbo);    
@@ -111,7 +111,7 @@ private:
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 	return true;
-}</code></pre>
+}
 <p>
 Так мы инициализируем G буффер. Мы начинаем с создания FBO и текстур для аттрибутов вершин и буффера глубины. Текстуры для аттрибутов затем проинициализированны через:
 </p>
@@ -130,10 +130,10 @@ private:
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">tutorial35.cpp:101</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>virtual void RenderSceneCB()
+    
+> tutorial35.cpp:101</p>
+    
+    virtual void RenderSceneCB()
 {   
 	CalcFPS();
         
@@ -147,16 +147,16 @@ private:
 	RenderFPS();
         
 	glutSwapBuffers();
-}</code></pre>
+}
 <p>
 Давайте осмотрим реализацию сверху вниз. Функция выше - главная функция рендера, и она делает не так уж и много. Она обрабатывает немного глобальных переменных, таких как счетчик кадров в секунду, обновляет камеру и т.д. Главная часть вызывает геометрический проход перед проходом света. Как я уже объяснял в этом уроке мы просто генерируем G буффер, поэтому наш световой этап на самом деле ничего не делает. Только выводит G буффер на экран.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">tutorial35.cpp:118</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void DSGeometryPass()
+    
+> tutorial35.cpp:118</p>
+    
+    void DSGeometryPass()
 {
 	m_DSGeomPassTech.Enable();
 
@@ -174,16 +174,16 @@ private:
 	m_DSGeomPassTech.SetWorldMatrix(p.GetWorldTrans());
 	m_mesh.Render();
         
-}</code></pre>
+}
 <p>
 Мы начинаем геометрический проход с разрешения использовать соответствующую технологию и задаем объект GBuffer на запись. После этого мы очищаем G буффер (glClear() работает с текущим FBO - наш G буффер). Теперь, когда все готово, мы настраиваем преобразования и рендерим меш. В настоящей игре мы будем рендерить множество мешей, один за другим. Когда мы закончим, G буффер будет содержать аттрибуты ближайших пикселей, что позволит пройти этап света.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">tutorial35.cpp:137</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void DSLightPass()
+    
+> tutorial35.cpp:137</p>
+    
+    void DSLightPass()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -210,7 +210,7 @@ private:
 	glBlitFramebuffer(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, HalfWidth, 0, WINDOW_WIDTH, 
 			HalfHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	
-}</code></pre>
+}
 <p>
 Этап света начинается с восстановления стандартного FBO (экран) и очистки его. Затем мы привязываем FBO G буффера для чтения. Теперь мы хотим скопировать текстуры из G буффера на экран. Один из способов сделать это - написать простую программу, в которой FS будет брать сэмпл из текстуры и выводить результат. Если мы будем рисовать прямоугольник на весь экран с координатами текстуры от [0,0] до [1,1], то мы, конечно, получим, что хотели. Но есть способ лучше. OpenGL имеет средства для копирования из одного FBO в другой с помощью одного вызова и без каких-либо настроек, которые бы потребовались для других способов. Функция glBlitFramebuffer() принимает координаты источника, назначения и набор других переменных, после чего производит копирование. Для этого требуется источник привязать к GL_READ_FRAMEBUFFER, а получателя к GL_DRAW_FRAMEBUFFER (что мы и сделали в начале функции). Так как FBO может иметь несколько текстур, привязанных к его различным позициям, мы так же должны привязать конкретную текстуру к GL_READ_BUFFER (поскольку мы можем копировать текстуры только по одной). Реализация скрыта в GBuffer::SetReadBuffer(), которая будет рассмотрена позже. Первые 4 параметра в glBlitframebuffer() определяют прямоугольник в источнике - нижний X, нижний Y, верхний X, верхний Y. Следующие 4 параметра аналогичны для назначения.
 </p>
@@ -219,10 +219,10 @@ private:
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">geometry_pass.glsl</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>struct VSInput
+    
+> geometry_pass.glsl</p>
+    
+    struct VSInput
 {
 	vec3 Position;
 	vec2 TexCoord;
@@ -269,16 +269,16 @@ program GeometryPass
 {
 	vs(410)=VSmain();
 	fs(410)=FSmain();
-};</code></pre>
+};
 <p>
 Это файл эффекта для геометрического прохода. Здесь ничего нового в VS - просто производит преобразования и передает результат в FS. FS ответственнен за MRT. Вместо вывода единственного вектора он выдает структуру из векторов. Каждый из этих векторов имеет соответствующий индекс в массиве, который был задан в glDrawBuffers(). Поэтому каждый вызов FS мы записываем в 4 текстуры G буффера.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">gbuffer.cpp:90</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void GBuffer::BindForWriting()
+    
+> gbuffer.cpp:90</p>
+    
+    void GBuffer::BindForWriting()
 {
 	glBindFramebuffer(<b>GL_DRAW_FRAMEBUFFER</b>, m_fbo);
 }
@@ -291,7 +291,7 @@ void GBuffer::BindForReading()
 void GBuffer::SetReadBuffer(GBUFFER_TEXTURE_TYPE TextureType)
 {
 	glReadBuffer(GL_COLOR_ATTACHMENT0 + TextureType);
-}</code></pre>
+}
 <p>
 Три функции выше используются для изменения состояния G буффера для соответсвия коду приложения выше.
 </p>

@@ -125,8 +125,8 @@ title: Урок 38 - Скелетная анимация с Assimp
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial38"><h2>Прямиком к коду!</h2></a>
 
-<p class="message">mesh.cpp:77</p>
-<pre><code>bool Mesh::LoadMesh(const string&amp; Filename)
+> mesh.cpp:77</p>
+    bool Mesh::LoadMesh(const string&amp; Filename)
 {
     // Очищаем данные прошлого меша (если был загружен)
     Clear();
@@ -159,7 +159,7 @@ title: Урок 38 - Скелетная анимация с Assimp
 
     return Ret;
 }
-</code></pre>
+
 <p>
     Вот обновленная точка входа в класс Mesh, изменения выделены жирным. Некоторые стоит отметить. Первое, что importer
     и объект aiScene - свойства класса, а не стек переменных. Причина в том, что в нам придется в рантайме снова и снова
@@ -171,15 +171,15 @@ title: Урок 38 - Скелетная анимация с Assimp
     Это потребуется в дальнейшем. Также заметьте, что код для нахождения обратной матрицы был скопирован из Assimp в
     наш класс Matrix4f.
 </p>
-<p class="message">mesh.h:69</p>
-<pre><code>struct VertexBoneData
+> mesh.h:69</p>
+    struct VertexBoneData
 {
     uint IDs[NUM_BONES_PER_VEREX];
     float Weights[NUM_BONES_PER_VEREX];
 }
-</code></pre>
-<p class="message">mesh.cpp:109</p>
-<pre><code>bool Mesh::InitFromScene(const aiScene* pScene, const string&amp; Filename)
+
+> mesh.cpp:109</p>
+    bool Mesh::InitFromScene(const aiScene* pScene, const string&amp; Filename)
 {
     ...
     vector&lt;VertexBoneData&gt; Bones;
@@ -195,7 +195,7 @@ title: Урок 38 - Скелетная анимация с Assimp
                           GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)16);
     ...
 }
-</code></pre>
+
 <p>
     Структура выше содержит все, что нам потребуется на уровне вершин. По-умолчанию, нам достаточно пространства для 4
     костей (ID и вес на кость). VertexBoneData устроена похожим образом, что упрощает передачу в шейдер. У нас уже
@@ -204,8 +204,8 @@ title: Урок 38 - Скелетная анимация с Assimp
     glVertexAttrib<b>I</b>Pointer вместо glVertexAttribPointer для привязывания ID. Причина в том, что ID - целое число,
     а не значение с плавующей точкой. Не упустите это или данные в шейдере повредятся.
 </p>
-<p class="message">mesh.cpp:215</p>
-<pre><code>void Mesh::LoadBones(uint MeshIndex, const aiMesh* pMesh, vector<vertexbonedata>&amp; Bones)
+> mesh.cpp:215</p>
+    void Mesh::LoadBones(uint MeshIndex, const aiMesh* pMesh, vector<vertexbonedata>&amp; Bones)
 {
     for (uint i = 0 ; i &lt; pMesh-&gt;mNumBones ; i++) {
         uint BoneIndex = 0;
@@ -232,7 +232,7 @@ title: Урок 38 - Скелетная анимация с Assimp
         }
     }
 }
-</vertexbonedata></code></pre>
+</vertexbonedata>
 <p>
     Функция выше загружает информацию о кости для одного объекта aiMesh. Она вызывается из Mesh::InitMesh(). Кроме
     заполнения структуры VertexBoneData эта функция так же обновляет связи между именем кости и номером ID (индекс
@@ -240,8 +240,8 @@ title: Урок 38 - Скелетная анимация с Assimp
     вычисляется id кости. Так как id соответствует одному мешу и мы храним все меши в одном векторе, то мы добавляем
     к базовому значению id вершины текущего aiMesh id вершины из массива mWeights для получения абсолютного значения.
 </p>
-<p class="message">mesh.cpp:31</p>
-<pre><code>void Mesh::VertexBoneData::AddBoneData(uint BoneID, float Weight)
+> mesh.cpp:31</p>
+    void Mesh::VertexBoneData::AddBoneData(uint BoneID, float Weight)
 {
     for (uint i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(IDs) ; i++) {
         if (Weights[i] == 0.0) {
@@ -254,14 +254,14 @@ title: Урок 38 - Скелетная анимация с Assimp
     // Никогда не должны оказаться здесь - костей больше, чем мы рассчитывали
     assert(0);
 }
-</code></pre>
+
 <p>
     Эта вспомогательная функция находит свободные слоты в структуре VertexBoneData и размещает внутри id и вес кости.
     Некоторые вершины находятся под влиянием менее, чем 4 кости, но т.к. вес не существующей кости равен 0 (подробнее в
     конструкторе VertexBoneData), это значит, что мы можем использовать эти вычисления для любого кол-ва костей.
 </p>
-<p class="message">mesh.cpp:469</p>
-<pre><code>Matrix4f Mesh::BoneTransform(float TimeInSeconds, vector&lt;Matrix4f&gt;&amp; Transforms)
+> mesh.cpp:469</p>
+    Matrix4f Mesh::BoneTransform(float TimeInSeconds, vector&lt;Matrix4f&gt;&amp; Transforms)
 {
     Matrix4f Identity;
     Identity.InitIdentity();
@@ -280,7 +280,7 @@ title: Урок 38 - Скелетная анимация с Assimp
         Transforms[i] = m_BoneInfo[i].FinalTransformation;
     }
 }
-</code></pre>
+
 <p>
     Загрузка данных костей на уровне вершин, которую мы видили ранее, происходит только 1 раз при загрузке меша. Настало
     время для второй чати - вычисление преобразования кости, которое будет загружаться в шейдер каждый кадр. Функция
@@ -288,8 +288,8 @@ title: Урок 38 - Скелетная анимация с Assimp
     матриц, которые мы должны обновить. Относительное время мы найдем внутри цикла анимации и обработки листов иерархии.
     Результат - массив преобразований, которые вернутся в место вызова.
 </p>
-<p class="message">mesh.cpp:424</p>
-<pre><code>void Mesh::ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const Matrix4f&amp; ParentTransform)
+> mesh.cpp:424</p>
+    void Mesh::ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const Matrix4f&amp; ParentTransform)
 {
     string NodeName(pNode-&gt;mName.data);
 
@@ -335,7 +335,7 @@ title: Урок 38 - Скелетная анимация с Assimp
         ReadNodeHeirarchy(AnimationTime, pNode-&gt;mChildren[i], GlobalTransformation);
     }
 }
-</code></pre>
+
 <p>
     Эта функция обходит листы дерева и генерирует итоговое преобразование для каждого листа / кости согласно указанному
     времени анимации. Она ограничена в том плане, что мы можем использовать только 1 анимационную последовательность.
@@ -363,8 +363,8 @@ title: Урок 38 - Скелетная анимация с Assimp
     Заметим, что мы используем код Assimp для всего матана. Я не вижу смысла в дублировании кода из библиотеки в наш,
     лучше использовать Assimp.
 </p>
-<p class="message">mesh.cpp:383</p>
-<pre><code>void Mesh::CalcInterpolatedRotation(aiQuaternion&amp; Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
+> mesh.cpp:383</p>
+    void Mesh::CalcInterpolatedRotation(aiQuaternion&amp; Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
     // для интерполирования требуется не менее 2 значений...
     if (pNodeAnim-&gt;mNumRotationKeys == 1) {
@@ -384,7 +384,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     aiQuaternion::Interpolate(Out, StartRotationQ, EndRotationQ, Factor);
     Out = Out.Normalize();
 }
-</code></pre>
+
 <p>
     Этот метод интерполирует кватернион вращения указанного канала согласно времени анимации (вспомним, что этот канал
     хранит массив ключевых кватернионов). Сначала мы находим индекс ключевого кватерниона, который до требуемого
@@ -393,8 +393,8 @@ title: Урок 38 - Скелетная анимация с Assimp
     код Assimp для интерполяции и нормализации результата. Аналогичные методы для позиции и масштабирования очень
     похожи и не приведены здесь.
 </p>
-<p class="message">mesh.cpp:335</p>
-<pre><code>uint Mesh::FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
+> mesh.cpp:335</p>
+    uint Mesh::FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
     assert(pNodeAnim-&gt;mNumRotationKeys &gt; 0);
 
@@ -406,14 +406,14 @@ title: Урок 38 - Скелетная анимация с Assimp
 
     assert(0);
 }
-</code></pre>
+
 <p>
     Этот дополнительный метод находит ключевое вращение непосредственно перед временем анимации. Если мы имеем N
     ключевых вращений, то результат может быть от 0 до N-2. Время анимации всегда внутри продолжительности канала,
     поэтому последний элемент (N-1) - не подходящее значение.
 </p>
-<p class="message">skinning.glsl</p>
-<pre><code>struct VSInput
+> skinning.glsl</p>
+    struct VSInput
 {
     vec3  Position;
     vec2  TexCoord;
@@ -449,7 +449,7 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     VSout.Normal   = (gWorld * NormalL).xyz;
     VSout.WorldPos = (gWorld * PosL).xyz;
 }
-</code></pre>
+
 <p>
     Теперь, когда мы закончили с классом меша давайте рассмотрим, что нам нужно на уровне шейдера. Для начала мы добавим
     массивы ID костей и веса в структуру VSInput. Затем появился новый uniform массив, который содержит все
@@ -457,15 +457,15 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     веса. Итоговая матрица используется для преобразования позиции и нормали их пространства кости в локальное. Дальше
     все как обычно.
 </p>
-<p class="message">tutorial38.cpp:140</p>
-<pre><code>float RunningTime = CalcRunningTime();
+> tutorial38.cpp:140</p>
+    float RunningTime = CalcRunningTime();
 
 m_mesh.BoneTransform(RunningTime, Transforms);
 
 for (uint i = 0 ; i &lt; Transforms.size() ; i++) {
      m_pEffect-&gt;SetBoneTransform(i, Transforms[i]);
 }
-</code></pre>
+
 <p>
     Осталось только собрать все вместе. Это легко делается кодом выше. Функция CalcRunningTime() возвращает прошедшее
     время в секундах от начала запуска приложения (заметим, что число с плавующей точкой - подмножество дробных чисел).

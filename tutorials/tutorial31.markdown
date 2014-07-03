@@ -60,25 +60,25 @@ title: Урок 31 - Тесселяция PN треугольников
 
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:38</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void main()
+    
+> lighting_technique.cpp:38</p>
+    
+    void main()
 {                                                                                        
 	WorldPos_CS_in = (gWorld * vec4(Position_VS_in, 1.0)).xyz;                           
 	TexCoord_CS_in = TexCoord_VS_in;                                                     
 	Normal_CS_in   = <b>normalize((gWorld * vec4(Normal_VS_in, 0.0)).xyz);</b>                
 }
-</code></pre>
+
 <p>
 VS получил только 1 изменение - нормаль должна быть нормирована после мировых преобразований. Причина в том, что TCS полагает, что нормаль единичной длины. В противном случае новые CPs будут созданы не корректно. Если мировые преобразования содержат изменения масштаба, то нормали не будут иметь единичную длину, поэтому мы их и нормируем.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:47</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 410 core
+    
+> lighting_technique.cpp:47</p>
+    
+    #version 410 core
 
 // определяем количество CPs в выходящем пути
 <b>layout (vertices = 1) out;</b>
@@ -109,7 +109,7 @@ in vec3 Normal_CS_in[];
 // атрибуты выходящей CPs
 out patch OutputPatch oPatch;
 </b>	
-</code></pre>
+
 <p>
 Это начало TCS, изменения выделены жирным. Первое на что требуется обратить внимание, это то, что мы выводим только 1 CP. Возможно вам это покажется странным, ведь идея PN треугольников в создании треугольника Безье с 10 CPs на поверхности треугольника. Итак почему же мы объявили единственную выходящую CP вместо 10? причина в том, что главная функция TCS будет вызвана столько раз, сколько определено выходящих CPs. В этом алгоритме мы должны рассматривать некоторые моменты иначе, что усложняет использование одной функции для всех точек. Вместо этого я инкапсулирую все данные выходящего пути в структуру OutputPatch выше и объявляю выходящую переменную, названную oPatch, этим типом. Главная функция TCS будет запускаться единожды для каждого пути и эта структура будет заполнена данными для всех 10 CPs. Реализация, которую представил McDonald на GDC 2011 (смотри литературу) предлагает версию, которая окажется более эффективной. В этой версии TCS вызывается 3 раза, что позволяет GPU распределить работу над одним путем на 3 потока. В общем, если выходящие CPs были созданы используя этот алгоритм, то лучше (с точки зрения производительности) осуществлять этот алгоритм как есть в TCS и вызывать его для такого количества выходящих CPs, какое вам требуется.
 </p>
@@ -121,10 +121,10 @@ out patch OutputPatch oPatch;
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:122</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void main()
+    
+> lighting_technique.cpp:122</p>
+    
+    void main()
 {
 	// Set the control points of the output patch
 	for (int i = 0 ; i &lt; 3 ; i++) {
@@ -140,16 +140,16 @@ out patch OutputPatch oPatch;
 	gl_TessLevelOuter[2] = gTessellationLevel;
 	gl_TessLevelInner[0] = gTessellationLevel;
 }
-</code></pre>
+
 <p>
 Это главная функция TCS. 3 нормали и координаты текстуры копируются как есть из входного в выходящий пути. 10 CPs, которые мы хотим создать, хранят только значение позиции. Это происходит в соответствующей функции CalcPositions(), которая затем запускается. Наконец, TLs устанавливается в значение uniform-переменной.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:87</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void CalcPositions(
+    
+> lighting_technique.cpp:87</p>
+    
+    void CalcPositions(
 {
 	// Исходные вершины остаются без изменений
 	oPatch.WorldPos_B030 = WorldPos_CS_in[0];
@@ -183,23 +183,23 @@ out patch OutputPatch oPatch;
 				oPatch.WorldPos_B201 + oPatch.WorldPos_B210 + oPatch.WorldPos_B120) / 6.0;
 	oPatch.WorldPos_B111 += (oPatch.WorldPos_B111 - Center) / 2.0;
 }	
-</code></pre>
+
 <p>
 Эта функция строит треугольник Безье на поверхности исходного треугольника согласно методу, объясненному в разделе теории. Имена соответствующих членов структуры OutputPatch аналогичны изображению выше для упрощения обзора. Логика очень проста и следует алгоритму шаг за шагом.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:78</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>vec3 ProjectToPlane(vec3 Point, vec3 PlanePoint, vec3 PlaneNormal)
+    
+> lighting_technique.cpp:78</p>
+    
+    vec3 ProjectToPlane(vec3 Point, vec3 PlanePoint, vec3 PlaneNormal)
 {
 	vec3 v = Point - PlanePoint;
 	float Len = dot(v, PlaneNormal);
 	vec3 d = Len * PlaneNormal;
 	return (Point - d);
 }
-</code></pre>	
+	
 <p>
 Эта функция используется в CalcPositions() для проецирования точек посередине на плоскость, определенную ближайшей вершиной и ее нормалью. Идея в том, что произведя скалярное произведение между нормалью и вектором 'v' из вершины до точки, которую мы хотим проецировать, мы получим длину проекции 'v' на нормали (она должна быть единичной длины). Это будет расстояние между точкой и ближайшей точкой на плоскости (то есть ее проекция). Мы умножаем длину на нормаль и вычитаем ее из точки для того, что бы получить проекцию. Следующее изображение иллюстрирует эти вычисления:
 </p>
@@ -209,10 +209,10 @@ P<sub>1</sub> и P<sub>2</sub> расположены на различных п
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:142</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 410 core
+    
+> lighting_technique.cpp:142</p>
+    
+    #version 410 core
 
 layout(triangles, equal_spacing, ccw) in;
 
@@ -280,7 +280,7 @@ void main()
 
 	gl_Position = gVP * vec4(WorldPos_FS_in, 1.0);
 }	
-</code></pre>
+
 <p>
 Это содержание TES с выделенными изменениями. Нормаль и координаты текстуры интерполируются так же, как и раньше. Для того, что бы вычислить позицию в мировом пространстве, мы включаем барецентрические координаты в выражения для треугольника Безье из раздела теории. Встроенная функция <i>pow()</i> используется для вычисления числа в заданной степени. Мы преобразовываем мировые координаты в пространство клипа, а дальше все как обычно.
 </p>

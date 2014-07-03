@@ -65,10 +65,10 @@ GS возьмет на себя заботу о том, что бы прямоу
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial27"><h2>Прямиком к коду!</h2></a>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">billboard_list.h:27</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class BillboardList
+    
+> billboard_list.h:27</p>
+    
+    class BillboardList
 {
 public:
 	BillboardList();
@@ -85,16 +85,16 @@ private:
 	Texture* m_pTexture;
 	BillboardTechnique m_technique;
 };
-</code></pre>
+
 <p>
 Класс BillboardList инкапсулирует все, что вам потребуется для генерации billboards. Функция класса Init() принимает как параметр имя файла, который содержит изображение, которое будет отображаться на billboard. Функция Render() вызывается из главного цикла рендера и заботится от установлении всех значений и рендере billboard. Этой функции нужны 2 параметра: комбинация матрицы проекции и позиция камеры в мировом пространстве. Так как позиция billboard указана в мировом пространстве, то мы не нуждаемся в матрице преобразований. Класс имеет 3 private атрибута: вершинный буфер для хранения позиции billboards, указатель на текстуру для отображения на billboard и метод для billboard, который хранит соответствующие шейдеры.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">billboard_list.cpp:80</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void BillboardList::Render(const Matrix4f&amp; VP, const Vector3f&amp; CameraPos)
+    
+> billboard_list.cpp:80</p>
+    
+    void BillboardList::Render(const Matrix4f&amp; VP, const Vector3f&amp; CameraPos)
 {
 	m_technique.Enable();
 	m_technique.SetVP(VP);
@@ -111,16 +111,16 @@ private:
     
 	glDisableVertexAttribArray(0);
 }	
-</code></pre>
+
 <p>
 Эта функция разрешает использование методов billboard, устанавливает требуемые переменные состояния OpenGL и рисует точки, которые будут переделаны в прямоугольник в GS. В демо к уроку billboards стоят ровными рядами и колонками, что и объясняет наличие здесь умножения для получения количества точек в буфере. Заметим, что мы используем список точек как входящая топология. GS перестроит из позже.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">billboard_technique.h:24</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class BillboardTechnique : public Technique
+    
+> billboard_technique.h:24</p>
+    
+    class BillboardTechnique : public Technique
 {
 public:
     
@@ -138,16 +138,16 @@ private:
 	GLuint m_cameraPosLocation;
 	GLuint m_colorMapLocation;
 };
-</code></pre>
+
 <p>
 Это интерфейс для метода billboard. Он требует только 3 параметра для работы: комбинация матрицы проекции, позиция камеры в мировом пространстве и номер модуля текстуры, к которому будет привязана текстура billboard.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">billboard_technique.cpp:21</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 330
+    
+> billboard_technique.cpp:21</p>
+    
+    #version 330
 
 layout (location = 0) in vec3 Position;
 
@@ -155,58 +155,58 @@ void main()
 {
 	gl_Position = vec4(Position, 1.0);
 }
-</code></pre>
+
 <p>
 Это вершинный шейдер метода billboard, и поскольку большая часть преобразований в GS, то вы не можете использовать стандартный VS. В вершинном буфере только вектор позиции, и так как он уже указан в мировом пространстве, мы просто передаем его в GS. Вот и все.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">billboard_technique.cpp:33</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 330
+    
+> billboard_technique.cpp:33</p>
+    
+    #version 330
 
 layout (points) in;
 layout (triangle_strip) out;
 layout (max_vertices = 4) out;
-</code></pre>
+
 <p>
 Ядро метода billboard располагается в GS. Давайте пройдемся по коду часть за частью. Мы начинаем с объявления глобальных вещей, с использованием ключевого слова 'layout'. Мы говорим конвейеру, что входящая топология - список точек, а выходящая - стрип треугольников. Мы так же сообщаем ему, что мы будем выпускать не более 4 вершин. Это выражение используется для того, что бы дать подсказку об максимальном количестве вершин, которые будут выходить из GS. Знание этого ограничения поможет драйверу оптимизировать поведение GS для некоторых ситуаций. Так как мы знаем, что мы собираемся выпускать прямоугольник для каждой вершины, то мы объявляем максимальное количество равным 4.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">billboard_technique.cpp:39</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>uniform mat4 gVP;
+    
+> billboard_technique.cpp:39</p>
+    
+    uniform mat4 gVP;
 uniform vec3 gCameraPos;
 
 out vec2 TexCoord;
-</code></pre>
+
 <p>
 GS принимает позицию в мировом пространстве, поэтому ему требуется только матрица проекции. Он так же нуждается в позиции камеры для нахождения ориентации. GS генерирует координаты текстуры для FS, что мы и должны явно указать.
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">billboard_technique.cpp:44</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void main()
+    
+> billboard_technique.cpp:44</p>
+    
+    void main()
 {
 	vec3 Pos = gl_in[0].gl_Position.xyz;
-</code></pre>
+
 <p>
 Строка выше уникальна для GS. Так как он вызывается для полного примитива, мы имеем доступ для каждой из вершины, которая составляет его. Это производится через встроенную переменную 'gl_in'. Эта переменная - массив структур, которые, между прочим, хранят позицию, которая была записана в gl_Position в VS. Для получения доступа к ней мы используем индекс интересующей вершины. В нашем случае топология - список точек, поэтому внутри только 1 вершина. Мы получаем доступ через 'gl_in[0]'. Если бы топологией был бы треугольник, то мы бы могли написать 'gl_in[1]' и 'gl_in[2]'. Нам нужны только первые 3 компонента вектора, и мы выделяем их в локальную переменную через '.xyz'.
 </p>
 
-<pre><code>	vec3 toCamera = normalize(gCameraPos - Pos);
+    	vec3 toCamera = normalize(gCameraPos - Pos);
 	vec3 up = vec3(0.0, 1.0, 0.0);
 	vec3 right = cross(toCamera, up);
-</code></pre>
+
 <p>
 Здесь мы поворачиваем поверхность billboard к камере согласно объяснениям в конце раздела теории. Мы находим векторное произведение между вектором из точки до камеры и вектором вверх. Это нам даст вектор, который направлен вправо, если смотреть на точку из позиции камеры. Теперь мы "вырастим" прямоугольник вокруг точки.
 </p>
-<pre><code>	
+    	
 	Pos -= (right * 0.5);
 	gl_Position = gVP * vec4(Pos, 1.0);
 	TexCoord = vec2(0.0, 0.0);
@@ -230,16 +230,16 @@ GS принимает позицию в мировом пространстве,
 
 	EndPrimitive();
 }
-</code></pre>
+
 <p>
 Точка в вершинном буфере считается серединой нижней границы прямоугольника. Нам требуется генерировать 2 однонаправленных треугольника из нее. Мы начинаем с движения в нижний левый угол прямоугольника. Это делается через вычитание половины "правого" вектора из точки. Далее мы находим позицию в пространстве клипа через умножение точки на матрицу проекции. Мы так же устанавливаем координаты текстуры в (0,0), потому, что мы планируем целиком покрыть поверхность текстурой. Для отправки свежей вершины далее по конвейеру мы вызываем встроенную функцию EmitVertex(). После того, как эта функция вызвана, переменная, которую мы отправили, объявлена не определенной, и мы можем записывать в нее новые данные. Аналогичным способом мы строим верхний левый и нижний правый углы прямоугольника. Это будет первым треугольником. Так как выходная топология GS стрип треугольников, то нам нужно указать всего 1 вершину для второго треугольника. Он будет построен из новой вершины и 2 предыдущих (которые являются диагоналями). Четвертая, и последняя, вершина будет верхним правым углом прямоугольника. В конце стрипа мы вызываем встроенную функцию EndPrimitive().
 </p>
 
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">billboard_technique.cpp:77</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 330
+    
+> billboard_technique.cpp:77</p>
+    
+    #version 330
 
 uniform sampler2D gColorMap;
 
@@ -254,7 +254,7 @@ void main()
 	discard;
 	}
 }
-</code></pre>
+
 <p>
 FS крайне прост - большая часть его работы - взять сэмпл из текстуры через координаты текстуры, генерированные GS. Добавилась новая часть - встроенная функция 'discard', используемая для того, что бы выбросить пиксель целиком в некоторых ситуациях. Изображение из Doom, которое включено в этот урок, показывает монстра на черном фоне. Используя эту текстуру как есть, сделает некоторые части billboard непрозрачными, что будет выглядеть нелепо. Для избежания этого мы отбрасываем черный цвет. Это позволит нам оставить только пиксели, которые составляют само изображение монстра. Попробуйте отключить 'discard' и посмотрите на разницу.
 </p>

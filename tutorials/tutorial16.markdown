@@ -28,10 +28,10 @@ title: Урок 16 - Основы наложения текстур
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial16"><h2>Прямиком к коду!</h2></a>
 <p>OpenGL знает как получить данные текстуры в различных форматах из памяти, но не предоставляет никаких способов для загрузки текстур в память из файлов изображений таких как PNG или JPG. Нам потребуется дополнительная внешняя библиотека что бы сделать это. Их существует большое множество, но мы будем использовать <span style="font-weight: bold;"><a href="http://www.imagemagick.org/script/index.php">ImageMagick</a></span>, свободная библиотека, поддерживающая множество типов изображений, и кроме того, она кроссплатформеная. Если вы используете Ubuntu, вы можете легко установить через 'apt-get install libmagick++-dev'. Если у вам другой Linux дистрибутив, используйте свой менеджер пакетов или скачайте исходники и соберите библиотеку самостоятельно.</p>
 <p>Большинство указателей на текстуры инкапсулированы в следующем классе:</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">texture.h:27</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class Texture
+    
+> texture.h:27</p>
+    
+    class Texture
 {
 public:
 	Texture(GLenum TextureTarget, const std::string&amp; FileName);
@@ -39,57 +39,57 @@ public:
 	bool Load();
 
 	void Bind(GLenum TextureUnit);
-};</code></pre>
+};
 <p>Во время создания объекта текстуры вам необходимо указать позицию (мы используем GL_TEXTURE_2D) и имя файла. После вы можете вызвать функцию Load(). Она может вернуть код ошибки если, например, файл не существует, или если ImageMagick получит другие виды ошибок.  encountered any other error. Если вы хотите использовать конкретный экземпляр текстуры, вы должны привязать его к одному из текстурных модулей.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">texture.cpp:31</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>try {
+    
+> texture.cpp:31</p>
+    
+    try {
 	m_pImage = new Magick::Image(m_fileName);
 	m_pImage-&gt;write(&amp;m_blob, "RGBA");
 }
 catch (Magick::Error&amp; Error) {
 	std::cout &lt;&lt; "Error loading texture '" &lt;&lt; m_fileName &lt;&lt; "': " &lt;&lt; Error.what() &lt;&lt; std::endl;
 	return false;<br>
-}</code></pre>
+}
 <p>Вот так мы используем ImageMagick для загрузки из файла и подготовки памяти для загрузки в OpenGL. Мы начинаем с инициализации свойства класса типа Magic::Image используя имя файла текстуры. Этот вызов загружает текстуру в память, которая задана private и не может быть напрямую использована OpenGL. Затем мы записываем изображение в объект Magick::Blob используя формат RGBA (красный, зеленый, синий и альфа канал). BLOB (большой бинарный объект)  - это полезный механизм для хранения зашифрованного изображения в память так, что оно может быть использовано сторонними программами. Если будут какие-либо ошибки, то будет брошено исключение, поэтому мы должны быть готовы для него.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">texture.cpp:40</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glGenTextures(1, &amp;m_textureObj);</code></pre>
+    
+> texture.cpp:40</p>
+    
+    glGenTextures(1, &amp;m_textureObj);
 <p>Эта функция OpenGL очень похожа на glGenBuffers(), с которой мы уже хорошо знакомы. Она генерирует указанное число объектов текстур и помещает их в указатель на массив GLuint (второй параметр). В нашем случае нам потребуется только 1 объект.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">texture.cpp:41</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glBindTexture(m_textureTarget, m_textureObj);</code></pre>
+    
+> texture.cpp:41</p>
+    
+    glBindTexture(m_textureTarget, m_textureObj);
 <p>Мы собираемся сделать несколько вызовов, связанных с текстурой, и в похожей на буфер вершин манере, OpenGL должен знать, с каким объектом текстур работать. Эта цель функции glBindTexture(). Она сообщает OpenGL объект текстуры, который относится ко всем вызовам, связанным с текстурами, до тех пор, пока новый объект текстур не будет передан. В дополнении к указателю (второй параметр) мы также указываем позицию текстуры, которая может принимать значения GL_TEXTURE_1D, GL_TEXTURE_2D и т.д. Вполне можно использовать различные типы объектов текстур для каждой из позиций одновременно. В нашем случае позиция - это часть конструктора (сейчас мы используем GL_TEXTURE_2D).</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">texture.cpp:42</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glTexImage2D(m_textureTarget, 0, GL_RGBA, m_pImage-&gt;columns(),m_pImage-&gt;rows(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_blob.data());</code></pre>
+    
+> texture.cpp:42</p>
+    
+    glTexImage2D(m_textureTarget, 0, GL_RGBA, m_pImage-&gt;columns(),m_pImage-&gt;rows(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_blob.data());
 <p>Гораздо более сложная функция для загрузки главной части объекта текстуры, что по сути, сами данные текстуры. Существует несколько функций glTexImage*, доступных для каждой позиции текстуры. Позиция всегда первый параметр. Второй - это LOD или уровень детализации (Level-Of-Detail). Объект текстуры может хранить одну и ту же текстуру в различном разрешении, понятие, известное как mip-отображение (mip - "много в одном"). Каждое mip-отображение имеет различный коэффициент LOD, 0 для максимального качества, и с увеличением качество падает. Пока что мы имеем только 1 mip-отображение, поэтому мы передаем 0.</p>
 <p>Следующий параметр - внутренний формат, в котором OpenGL хранит текстуру. Для примера, вы можете передать текстуру со всеми 4 каналами (красный, зеленый, голубой и альфа), но если вы укажете GL_RED, то вы получите текстуру только с красным каналом, что выглядит довольно ... красно (попробуйте это!). Мы используем GL_RGBA для получения всех цветов текстуры. Следующие 2 параметра ширина и высота текстуры в текселях. ImageMagick сохраняет эту информацию для нас когда загружает изображение, и мы получаем эти данные через функции Image::columns()/rows(). Пятый параметр - рамка, которую мы оставим равной 0.</p>
 <p>Последние 3 параметра указывают источник входящих данных текстуры. Это формат, тип и адрес в памяти. Формат указывает количество каналов, которые должны соответствовать значению из BLOB. Тип определяет вид данных относительно каждого канала. OpenGL поддерживает множество типов данных, но в ImageMagick BLOB имеет только 1 байт на канал, поэтому мы используем GL_UNSIGNED_BYTE. Наконец, мы указываем адрес данных, которые извлекаются из BLOB'а через функцию Blob::data().</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">texture.cpp:43</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glTexParameterf(m_textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-glTexParameterf(m_textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);</code></pre>
+    
+> texture.cpp:43</p>
+    
+    glTexParameterf(m_textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+glTexParameterf(m_textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 <p>Широкая функция glTexParameterf управляет многими аспектами операции выборки текстур. Эти аспекты - часть состояния сэмплера текстуры. Здесь мы указываем фильтры, которые будут использованы для увеличения и минимализации. Каждая текстура имеет заданные ширину и высоту, но очень редко они совпадают с пропорциями треугольника. В большинстве случаев треугольник больше или меньше чем текстура. В этом случае тип фильтра определяет как именно увеличить или уменьшить текстуру для совпадения пропорций. Если треугольник, проходящий растеризацию, больше чем текстура (например очень близок к камере), то у нас некоторые пиксели будут использовать один текстел. А если меньше (очень далеко от камеры) сразу несколько текселей используются для одного пикселя. Мы выбрали фильтр линейной интерполяции для обоих случаев. Как мы уже видели ранее, линейная интерполяция дает хороший результат путем смешивания цвета 2x2 текселя основываясь на текущей позиции текселя (вычисляется путем масштабирования координат текстуры ее 
 размерами).</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">texture.cpp:49</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void Texture::Bind(GLenum TextureUnit)
+    
+> texture.cpp:49</p>
+    
+    void Texture::Bind(GLenum TextureUnit)
 {
 	glActiveTexture(TextureUnit);
 	glBindTexture(m_textureTarget, m_textureObj);
-}</code></pre>
+}
 <p>Так как наше 3D приложение постоянно разрастается, мы возможно захотим использовать множество различных текстур во множестве вызовов отрисовки в функции рендера. Прежде чем делать любой вызов мы должны привязать объект текстур, а так же разрешить использование конкретного модуля текстур, что бы она была доступна в фрагментном шейдере. Эта функция принимает модуль текстуры как параметр типа enum (GL_TEXTURE0, GL_TEXTURE1 и т.д.). Тем самым он станет активным через glActiveTexture() и затем привязываем объект текстур к модулю. Связь будет до тех пор, пока для этого модуля не будет вызвана Texture::Bind() для другой текстуры.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:60</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>layout (location = 0) in vec3 Position;
+    
+> main.cpp:60</p>
+    
+    layout (location = 0) in vec3 Position;
 layout (location = 1) in vec2 TexCoord;
 
 uniform mat4 gWVP;
@@ -100,12 +100,12 @@ void main()
 {
 	gl_Position = gWVP * vec4(Position, 1.0);
 	TexCoord0 = TexCoord;
-};</code></pre>
+};
 <p>Это обновленный вершинный шейдер. Мы добавили еще один входной параметр, названный TexCoord, являющийся двумерным вектором. Вместо вывода цвета шейдер теперь передает координаты текстуры, причем без изменений. Растеризатор интерполирует координаты текстуры по поверхности треугольника и каждый фрагментный шейдер будет вызван со своим значением координат текстуры.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:76</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>in vec2 TexCoord0;
+    
+> main.cpp:76</p>
+    
+    in vec2 TexCoord0;
 
 out vec4 FragColor;
 
@@ -114,21 +114,21 @@ uniform sampler2D gSampler;
 void main()
 {
 	FragColor = texture2D(gSampler, TexCoord0.st);
-};</code></pre>
+};
 <p>А это новый фрагментный шейдер. У него входящая переменная, названная TexCoord0, которая содержит интерполированые координаты текстуры, полученные из вершинного шейдера. Так же у нас новая uniform-переменная, названная gSampler, типа sampler2D. Это пример сэмплера uniform-переменной. Приложению требуется задать значение модуля текстуры в эту переменную что бы фрагментный шейдер имел доступ к текстуре. Функция main делает только одну вещь - она вызывает внутреннюю функцию texture2D что бы использовать текстуру. Первый параметр это сэмплер uniform-переменной и второй - координаты текстуры. Возращенное значение - это сэмплер текселя (который, в нашем случае, содержит только цвет), который уже прошел фильтрацию. Это итоговый цвет пикселя в данном уроке. В последующих мы уроках мы увидим, что свет просто влияет на цвет полагаясь на параметры света.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:154</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>Vertex Vertices[4] = {
+    
+> main.cpp:154</p>
+    
+    Vertex Vertices[4] = {
 	Vertex(Vector3f(-1.0f, -1.0f, 0.5773f), Vector2f(0.0f, 0.0f)),
 	Vertex(Vector3f(0.0f, -1.0f, -1.15475), Vector2f(0.5f, 0.0f)),
 	Vertex(Vector3f(1.0f, -1.0f, 0.5773f),  Vector2f(1.0f, 0.0f)),
-	Vertex(Vector3f(0.0f, 1.0f, 0.0f),      Vector2f(0.5f, 1.0f))};</code></pre>
+	Vertex(Vector3f(0.0f, 1.0f, 0.0f),      Vector2f(0.5f, 1.0f))};
 <p>До этого момента наш вершинный буфер состоял из последовательного списка экземпляров структуры Vector3f, которая содержала только позицию. Теперь у нас есть структура 'Vertex', содержащая так же и координаты текстуры в формате Vector2f.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:106</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>...
+    
+> main.cpp:106</p>
+    
+    ...
 glEnableVertexAttribArray(1);
 ...
 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
@@ -136,29 +136,29 @@ glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)1
 ...
 pTexture-&gt;Bind(GL_TEXTURE0);
 ...
-glDisableVertexAttribArray(1);</code></pre> 
+glDisableVertexAttribArray(1); 
 <p>Цикл рендера достаточно изменился. Мы начинаем с разрешения использования атрибутов вершин 1 для координат текстур в дополнении к атрибуту 0, который уже занят для позиции. Это соответствует их расположению в вершинном шейдере. Затем мы вызываем glVertexAttribPointer для указания позиции координат текстуры в вершинном буфере. Они представлены в виде 2 вещественных числах, что и указано во 2 и 3 параметрах. Обратите внимание на 4 параметр. Это размер структуры вершины, и он указывается и для вектора позиции и вектора координат. Этот параметр еще называют как "расстояние между вершинами" (vertex stride), он говорит OpenGL количество байтов между началом атрибутов одной вершины и началом уже следующей. В нашем случае буфер содержит: pos0, texture coords0, pos1, texture coords1 и т.д. В предыдущих уроках у нас была только позиция, так что мы могли установить 0 или sizeof(Vector3f). Сейчас же мы имеем больше чем один атрибут, поэтому размер обязательно должен быть равен размеру структуры. Последний параметр - 
 смещение в байтах от начала структуры до атрибутов текстуры. Мы преобразовываем в GLvoid* потому, что функция ожидает смещение в таком формате.</p>
 <p>Прежде чем вызывать отрисовку мы привязываем текстуру, которую мы хотим использовать, к модулю. У нас только одна текстура, поэтому нам подойдет любой модуль. Нам нужно только удостовериться, что тот же самый модуль отправлен в шейдер (об этом ниже). После вызова отрисовки мы отключим этот атрибут.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:268</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glFrontFace(GL_CW);
+    
+> main.cpp:268</p>
+    
+    glFrontFace(GL_CW);
 glCullFace(GL_BACK);
-glEnable(GL_CULL_FACE);</code></pre>
+glEnable(GL_CULL_FACE);
 <p>Эти вызовы OpenGL не обязательны для текстурирования, но я их добавил для того, что бы картинка была лучше (попробуйте их отключить...). Они включают отброс задней поверхности для дополнительной оптимизации, и используется что бы отбраковывать треугольники до затратных процессов растеризации. Обосновывается это тем, что 50% поверхностей объектов скрыты от нас (задняя сторона человека, дома, автомобиля и т.д.). Функция glFrontFace() говорит OpenGL, что вершины в треугольнике подаются в сторону движения часовой стрелки. То есть, если вы смотрите прямо на плоскость треугольника, то вы заметите, что вершины указаны в часовом порядке. glCullFace() сообщает GPU, что бы он отбрасывал обратные стороны треугольника. Это значит, что "внутри" объекта ничего рендериться не будет, только внешняя часть. Наконец, включаем отбрасывание задних сторон (по умолчанию выключено).</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:277</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glUniform1i(gSampler, 0);</code></pre>
+    
+> main.cpp:277</p>
+    
+    glUniform1i(gSampler, 0);
 <p>Здесь мы устанавливаем индексы модулей текстуры, который мы собираемся использовать внутри сэмплера uniform-переменной в шейдере. 'gSampler' это переменная, значение которой было задано ранее через glGetUniformLocation(). Важно запомнить, что индекс модуля текстуры, который использован здесь, не enum OpenGL'я GL_TEXTURE0 (который имеет другое значение).</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:279</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>pTexture = new Texture(GL_TEXTURE_2D, "test.png");
+    
+> main.cpp:279</p>
+    
+    pTexture = new Texture(GL_TEXTURE_2D, "test.png");
 
 if (!pTexture-&gt;Load()) {
     &nbsp; &nbsp; return 1;
-}</code></pre>
+}
 <p>Здесь мы создаем объект Текстуры и загружаем его. 'test.png' добавлен к исходникам этого урока, но ImageMagick должна суметь обработать любой файл, переданный ей.</p>
 <p>Домашнее задание: если вы запустите этот урок, то вы увидите, что грани пирамиды не одинаковые (она не правильная). Попробуйте понять почему это происходит, и что надо сделать, что бы это исправить.</p>

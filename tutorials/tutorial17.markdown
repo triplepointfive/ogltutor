@@ -26,21 +26,21 @@ title: Урок 17 - Фоновое освещение
 <li>Перемещение инициализации GLUT и его функций обратного вызова в компонент GLUTBackend. Он регистрирует себя на получение функций обратного вызова и GLUT'а и передает их приложению через интерфейс C++, названный ICallbacks.</li>
 <li>Перемещение глобальных функций и переменных файла main.cpp в класс, который является "приложением". В будущем мы расширим его в базовый класс для всех приложений, который будет предоставлять основной функционал. Этот подход очень популярен во многих игровых движках и фреймворках.</li></ol>
 <p>Большая часть кода (не считая света) - не нова и просто реорганизована согласно положениям выше. Поэтому рассмотрены только новые заголовки.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">glut_backend.h:24</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void GLUTBackendInit(int argc, char** argv);
-bool GLUTBackendCreateWindow(unsigned int Width, unsigned int Height, unsigned int bpp, bool isFullScreen, const char* pTitle);</code></pre>
+    
+> glut_backend.h:24</p>
+    
+    void GLUTBackendInit(int argc, char** argv);
+bool GLUTBackendCreateWindow(unsigned int Width, unsigned int Height, unsigned int bpp, bool isFullScreen, const char* pTitle);
 <p>Почти весь код, затрагивающий GLUT, был перемещен в компоненту "GLUT backend", которая упрощает инициализацию GLUT'а и создает окно используя простую функцию выше.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">glut_backend.h:28</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void GLUTBackendRun(ICallbacks* pCallbacks);</code></pre>
+    
+> glut_backend.h:28</p>
+    
+    void GLUTBackendRun(ICallbacks* pCallbacks);
 <p>После инициализации GLUT'а и создания окна наступает момент для запуска главного цикла GLUT, используя общую функцию выше. Это нововведение - интерфейс ICallbacks, который поможет в регистрации функций обратного вызова. Вместо того, что бы приложение само регистрировало функции, теперь этим будет заниматься интерфейс, регистрирующий свои private функции, и доставлять события в объект, указанный в вызове функции выше. Класс главного приложения будет часто обращаться к этому интерфейсу, просто передавая параметры в GLUTBackendRun. Этот подход реализован уже в этом уроке.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">technique.h:25</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class Technique
+    
+> technique.h:25</p>
+    
+    class Technique
 {
 public:
 	Technique();
@@ -57,15 +57,15 @@ private:
 	GLuint m_shaderProg;
 	typedef std::list&lt;GLuint&gt; ShaderObjList;
 	ShaderObjList m_shaderObjList;
-};</code></pre>
+};
 <p>В предыдущих уроках ответственность за рутинную работу по компиляции и линковки шейдеров лежала на приложении. Класс Technique поможет обернув основной функционал внутри себя и позволит наследуемым классам сфокусироваться только на главной задаче (иначе говоря на "технике").</p>
 <p>Каждая техника должна во-первых инициализацироваться через вызов функции Init(). Наследуемые техники должны вызывать Init() для основного класса (в котором создается программный объект OpenGL) и могут добавить свою дополнительную инициализацию здесь.</p>
 <p>После того, как объект техники создан и инициализирован, обычный порядок для наследуемых классов в вызове protected функции AddShader() столько раз, сколько шейдеров GLSL требуется (предусмотрено в массиве символов). Наконец, Finalize() вызывается для линковки объектов. Функция Enable() на самом деле выполняет glUseProgram(), так что она должна быть вызвана всякий раз, когда мы меняем технику перед вызовом функции отрисовки</p>
 <p>Этот класс отслеживает промежуточные объекты и после линковки удаляет их через glDeleteShader(). Это помогает уменьшить количество ресурсов, которые ваше приложение потребляет. Для наибольшей производительности приложения OpenGL часто компилируют все шейдеры во время загрузки, а не во время исполнения программы. Удаляя объекты незамедлительно после линковки вы помогаете OpenGL не тратить ресурсы по напрасно. Объект программы удаляет себя в деструкторе через glDeleteProgram().</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:49</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class Main : public ICallbacks
+    
+> main.cpp:49</p>
+    
+    class Main : public ICallbacks
 {
 public:
 	Main(){
@@ -112,22 +112,22 @@ private:
 	Camera* m_pGameCamera;
 	float m_scale;
 	DirectionalLight m_directionalLight;
-};</code></pre>
+};
 <p>Это скелет главного класса приложения, который инкапсулирует оставшийся код, с которым мы уже знакомы. Init() берет на себя заботу о создании эффектов, загрузки текстуры и создание буферов вершин и индексов. Run() вызывает GLUTBackendRun() и передает себя в качестве параметра. Так как класс наследует интерфейс ICallbacks, то все входящие и исходящие события GLUT передаются в собственные методы класса. К тому же, все переменные, которые раньше были глобальными, теперь private атрибуты класса.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.h:25</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>struct DirectionalLight
+    
+> lighting_technique.h:25</p>
+    
+    struct DirectionalLight
 {
 	Vector3f Color;
 	float AmbientIntensity;
-};</code></pre>
+};
 <p>Это начало определения направленного света. Пока что только фоновая часть реализована, а направленная отсутствует. Мы добавим направление в следующем уроке, когда мы изучим рассеянное освещение. Структура хранит 2 поля - цвет и фоновую интенсивность. Цвет определяет какой канал цвета может отражен и в какой интенсивности. Пример: если цвет (1.0, 0.5, 0.0), то красный канал отразится полностью, зеленый наполовину, а синий потеряется целиком. Это происходит из-за того, что объект может отражать только падающие лучи (источники света различные, они испускают свет по разному и требуют обработки по отдельности). В случае с солнцем его обычный цвет чисто белый (1.0, 1.0, 1.0).</p>
 <p>Фоновая интенсивность определяет насколько темный или яркий свет. Вы можете иметь полностью белый с интенсивностью 1.0, тогда объект будет хорошо освещен, или 0.1, тогда объект разглядеть можно будет только с большим трудом.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.h:31</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class LightingTechnique : public Technique
+    
+> lighting_technique.h:31</p>
+    
+    class LightingTechnique : public Technique
 {
 public:
 	LightingTechnique();
@@ -142,12 +142,12 @@ private:
 	GLuint m_samplerLocation;
 	GLuint m_dirLightColorLocation;
 	GLuint m_dirLightAmbientIntensityLocation;
-};</code></pre>
+};
 <p>Это первый пример использования класса Technique. LightingTechnique наследует этот класс, и представляет собой инвентарь света, используя основой функционал компиляции и линковки, которые предлагает базовый класс. Функция Init() должна быть вызвана после создания объекта. Она просто вызывает Technique::AddShader() и Techique::Finalize() для генерации программы GLSL.</p> 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:38</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 330
+    
+> lighting_technique.cpp:38</p>
+    
+    #version 330
 
 in vec2 TexCoord0;
 
@@ -167,16 +167,16 @@ void main()
 	FragColor = texture2D(gSampler, TexCoord0.xy) * 
 		    vec4(gDirectionalLight.Color, 1.0) *
 		    gDirectionalLight.AmbientIntensity;
-}</code></pre>
+}
 <p>Вершинный шейдер остался без изменений в этом уроке. Он продолжает обрабатывать позицию (умножением исходной на матрицу WVP) и координаты текстур. Все новые вычисления перешли в фрагментный шейдер. Среди нового здесь слово "struct" для определения направленного света. Как вы видите, это слово используется практически так же, как и в C/C++. Структура идентична той, которую мы описали в приложении, и мы должны делать так, что бы приложение и шейдер могли обмениваться данными.</p>
 <p>Появилась новая переменная направленного света типа DirectionalLight, которую приложение будет обновлять. Эта переменная используется для подсчета итогового цвета пикселя. Как и раньше мы находим сэмплер текстуры для получения изначального цвета. Затем мы умножаем его на цвет и интенсивность света. На этом завершаются расчеты фонового освещения.</p>
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">lighting_technique.cpp:87</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>m_WVPLocation = GetUniformLocation("gWVP");
+    
+> lighting_technique.cpp:87</p>
+    
+    m_WVPLocation = GetUniformLocation("gWVP");
 m_samplerLocation = GetUniformLocation("gSampler");
 m_dirLightColorLocation = GetUniformLocation("gDirectionalLight.Color");
 m_dirLightAmbientIntensityLocation = GetUniformLocation("gDirectionalLight.AmbientIntensity");
-</code></pre>
+
 <p>Для того что бы получить доступ к uniform-переменной типа DirectionalLight из приложения, мы должны получить адрес обоих параметров не зависимо друг от друга. Класс LightingTechnique имеет 4 GLuint адреса переменных для получения доступа к uniform-переменным в вершинном и фрагментном шейдерах. Позиции WVP и сэмплера получены знакомым способом. Цвет и интенсивность получены как написано выше - указывать имя uniform-переменной в шейдере следует за точкой и именем поля у структуры. Запись значений в эти переменные производится так же, как и в другие переменные ранее. Класс LightingTechnique предлагает 2 метода для назначения направления света и матрицы WVP. Класс Main вызывает их перед каждым вызовом отрисовки что бы обновить значения.</p>
 <p>Этот урок позволяет вам поиграться с фоновой интенсивностью через кнопки 'a' и 's' для увеличения и уменьшения соответственно. Посмотрите функцию KeyboardCB() в классе Main что бы понять как это работает.</p>		

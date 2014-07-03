@@ -27,10 +27,10 @@ title: Урок 23 - Карта теней - часть 1
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial23"><h2>Прямиком к коду!</h2></a>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_fbo.h:50</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>class ShadowMapFBO
+    
+> shadow_map_fbo.h:50</p>
+    
+    class ShadowMapFBO
 {
 	public:
 		ShadowMapFBO();
@@ -47,7 +47,7 @@ title: Урок 23 - Карта теней - часть 1
 		GLuint m_fbo;
 		GLuint m_shadowMap;
 };
-</code></pre>
+
 <p>
 Результат 3D конвейера в конечном итоге попадает в нечто, называемое "объектом буфера кадра (framebuffer object (или FBO)). Это понятие раскладывается на буфер цвета (который отображается на экран), буфер глубины и еще несколько для дополнительных возможностей. Когда вызывается glutInitDisplayMode(), то создается стандартный буфер кадра с указанными параметрами. Он управляется оконной системой и не может быть удален OpenGL. Но приложение может создать отдельный, свой собственный буфер кадра. Он может быть использован для различных методов под управлением приложения. Класс ShadowMapFBO предоставляет простой интерфейс для FBO, который будет использован для наложения теней. Внутри у него 2 указателя к OpenGL. Первый - 'm_fbo' представляет текущий FBO. FBO инкапсулирует внутреннее состояние буфера кадра. Однажды создав и правильно настроив мы можем менять буфер просто привязав другой. Заметим, что только стандартный буфер может быть использован для отображения чего-либо на экран. Буфер кадра, созданный 
 приложением 
@@ -64,25 +64,25 @@ title: Урок 23 - Карта теней - часть 1
 <p>Для карты теней потребуется только буфер глубины. Атрибут 'm_shadowMap' так же указатель на текстуру, которая будет использована для прикрепления к DEPTH_ATTACHMENT. ShadowMapFBO предоставляет набор методов, которые будут использованы в главной функции рендера. Мы будем вызывать BindForWriting() перед рендером в карту теней и BindForReading() перед вторым проходом.
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_fbo.cpp:42</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glGenFramebuffers(1, &amp;m_fbo);</code></pre>
+    
+> shadow_map_fbo.cpp:42</p>
+    
+    glGenFramebuffers(1, &amp;m_fbo);
 <p>
 Так мы создаем FBO. Аналогично текстурам и буферам мы указываем адрес массива типа GLuints и его размер. Массив заполнен указателями.
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_fbo.cpp:45</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glGenTextures(1, &amp;m_shadowMap);
+    
+> shadow_map_fbo.cpp:45</p>
+    
+    glGenTextures(1, &amp;m_shadowMap);
 glBindTexture(GL_TEXTURE_2D, m_shadowMap);
 glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, WindowWidth, WindowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-</code></pre>
+
 <p>
 Далее мы создаем текстуру, которая будет служить в качестве карты теней. В целом это обычная 2D текстура с некоторыми отличиями, что бы она подходила для нашей цели:
 <ol>
@@ -92,71 +92,71 @@ glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 </ol>
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_fbo.cpp:53</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
-</code></pre>
+    
+> shadow_map_fbo.cpp:53</p>
+    
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+
 <p>
 Мы создали FBO, текстуру и настроили ее так, что бы она подходила для карты теней. Теперь нам требуется прикрепить текстуру к FBO. Первое, что мы должны сделать, это привязать FBO. Это сделает его "текущим" и все последующие операции над FBO будут применены к нему. Эта функция принимает указатель на FBO и желаемую цель. Она может быть GL_DRAW_FRAMEBUFFER или GL_READ_FRAMEBUFFER. Мы используем последний когда хотим считать с буфера кадра через glReadPixels (не в этом уроке). Так как мы хотим рендерить в буфер, то мы выбираем GL_DRAW_FRAMEBUFFER.
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_fbo.cpp:54</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_shadowMap, 0);</code></pre>
+    
+> shadow_map_fbo.cpp:54</p>
+    
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_shadowMap, 0);
 <p>Здесь мы прикрепляем текстуру для карты теней к FBO. Последний параметр указывает на то, какой слой мипмапа использовать. Мипмап - это характеристика отображения текстуры, показывающая различные разрешения, начиная с наивысшего с мипмап равным 0 и уменьшая до 1-N. Комбинация мипмапов текстур - трехлинейный фильтр, дающий наилучший результат через комбинацию текселей с соседних уровней мипмапа (когда не один не подходит полностью). Здесь мы используем только 1 мипмап, поэтому ставим 0. Мы даем указатель на карту теней как 4 параметр.
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_fbo.cpp:57</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>glDrawBuffer(GL_NONE);</code></pre>
+    
+> shadow_map_fbo.cpp:57</p>
+    
+    glDrawBuffer(GL_NONE);
 <p>
 Так как мы не собираемся рендерить в буфер цвета (только в глубину) мы прямо указываем это выше. По умолчанию цель буфера цвета GL_COLOR_ATTACHMENT0, но наш FBO и не собирался хранить буфер цвета. Поэтому лучше указать OpenGL наши намерения. Подходящими параметрами для этой функции будут GL_NONE и от GL_COLOR_ATTACHMENT0 до GL_COLOR_ATTACHMENTm, где 'm' равна GL_MAX_COLOR_ATTACHMENTS - 1. Эти параметры используются только для FBO. Если используется буфер по умолчанию, то можно указать лишь GL_NONE, GL_FRONT_LEFT, GL_FRONT_RIGHT, GL_BACK_LEFT и GL_BACK_RIGHT. Это позволит рендерить прямо в передний или задний буферы (каждый из которых имеет левый и правый буферы).
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_fbo.cpp:59</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    
+> shadow_map_fbo.cpp:59</p>
+    
+    GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
 if (Status != GL_FRAMEBUFFER_COMPLETE) {
 	printf("FB error, status: 0x%x\n", Status);
 	return false;
-}</code></pre>
+}
 <p>
 Когда настройка FBO завершена, то очень важно проверить его состояние, которое OpenGL определяет как "завершен". Это значит, что никаких ошибок не обнаружено и буфер кадра может быть использован прямо сейчас. Код выше осуществляет эту проверку.
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_fbo.cpp:70</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void ShadowMapFBO::BindForWriting()
+    
+> shadow_map_fbo.cpp:70</p>
+    
+    void ShadowMapFBO::BindForWriting()
 {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
-}</code></pre>
+}
 <p>
 Нам требуется переключаться между рендером в карту теней и в стандартный буфер кадра. Во втором проходе нам так же потребуется привязать нашу карту теней для ввода. Эта и следующая функции предлагают с легкостью сделать это. Функция выше просто привязывает FBO для всего, что мы уже обговорили ранее. Мы вызываем ее перед первым проходом...
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_fbo.cpp:76</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>void ShadowMapFBO::BindForReading(GLenum TextureUnit)
+    
+> shadow_map_fbo.cpp:76</p>
+    
+    void ShadowMapFBO::BindForReading(GLenum TextureUnit)
 {
 	glActiveTexture(TextureUnit);
 	glBindTexture(GL_TEXTURE_2D, m_shadowMap);
 }
-</code></pre>
+
 <p>
 ... а эта функция будет использована перед вторым проходом для привязывания карты теней для чтения. Заметим, что мы привязываем объект текстуры вместо FBO. Эта функция принимает модуль текстуры, к которому будет привязана карта теней. Индекс модуля текстуры должен быть синхронизирован с шейдером (так как шейдер имеет uniform-переменную сэмплера текстуры). Очень важно заметить, что glActiveTexture принимает индекс текстуры как перечисление (например GL_TEXTURE0, GL_TEXTURE1 и т.д.), а шейдеру требуется только индекс (0, 1 ...). Это может стать источником многих ошибок (поверь мне, я знаю).
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_technique.cpp:22</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 330
+    
+> shadow_map_technique.cpp:22</p>
+    
+    #version 330
 
 layout (location = 0) in vec3 Position;
 layout (location = 1) in vec2 TexCoord;
@@ -171,16 +171,16 @@ void main()
 	    gl_Position = gWVP * vec4(Position, 1.0);
 	    TexCoordOut = TexCoord;
 }
-</code></pre>
+
 <p>
 Мы собираемся использовать одинаковую программу шейдера для обоих рендеров. Вершинный шейдер будет использован в каждом рендере, а вот фрагментный только во втором. Так как мы отключили запись в буфер цвета во время первого прохода, то фрагментный шейдер не будет использоваться. Он генерирует клип координат пространства через умножение локальной позиции на матрицу WVP и проходит через координаты текстур. В первом проходе координаты текстуры излишни (нет фрагментного шейдера). Поэтому нет никакого реального воздействия и очень просто поделиться вершинным шейдером. Как вы видите, с точки зрения шейдера нет никакой разницы просто передастся ли Z или будет реальный проход рендера. Вся разница в том, что приложение передает позицию источника света и матрицу WVP во время первого прохода, или то же самое, но камеры во втором. В первом случае Z буфер будет заполнен ближайшим значением Z из позиции света и на втором из позиции камеры. Во втором проходе нам так же требуются координаты текстуры в фрагментном шейдере, 
 поскольку нам нужен сеэмпл из карты теней (которая теперь передается в шейдер). 
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">shadow_map_technique.cpp:39</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>#version 330
+    
+> shadow_map_technique.cpp:39</p>
+    
+    #version 330
 
 in vec2 TexCoordOut;
 uniform sampler2D gShadowMap;
@@ -193,7 +193,7 @@ void main()
 	Depth = 1.0 - (1.0 - Depth) * 25.0;
 	FragColor = vec4(Depth);
 }
-</code></pre>
+
 <p>
 Это фрагментный шейдер, который используется для отображения карты теней в рендере. Координаты 2D текстуры используются для получения значения глубины из карты. Текстура карты теней была создана с внутренним форматом GL_DEPTH_COMPONENT. Это значит, что тексел будет вещественным числом, не цветом. Вот почему используется '.x'. Матрица перспективы проекции имеет поведение, которое изменяет значение Z, что бы оно входило в отрезок [0,1] и чем ближе вершина, тем меньше значение. Объясняется это тем, что требуется обеспечить наибольшую точность Z при приближении к камере, потому что ошибки в этом хорошо заметны. Когда мы отображаем содержание буфера глубины, мы можем попасть в ситуацию, когда изображение не достаточно ясное. Поэтому после нахождения сэмплера глубины из карты теней мы уточняем через масштабирование расстояния текущей точки к дальней стороне (в которой Z равен 1.0) и затем вычитаем результат из 1.0 опять. Это усиление улучшит итоговое изображение. Мы используем новое значение глубины для создания 
 цвета 
@@ -203,10 +203,10 @@ void main()
 	Давайте посмотрим на то, как объединить куски кода выше и создать приложение.
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">tutorial23.cpp:107</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>virtual void RenderSceneCB()
+    
+> tutorial23.cpp:107</p>
+    
+    virtual void RenderSceneCB()
 {
 	m_pGameCamera-&gt;OnRender();
 	m_scale += 0.05f;
@@ -216,14 +216,14 @@ void main()
 
 	glutSwapBuffers();
 }
-</code></pre>
+
 <p>
 Главная функция рендера стала гораздо проще, так как остальной функционал перемещен в другие функции. Для начала мы позаботились об "глобальных" вещах на подобии обновления позиции камеры и других членах класса. Затем мы вызываем функцию для рендера в карту высот до функции отображения результата. Наконец, вызывается glutSwapBuffer() для обновления экрана.</p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">tutorial23.cpp:120</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>virtual void ShadowMapPass()
+    
+> tutorial23.cpp:120</p>
+    
+    virtual void ShadowMapPass()
 {
 	m_shadowMapFBO.BindForWriting();
 
@@ -241,15 +241,15 @@ void main()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }	
-</code></pre>
+
 <p>
 Мы начинаем этап карты теней с привязки FBO. Начиная с этого момента все значения высот будут переходить в нашу текстуру карты теней, а цвет будет выброшен. Мы очищаем буфер глубины (только) прежде чем начать делать что-либо. Затем мы устанавливаем класс конвейера для того, что бы рендерить меш (модель из Quake2 поставляется вместе с исходным кодом). Стоит заметить, что камера обновляется согласно позиции и направлению прожектора. Мы рендерим меш и затем переключаемся обратно в стандартный буфер кадра передав в качестве FBO 0.
 </p>
 
-</div></article><article class="hero clearfix"><div class="col_33">
-<p class="message">main.cpp:139</p>
-</div></article><article class="hero clearfix"><div class="col_100">
-<pre><code>virtual void RenderPass()
+    
+> main.cpp:139</p>
+    
+    virtual void RenderPass()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -264,7 +264,7 @@ void main()
 	m_pShadowMapTech-&gt;SetWVP(p.GetWVPTrans());
 	m_pQuad-&gt;Render();
 }
-</code></pre>
+
 <p>
 Проход рендера начинается с очистки буферов и цвета и глубины. Эти буферы относятся к стандартному буферу кадра. Мы говорим шейдеру использовать модуль текстуры 0 и привязываем карту теней для чтения в модуле 0. Далее все как обычно. Мы масштабируем квадрат, помещаем перед камерой и рендерим. Во время растеризации карта теней сэмплится и отображается. 
 </p>

@@ -73,8 +73,8 @@ title: Урок 39 - Обнаружение силуэта
 </p>
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial39"><h2>Прямиком к коду!</h2></a>
-<p class="message">mesh.cpp:200</p>
-<pre><code>void Mesh::FindAdjacencies(const aiMesh* paiMesh, vector&lt;unsigned int&gt;&amp; Indices)
+> mesh.cpp:200</p>
+    void Mesh::FindAdjacencies(const aiMesh* paiMesh, vector&lt;unsigned int&gt;&amp; Indices)
 {
     for (uint i = 0 ; i &lt; paiMesh-&gt;mNumFaces ; i++) {
         const aiFace&amp; face = paiMesh-&gt;mFaces[i];
@@ -106,7 +106,7 @@ title: Урок 39 - Обнаружение силуэта
         m_indexMap[e1].AddNeigbor(i);
         m_indexMap[e2].AddNeigbor(i);
         m_indexMap[e3].AddNeigbor(i);
-    }</code></pre>
+    }
 <p>
     Большая часть алгоритма для смежностей находится в функции выше а так же в нескольких дополнительных структурах.
     Алгоритм состоит из 2 этапов. В первом мы задаем отображение между каждой гранью и 2 треугольниками, которые
@@ -117,8 +117,8 @@ title: Урок 39 - Обнаружение силуэта
     треугольников. Это усложняет наш алгоритм смежности, нам лучше иметь одну вершину один раз. Хотя мы и создали связь
     между позицией и первым индексом, в дальнейшем мы будем исользовать только индексы.
 </p>
-<p class="message">mesh.cpp:216</p>
-<pre><code>    for (uint i = 0 ; i &lt; paiMesh-&gt;mNumFaces ; i++) {
+> mesh.cpp:216</p>
+        for (uint i = 0 ; i &lt; paiMesh-&gt;mNumFaces ; i++) {
         const Face&amp; face = m_uniqueFaces[i];
 
         for (uint j = 0 ; j &lt; 3 ; j++) {
@@ -137,7 +137,7 @@ title: Урок 39 - Обнаружение силуэта
         }
     }
 }
-</code></pre>
+
 <p>
     Во второй части мы заполняем вектор индексов набором из 6 вершин, что соответствует топологии треугольника со
     смежностью, как было указано ранее. Отображение, которое мы задали ранее, сейчас нам пригодится, поскольку для
@@ -150,8 +150,8 @@ title: Урок 39 - Обнаружение силуэта
     убедиться, что ничего не пропущено. Главное изменение - мы используем топологию GL_TRIANGLES_ADJACENCY вместо
     GL_TRIANGLES в вызове glDrawElementsBaseVertex(). Если забыть об этом, то GL передаст испорченные данные в GS.
 </p>
-<p class="message">silhouette.glsl</p>
-<pre><code>struct VSInput
+> silhouette.glsl</p>
+    struct VSInput
 {
     vec3  Position;
     vec2  TexCoord;
@@ -172,14 +172,14 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     gl_Position    = gWVP * PosL;
     VSout.WorldPos = (gWorld * PosL).xyz;
 }
-</code></pre>
+
 <p>
     В демо мы собираемся обнаружить силуэт объекта и отметить его красной линией. Объект будет нарисован с помощью
     forward rendering, а для силуэта будет использоваться отдельный шейдер. Код выше соответствует VS. Ничего особенного.
     Мы только преобразовываем позицию в пространство клиппера с помощью матрицы WVP и даем GS вершины в мировом
     простарнстве (поскольку алгоритму силуэта именно такие и нужны).
 </p>
-<pre><code>
+    
 void EmitLine(int StartIndex, int EndIndex)
 {
     gl_Position = gl_in[StartIndex].gl_Position;
@@ -228,7 +228,7 @@ shader GSmain(in VSOutput GSin[])
         }
     }
 }
-</code></pre>
+
 <p>
     Вся логика силуэта внутри GS. Когда используется топология треугольника со смежностями GS получает 6 вершин. Мы
     начинаем с вычисления нескольких граней, которые помогут нам найти нормаль как текущего треугольника, так и
@@ -240,8 +240,8 @@ shader GSmain(in VSOutput GSin[])
     Если смежный треугольник не освещен, то мы вызываем функцию EmitLine(), которая, очевидно, выпускает общую сторону
     между треугольником (на который падает свет) и его соседом (на который нет). FS просто задает цвет грани красным.
 </p>
-<p class="message">tutorial39.cpp:175</p>
-<pre><code>void RenderScene()
+> tutorial39.cpp:175</p>
+    void RenderScene()
 {
     // Рендерим объект как-есть
     m_LightingTech.Enable();
@@ -265,7 +265,7 @@ shader GSmain(in VSOutput GSin[])
 
     <b>m_mesh.Render();</b>
 }
-</code></pre>
+
 <p>
     А вот как мы используем технику силуэта. Один объект рендерится дважды. Первый с обычным шейдером света. А затем с
     шейдером силуэта. Обратите внимание, как функция glLightWidth() делает силуэт толще, а следовательно заметнее.

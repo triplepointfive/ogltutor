@@ -36,8 +36,8 @@ title: Урок 42 - Percentage Closer Filtering
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial42"><h2>Прямиком к коду!</h2></a>
 
-<p class="message">lighting.glsl:80</p>
-<pre><code>uniform <b>sampler2DShadow</b> gShadowMap;
+> lighting.glsl:80</p>
+    uniform <b>sampler2DShadow</b> gShadowMap;
 
 #define EPSILON 0.00001
 
@@ -64,7 +64,7 @@ float CalcShadowFactor(vec4 LightSpacePos)
 
     return (0.5 + (Factor / 18.0));</b>
 }
-</code></pre>
+
 <p>
     Это обновленная функция вычисления порога теней. Она начинается с того, что мы вручную производим деление
     перспективы на координаты пространства клиппера с позиции источника света, а затем преобразования из отрезка (-1,+1)
@@ -89,8 +89,8 @@ float CalcShadowFactor(vec4 LightSpacePos)
     результатов и делим их на 18. Таким образом мы получаем значение между 0 и 0.5. Мы добавляем его к базовым 0.5 и
     получаем теневой коэффициент.
 </p>
-<p class="message">shadow_map_fbo.cpp:39</p>
-<pre><code>bool ShadowMapFBO::Init(unsigned int WindowWidth, unsigned int WindowHeight)
+> shadow_map_fbo.cpp:39</p>
+    bool ShadowMapFBO::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
     // Создаем FBO
     glGenFramebuffers(1, &amp;m_fbo);
@@ -125,7 +125,7 @@ float CalcShadowFactor(vec4 LightSpacePos)
 
     return true;
 }
-</code></pre>
+
 <p>
     Вот как мы настраиваем нашу текстуру карты теней для работы с теневой выборкой в шейдере вместо обычной выборки.
     Добавлены 2 строки кода, они выделены жирным. Сначала мы устанавливаем сравнение текстуры в режим 'сравнить ссылку с
@@ -136,8 +136,8 @@ float CalcShadowFactor(vec4 LightSpacePos)
     GL_EQUAL, GL_NOTEQUAL для аналогичных типов сравнения. Ну вы поняли. Также доступны GL_ALWAYS, который всегда
     возвращает 1.0 и GL_NEVER, который всегда возвращает 0.0.
 </p>
-<p class="message">tutorial42.cpp:174</p>
-<pre><code>void ShadowMapPass()
+> tutorial42.cpp:174</p>
+    void ShadowMapPass()
 {
    glCullFace(GL_FRONT);
    ...
@@ -148,7 +148,7 @@ void RenderPass()
    glCullFace(GL_BACK);
    ...
 }
-</code></pre>
+
 <p>
     Последнее, что я бы хотел отметить - небольшое изменение для избежания самозатенения. Самозатенение - большая проблема
     при работе почти со всеми техниками теней, и причина тому - точность буфера глубины сильно ограничена (даже на 32
