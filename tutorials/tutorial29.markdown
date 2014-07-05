@@ -83,11 +83,11 @@ private:
     bool PickingTexture::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
 	// Создание FBO
-	glGenFramebuffers(1, &amp;m_fbo);    
+	glGenFramebuffers(1, &m_fbo);    
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
 
 	// Создание объекта текстуры для буфера с информацией о примитиве
-	glGenTextures(1, &amp;m_pickingTexture);
+	glGenTextures(1, &m_pickingTexture);
 	glBindTexture(GL_TEXTURE_2D, m_pickingTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, <b>GL_RGB32UI</b>, WindowWidth, WindowHeight, 
 			0, <b>GL_RGB_INTEGER, GL_UNSIGNED_INT</b>, NULL);
@@ -95,7 +95,7 @@ private:
 				m_pickingTexture, 0);    
 
 	// Создание объекта текстуры для буфера глубины
-	glGenTextures(1, &amp;m_depthTexture);
+	glGenTextures(1, &m_depthTexture);
 	glBindTexture(GL_TEXTURE_2D, m_depthTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, WindowWidth, WindowHeight, 
 				0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -155,7 +155,7 @@ private:
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 
 	PixelInfo Pixel;
-	glReadPixels(x, y, 1, 1, GL_RGB_INTEGER, GL_UNSIGNED_INT, &amp;Pixel);
+	glReadPixels(x, y, 1, 1, GL_RGB_INTEGER, GL_UNSIGNED_INT, &Pixel);
   
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -233,12 +233,12 @@ public:
 {
 	...
 		
-	for (unsigned int i = 0 ; i &lt; m_Entries.size() ; i++) {
+	for (unsigned int i = 0 ; i < m_Entries.size() ; i++) {
 
 				...
 
 		<b>if (pRenderCallbacks) {
-			pRenderCallbacks-&gt;DrawStartCB(i);
+			pRenderCallbacks->DrawStartCB(i);
 		}</b>
     
 		glDrawElements(GL_TRIANGLES, m_Entries[i].NumIndices, GL_UNSIGNED_INT, 0);
@@ -270,7 +270,7 @@ public:
     
     virtual void RenderSceneCB()
 {
-	m_pGameCamera-&gt;OnRender();        
+	m_pGameCamera->OnRender();        
 
 	PickingPhase();
 	RenderPhase();
@@ -290,7 +290,7 @@ public:
 {
 	Pipeline p;
 	p.Scale(0.1f, 0.1f, 0.1f);
-	p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+	p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
 	p.SetPerspectiveProj(m_persProjInfo);
 
 	m_pickingTexture.EnableWriting();
@@ -299,11 +299,11 @@ public:
     
 	m_pickingEffect.Enable();
     
-	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_worldPos) ; i++) {
+	for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_worldPos) ; i++) {
 	tp.WorldPos(m_worldPos[i]);
 	tm_pickingEffect.SetObjectIndex(i);
 	tm_pickingEffect.SetWVP(p.GetWVPTrans());    
-	tm_pMesh-&gt;Render(&amp;m_pickingEffect);
+	tm_pMesh->Render(&m_pickingEffect);
 	}
     
 	m_pickingTexture.DisableWriting();        
@@ -323,7 +323,7 @@ public:
     
 	Pipeline p;
 	p.Scale(0.1f, 0.1f, 0.1f);
-	p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+	p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
 	p.SetPerspectiveProj(m_persProjInfo);
     
 	// Если мышь кликнула, то проверяем попадает ли она на треугольник. В этом случае цвет красный.
@@ -337,19 +337,19 @@ public:
 			p.WorldPos(m_worldPos[Pixel.ObjectID]);
 			m_simpleColorEffect.SetWVP(p.GetWVPTrans());
 			// Must compensate for the decrement in the FS!
-			m_pMesh-&gt;Render(Pixel.DrawID, <b>Pixel.PrimID - 1</b>);
+			m_pMesh->Render(Pixel.DrawID, <b>Pixel.PrimID - 1</b>);
 		}
 	}
     
 	// Рендерим объекты как обычно
 	m_lightingEffect.Enable();
-	m_lightingEffect.SetEyeWorldPos(m_pGameCamera-&gt;GetPos());
+	m_lightingEffect.SetEyeWorldPos(m_pGameCamera->GetPos());
     
-	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_worldPos) ; i++) {
+	for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_worldPos) ; i++) {
 	tp.WorldPos(m_worldPos[i]);
 	tm_lightingEffect.SetWVP(p.GetWVPTrans());
 	tm_lightingEffect.SetWorldMatrix(p.GetWorldTrans());                
-	tm_pMesh-&gt;Render(NULL);
+	tm_pMesh->Render(NULL);
 	}        
 }
 
@@ -363,7 +363,7 @@ public:
     
     static void MouseCB(int Button, int State, int x, int y)
 {
-	s_pCallbacks-&gt;MouseCB(Button, State, x, y);
+	s_pCallbacks->MouseCB(Button, State, x, y);
 }
 
 

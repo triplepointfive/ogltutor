@@ -18,11 +18,11 @@ title: Урок 14 - Управление камерой - часть 1
     {
     public:
         Camera();
-        Camera(const Vector3f&amp; Pos, const Vector3f&amp; Target, const Vector3f&amp; Up);
+        Camera(const Vector3f& Pos, const Vector3f& Target, const Vector3f& Up);
         bool OnKeyboard(int Key);
-        const Vector3f&amp; GetPos() const
-        const Vector3f&amp; GetTarget() const
-        const Vector3f&amp; GetUp() const
+        const Vector3f& GetPos() const
+        const Vector3f& GetTarget() const
+        const Vector3f& GetUp() const
     
     private:
         Vector3f m_pos;

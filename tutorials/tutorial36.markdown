@@ -71,7 +71,7 @@ title: Урок 36 - Deferred Shading - Часть 2
 	p.SetPerspectiveProj(m_persProjInfo);		
 	p.Rotate(0.0f, m_scale, 0.0f);
 	
-	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_boxPositions) ; i++) {
+	for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_boxPositions) ; i++) {
 		p.WorldPos(m_boxPositions[i]);
 		m_DSGeomPassTech.SetWVP(p.GetWVPTrans());
 		m_DSGeomPassTech.SetWorldMatrix(p.GetWorldTrans());
@@ -121,7 +121,7 @@ title: Урок 36 - Deferred Shading - Часть 2
 	p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
 	p.SetPerspectiveProj(m_persProjInfo);
 	
-	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_pointLight); i++) {
+	for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_pointLight); i++) {
 		m_DSPointLightPassTech.SetPointLight(m_pointLight[i]);
 		p.WorldPos(m_pointLight[i].Position);
 		float BSphereScale = CalcPointLightBSphere(m_pointLight[i].Color, 
@@ -139,7 +139,7 @@ title: Урок 36 - Deferred Shading - Часть 2
     
 > tutorial36.cpp:271</p>
     
-    float CalcPointLightBSphere(const Vector3f&amp; Color, float Intensity)
+    float CalcPointLightBSphere(const Vector3f& Color, float Intensity)
 {
 	float MaxChannel = fmax(fmax(Color.x, Color.y), Color.z);
 	float c = MaxChannel * Intensity;
@@ -224,7 +224,7 @@ VS элементарный. В случае направленного свет
     bool GBuffer::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
 	...
-	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_textures) ; i++) {
+	for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_textures) ; i++) {
 		...
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -240,7 +240,7 @@ VS элементарный. В случае направленного свет
 {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_textures); i++) {
+	for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_textures); i++) {
 		glActiveTexture(GL_TEXTURE0 + i);		
 		glBindTexture(GL_TEXTURE_2D, m_textures[GBUFFER_TEXTURE_TYPE_POSITION + i]);
 	}

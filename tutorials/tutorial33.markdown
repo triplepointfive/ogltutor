@@ -53,35 +53,35 @@ private:
     
 > mesh.cpp:91</p>
     
-    bool Mesh::InitFromScene(const aiScene* pScene, const string&amp; Filename)
+    bool Mesh::InitFromScene(const aiScene* pScene, const string& Filename)
 {  
 		...
 	// Generate and populate the buffers with vertex attributes and the indices
 		glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[POS_VB]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Positions[0]) * Positions.size(), &amp;Positions[0],
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Positions[0]) * Positions.size(), &Positions[0],
 				GL_STATIC_DRAW);
 	glEnableVertexAttribArray(POSITION_LOCATION);
 	glVertexAttribPointer(POSITION_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, 0);    
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[TEXCOORD_VB]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(TexCoords[0]) * TexCoords.size(), &amp;TexCoords[0],
+		glBufferData(GL_ARRAY_BUFFER, sizeof(TexCoords[0]) * TexCoords.size(), &TexCoords[0],
 				GL_STATIC_DRAW);
 	glEnableVertexAttribArray(TEX_COORD_LOCATION);
 	glVertexAttribPointer(TEX_COORD_LOCATION, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[NORMAL_VB]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(Normals[0]) * Normals.size(), &amp;Normals[0],
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Normals[0]) * Normals.size(), &Normals[0],
 				GL_STATIC_DRAW);
 	glEnableVertexAttribArray(NORMAL_LOCATION);
 	glVertexAttribPointer(NORMAL_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices[0]) * Indices.size(), &amp;Indices[0], 
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices[0]) * Indices.size(), &Indices[0], 
 				GL_STATIC_DRAW);
 
 	<b>glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WVP_MAT_VB]);
     
-	for (unsigned int i = 0; i &lt; 4 ; i++) {
+	for (unsigned int i = 0; i < 4 ; i++) {
 		glEnableVertexAttribArray(WVP_LOCATION + i);
 		glVertexAttribPointer(WVP_LOCATION + i, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4f),
 				     (const GLvoid*)(sizeof(GLfloat) * i * 4));
@@ -90,7 +90,7 @@ private:
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WORLD_MAT_VB]);
 
-	for (unsigned int i = 0; i &lt; 4 ; i++) {
+	for (unsigned int i = 0; i < 4 ; i++) {
 		glEnableVertexAttribArray(WORLD_LOCATION + i);
 		glVertexAttribPointer(WORLD_LOCATION + i, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4f),
 				     (const GLvoid*)(sizeof(GLfloat) * i * 4));
@@ -124,13 +124,13 @@ private:
 
 	glBindVertexArray(m_VAO);
     
-	for (unsigned int i = 0 ; i &lt; m_Entries.size() ; i++) {
+	for (unsigned int i = 0 ; i < m_Entries.size() ; i++) {
 		const unsigned int MaterialIndex = m_Entries[i].MaterialIndex;
 
-		assert(MaterialIndex &lt; m_Textures.size());
+		assert(MaterialIndex < m_Textures.size());
         
 		if (m_Textures[MaterialIndex]) {
-			m_Textures[MaterialIndex]-&gt;Bind(GL_TEXTURE0);
+			m_Textures[MaterialIndex]->Bind(GL_TEXTURE0);
 		}
 
 		<b>glDrawElementsInstancedBaseVertex</b>(GL_TRIANGLES,
@@ -150,13 +150,13 @@ private:
 Это обновленная функция Render() класса Mesh. Она теперь принимает 2 массива матриц - матрицы WVP и мировых преобразований (NumInstances - это размер обоих массивов). До привязывания нашего VAO (подробнее об этом в предыдущем уроке) мы привязываем и загружаем матрицы в соответствующие им буферы вершин. Мы вызываем glDrawElements<b>Instanced</b>BaseVertex вместо glDrawElementsBaseVertex. Единственное изменение в этой функции в том, что она принимает количество образцов пятым параметром. Это означает, что одинаковые индексы (согласно другим параметрам) будут отрисовываться опять и опять - всего NumInstances раз. OpenGL будет получать данные для каждой вершины из VBs, чей делитель равен 0 (по старому). Он будет получать новые данные из VBs, чей делитель - 1 только после того, как весь образец будет отрисован. Общий алгоритм этого вызова таков:
 </p>
 <ul>
-<li>for (i = 0 ; i &lt; NumInstances ; i++)</li>
+<li>for (i = 0 ; i < NumInstances ; i++)</li>
 <ul>
 <li>if (i mod divisor == 0)</li>
 <ul>
 <li>получаем атрибут i/divisor из VBs с дублирующимися данными</li>
 </ul>
-<li>for (j = 0 ; j &lt; NumVertices ; j++)</li>
+<li>for (j = 0 ; j < NumVertices ; j++)</li>
 <ul>
 <li>получаем атрибут j из VBs с данными вершин</li>
 </ul>
@@ -206,11 +206,11 @@ void main()
 	vec3 Normal = normalize(Normal0);  
 	vec4 TotalLight = CalcDirectionalLight(Normal);  
                                                 
-	for (int i = 0 ; i &lt; gNumPointLights ; i++) {   
+	for (int i = 0 ; i < gNumPointLights ; i++) {   
 		TotalLight += CalcPointLight(gPointLights[i], Normal);  
 	}                                                       
                                                                 
-	for (int i = 0 ; i &lt; gNumSpotLights ; i++) {                    
+	for (int i = 0 ; i < gNumSpotLights ; i++) {                    
 		TotalLight += CalcSpotLight(gSpotLights[i], Normal);            
 	}                                                                       
                                                                     
@@ -226,7 +226,7 @@ void main()
 > main.cpp:137</p>
     
     Pipeline p;
-p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
 p.SetPerspectiveProj(m_persProjInfo);   
 p.Rotate(0.0f, 90.0f, 0.0f);
 p.Scale(0.005f, 0.005f, 0.005f);                
@@ -234,7 +234,7 @@ p.Scale(0.005f, 0.005f, 0.005f);
 Matrix4f WVPMatrics[NUM_INSTANCES];
 Matrix4f WorldMatrices[NUM_INSTANCES];
         
-for (unsigned int i = 0 ; i &lt; NUM_INSTANCES ; i++) {
+for (unsigned int i = 0 ; i < NUM_INSTANCES ; i++) {
 	Vector3f Pos(m_positions[i]);
 	Pos.y += sinf(m_scale) * m_velocity[i];
 	p.WorldPos(Pos);        
@@ -242,7 +242,7 @@ for (unsigned int i = 0 ; i &lt; NUM_INSTANCES ; i++) {
 	WorldMatrices[i] = p.GetWorldTrans().<b>Transpose()</b>;
 }
         
-m_pMesh-&gt;Render(NUM_INSTANCES, WVPMatrics, WorldMatrices);
+m_pMesh->Render(NUM_INSTANCES, WVPMatrics, WorldMatrices);
 
 <p>
 Код выше взят из главной функции рендера и показывает как вызвать обновленную функцию Mesh::Render(). Мы создаем объект конвейера и заполняем его. Все, что изменяется от образца к образцу - мировая позиция, которую мы оставляем до цикла. Мы подготавливаем 2 массива для матриц мировых и WVP. Затем в цикле мы пробегаем по всем образцам и получаем их начальную позицию из массива m_positions (который был инициализирован случайными числами при запуске). Мы вычисляем текущую позицию и устанавливаем ее в объекте конвейера. Мы можем теперь получить матрицы WVP и мировую из объекта конвейера, а затем поместить в соответствующий слот массива. Но прежде чем это сделать, мы сделаем кое-что действительно важное, что может вызвать головную боль у новичков. Мы должны транспонировать матрицы.

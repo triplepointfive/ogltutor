@@ -74,18 +74,18 @@ title: Урок 39 - Обнаружение силуэта
 
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial39"><h2>Прямиком к коду!</h2></a>
 > mesh.cpp:200</p>
-    void Mesh::FindAdjacencies(const aiMesh* paiMesh, vector&lt;unsigned int&gt;&amp; Indices)
+    void Mesh::FindAdjacencies(const aiMesh* paiMesh, vector<unsigned int>& Indices)
 {
-    for (uint i = 0 ; i &lt; paiMesh-&gt;mNumFaces ; i++) {
-        const aiFace&amp; face = paiMesh-&gt;mFaces[i];
+    for (uint i = 0 ; i < paiMesh->mNumFaces ; i++) {
+        const aiFace& face = paiMesh->mFaces[i];
 
         Face Unique;
 
         // Если вектор позиции продублирован в VB
         // мы будем использовать первый подходящий.
-        for (uint j = 0 ; j &lt; 3 ; j++) {
+        for (uint j = 0 ; j < 3 ; j++) {
             uint Index = face.mIndices[j];
-            aiVector3D&amp; v = paiMesh-&gt;mVertices[Index];
+            aiVector3D& v = paiMesh->mVertices[Index];
 
             if (m_posMap.find(v) == m_posMap.end()) {
                 m_posMap[v] = Index;
@@ -118,10 +118,10 @@ title: Урок 39 - Обнаружение силуэта
     между позицией и первым индексом, в дальнейшем мы будем исользовать только индексы.
 </p>
 > mesh.cpp:216</p>
-        for (uint i = 0 ; i &lt; paiMesh-&gt;mNumFaces ; i++) {
-        const Face&amp; face = m_uniqueFaces[i];
+        for (uint i = 0 ; i < paiMesh->mNumFaces ; i++) {
+        const Face& face = m_uniqueFaces[i];
 
-        for (uint j = 0 ; j &lt; 3 ; j++) {
+        for (uint j = 0 ; j < 3 ; j++) {
             Edge e(face.Indices[j], face.Indices[(j + 1) % 3]);
             assert(m_indexMap.find(e) != m_indexMap.end());
             Neighbors n = m_indexMap[e];
@@ -129,7 +129,7 @@ title: Урок 39 - Обнаружение силуэта
 
             assert(OtherTri != -1)
 
-            const Face&amp; OtherFace = m_uniqueFaces[OtherTri];
+            const Face& OtherFace = m_uniqueFaces[OtherTri];
             uint OppositeIndex = OtherFace.GetOppositeIndex(e);
 
             Indices.push_back(face.Indices[j]);
@@ -205,25 +205,25 @@ shader GSmain(in VSOutput GSin[])
     vec3 Normal = cross(e1,e2);
     vec3 LightDir = gLightPos - GSin[0].WorldPos;
 
-    if (dot(Normal, LightDir) &gt; 0.00001) {
+    if (dot(Normal, LightDir) > 0.00001) {
 
         Normal = cross(e3,e1);
 
-        if (dot(Normal, LightDir) &lt;= 0) {
+        if (dot(Normal, LightDir) <= 0) {
             EmitLine(0, 2);
         }
 
         Normal = cross(e4,e5);
         LightDir = gLightPos - GSin[2].WorldPos;
 
-        if (dot(Normal, LightDir) &lt;=0) {
+        if (dot(Normal, LightDir) <=0) {
             EmitLine(2, 4);
         }
 
         Normal = cross(e2,e6);
         LightDir = gLightPos - GSin[4].WorldPos;
 
-        if (dot(Normal, LightDir) &lt;= 0) {
+        if (dot(Normal, LightDir) <= 0) {
             EmitLine(4, 0);
         }
     }
@@ -248,7 +248,7 @@ shader GSmain(in VSOutput GSin[])
 
     Pipeline p;
     p.SetPerspectiveProj(m_persProjInfo);
-    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
     p.WorldPos(m_boxPos);
     m_LightingTech.SetWorldMatrix(p.GetWorldTrans());
     m_LightingTech.SetWVP(p.GetWVPTrans());

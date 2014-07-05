@@ -127,7 +127,7 @@ out patch OutputPatch oPatch;
     void main()
 {
 	// Set the control points of the output patch
-	for (int i = 0 ; i &lt; 3 ; i++) {
+	for (int i = 0 ; i < 3 ; i++) {
 		oPatch.Normal[i]   = Normal_CS_in[i];
 		oPatch.TexCoord[i] = TexCoord_CS_in[i];
 	}

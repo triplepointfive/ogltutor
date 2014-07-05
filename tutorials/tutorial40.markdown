@@ -4,7 +4,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
 
 <p>
-    В <a href="tutorial23.html">уроках 23 &amp; 24</a> мы изучили карту теней,
+    В <a href="tutorial23.html">уроках 23 & 24</a> мы изучили карту теней,
     относительно простой способ внести тени в наш 3D мир. Карты теней получают помехи при попытках использовать их для
     точечных источников света. Нам требуется вектор направления для создания карты, а для точечного источника, который
     светит во всех направлениях, такой вектор получить проблемно. Хотя, есть методы для решения этой проблемы, они
@@ -36,7 +36,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 <img src="/images/t40_shadow_volume1.jpg">
 <p>
     У нас есть лампочка в левом нижнем углу и зеленый объект (называется окклюдер (occluder)), который бросает тень из-за
-    света. 3 круглых объекта рендерятся как обычно. Объект B под тенью, а A &amp; C нет. Красные стрелочки обозначают
+    света. 3 круглых объекта рендерятся как обычно. Объект B под тенью, а A & C нет. Красные стрелочки обозначают
     зону теневого объема (пунктирная часть линии не входит в него).
 </p>
 <p>
@@ -153,7 +153,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
     m_scale += 0.1f;
 
-    m_pGameCamera-&gt;OnRender();
+    m_pGameCamera->OnRender();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -195,7 +195,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
     Pipeline p;
 
-    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
     p.SetPerspectiveProj(m_persProjInfo);
 
     p.WorldPos(m_boxPos);
@@ -236,7 +236,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     m_ShadowVolTech.SetLightPos(m_pointLight.Position);
 
     Pipeline p;
-    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
     p.SetPerspectiveProj(m_persProjInfo);
     p.WorldPos(m_boxPos);
     m_ShadowVolTech.SetVP(p.GetVPTrans());
@@ -269,13 +269,13 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     m_pointLight.AmbientIntensity = 0.0f;
     m_pointLight.DiffuseIntensity = 0.8f;
 
-    m_LightingTech.SetPointLights(1, &amp;m_pointLight);
+    m_LightingTech.SetPointLights(1, &m_pointLight);
 
-    m_pGroundTex-&gt;Bind(GL_TEXTURE0);
+    m_pGroundTex->Bind(GL_TEXTURE0);
 
     Pipeline p;
     p.SetPerspectiveProj(m_persProjInfo);
-    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
 
     p.WorldPos(m_boxPos);
     p.Rotate(0, m_scale, 0);
@@ -312,13 +312,13 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
     m_pointLight.AmbientIntensity = 0.2f;
     m_pointLight.DiffuseIntensity = 0.0f;
 
-    m_LightingTech.SetPointLights(1, &amp;m_pointLight);
+    m_LightingTech.SetPointLights(1, &m_pointLight);
 
-    m_pGroundTex-&gt;Bind(GL_TEXTURE0);
+    m_pGroundTex->Bind(GL_TEXTURE0);
 
     Pipeline p;
     p.SetPerspectiveProj(m_persProjInfo);
-    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
 
     p.WorldPos(m_boxPos);
     p.Rotate(0, m_scale, 0);
@@ -381,24 +381,24 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     vec3 Normal = cross(e1,e2);
     vec3 LightDir = gLightPos - GSin[0].WorldPos;
 
-    if (dot(Normal, LightDir) &gt; 0.000001) {
+    if (dot(Normal, LightDir) > 0.000001) {
         Normal = cross(e3,e1);
 
-        if (dot(Normal, LightDir) &lt;= 0) {
+        if (dot(Normal, LightDir) <= 0) {
             EmitQuad(GSin[0].WorldPos, GSin[2].WorldPos);
         }
 
         Normal = cross(e4,e5);
         LightDir = gLightPos - GSin[2].WorldPos;
 
-        if (dot(Normal, LightDir) &lt;= 0) {
+        if (dot(Normal, LightDir) <= 0) {
             EmitQuad(GSin[2].WorldPos, GSin[4].WorldPos);
         }
 
         Normal = cross(e2,e6);
         LightDir = gLightPos - GSin[4].WorldPos;
 
-        if (dot(Normal, LightDir) &lt;= 0) {
+        if (dot(Normal, LightDir) <= 0) {
             EmitQuad(GSin[4].WorldPos, GSin[0].WorldPos);
         }
 

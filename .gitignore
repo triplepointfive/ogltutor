@@ -4,3 +4,7 @@ _site
 public_html
 *.o
 *.hi
+.idea
+dist
+cabal.sandbox.config
+.cabal-sandbox

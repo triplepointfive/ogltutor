@@ -49,7 +49,7 @@ title: Урок 34 - GLFX - An OpenGL Effect Library
 <p>
 Добавьте следующее для получения доступа к api GLFX:
 </p>
-    #include &lt;glfx.h&gt;
+    #include <glfx.h>
 
 <p>
 Создание указателя на эффект:
@@ -62,7 +62,7 @@ title: Урок 34 - GLFX - An OpenGL Effect Library
     if (!<b>glfxParseEffectFromFile</b>(effect, "effect.glsl")) {
 #ifdef __cplusplus	// C++ error handling
 	std::string log = <b>glfxGetEffectLog</b>(effect);
-	std::cout &lt;&lt; "Error parsing effect: " &lt;&lt; log &lt;&lt; std::endl;
+	std::cout << "Error parsing effect: " << log << std::endl;
 #else	// C error handling
 	char log[10000];
 	<b>glfxGetEffectLog</b>(effect, log, sizeof(log));
@@ -76,7 +76,7 @@ title: Урок 34 - GLFX - An OpenGL Effect Library
 </p>
     int shaderProg = <b>glfxCompileProgram</b>(effect, "ProgramName");
     
-if (shaderProg &lt; 0) {
+if (shaderProg < 0) {
 	// таже ошибка с указателем, что и ранее
 }
 
@@ -252,7 +252,7 @@ shader FSmain(in foo f)
 <p>
 'glfxc' - это приложение, часть GLFX. Он проходит по файлу эффекта, компилирует его и сообщит об ошибках. Запускается от так:
 </p>
-    glfxc &lt;effect file name&gt; &lt;program name&gt;
+    glfxc <effect file name> <program name>
 
 <hr>
 <h3>Демо</h3>

@@ -126,13 +126,13 @@ title: Урок 38 - Скелетная анимация с Assimp
 <a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial38"><h2>Прямиком к коду!</h2></a>
 
 > mesh.cpp:77</p>
-    bool Mesh::LoadMesh(const string&amp; Filename)
+    bool Mesh::LoadMesh(const string& Filename)
 {
     // Очищаем данные прошлого меша (если был загружен)
     Clear();
 
     // Создаем VAO
-    glGenVertexArrays(1, &amp;m_VAO);
+    glGenVertexArrays(1, &m_VAO);
     glBindVertexArray(m_VAO);
 
     // Создаем буферы для аттрибутов вершин
@@ -146,7 +146,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     aiProcess_FlipUVs);
 
     if (m_pScene) {
-        <b>m_GlobalInverseTransform = m_pScene-&gt;mRootNode-&gt;mTransformation;
+        <b>m_GlobalInverseTransform = m_pScene->mRootNode->mTransformation;
         m_GlobalInverseTransform.Inverse();</b>
         Ret = InitFromScene(<b>m_pScene</b>, Filename);
     }
@@ -179,15 +179,15 @@ title: Урок 38 - Скелетная анимация с Assimp
 }
 
 > mesh.cpp:109</p>
-    bool Mesh::InitFromScene(const aiScene* pScene, const string&amp; Filename)
+    bool Mesh::InitFromScene(const aiScene* pScene, const string& Filename)
 {
     ...
-    vector&lt;VertexBoneData&gt; Bones;
+    vector<VertexBoneData> Bones;
     ...
     Bones.resize(NumVertices);
     ...
     glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[BONE_VB]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Bones[0]) * Bones.size(), &amp;Bones[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Bones[0]) * Bones.size(), &Bones[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(BONE_ID_LOCATION);
     <b>glVertexAttribIPointer</b>(BONE_ID_LOCATION, 4, GL_INT, sizeof(VertexBoneData), (const GLvoid*)0);
     glEnableVertexAttribArray(BONE_WEIGHT_LOCATION);
@@ -205,11 +205,11 @@ title: Урок 38 - Скелетная анимация с Assimp
     а не значение с плавующей точкой. Не упустите это или данные в шейдере повредятся.
 </p>
 > mesh.cpp:215</p>
-    void Mesh::LoadBones(uint MeshIndex, const aiMesh* pMesh, vector<vertexbonedata>&amp; Bones)
+    void Mesh::LoadBones(uint MeshIndex, const aiMesh* pMesh, vector<vertexbonedata>& Bones)
 {
-    for (uint i = 0 ; i &lt; pMesh-&gt;mNumBones ; i++) {
+    for (uint i = 0 ; i < pMesh->mNumBones ; i++) {
         uint BoneIndex = 0;
-        string BoneName(pMesh-&gt;mBones[i]-&gt;mName.data);
+        string BoneName(pMesh->mBones[i]->mName.data);
 
         if (m_BoneMapping.find(BoneName) == m_BoneMapping.end()) {
             BoneIndex = m_NumBones;
@@ -222,12 +222,12 @@ title: Урок 38 - Скелетная анимация с Assimp
         }
 
         m_BoneMapping[BoneName] = BoneIndex;
-        m_BoneInfo[BoneIndex].BoneOffset = pMesh-&gt;mBones[i]-&gt;mOffsetMatrix;
+        m_BoneInfo[BoneIndex].BoneOffset = pMesh->mBones[i]->mOffsetMatrix;
 
-        for (uint j = 0 ; j &lt; pMesh-&gt;mBones[i]-&gt;mNumWeights ; j++) {
+        for (uint j = 0 ; j < pMesh->mBones[i]->mNumWeights ; j++) {
             uint VertexID = m_Entries[MeshIndex].BaseVertex +
-                            pMesh-&gt;mBones[i]-&gt;mWeights[j].mVertexId;
-            float Weight  = pMesh-&gt;mBones[i]-&gt;mWeights[j].mWeight;
+                            pMesh->mBones[i]->mWeights[j].mVertexId;
+            float Weight  = pMesh->mBones[i]->mWeights[j].mWeight;
             Bones[VertexID].AddBoneData(BoneIndex, Weight);
         }
     }
@@ -243,7 +243,7 @@ title: Урок 38 - Скелетная анимация с Assimp
 > mesh.cpp:31</p>
     void Mesh::VertexBoneData::AddBoneData(uint BoneID, float Weight)
 {
-    for (uint i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(IDs) ; i++) {
+    for (uint i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(IDs) ; i++) {
         if (Weights[i] == 0.0) {
             IDs[i]     = BoneID;
             Weights[i] = Weight;
@@ -261,22 +261,22 @@ title: Урок 38 - Скелетная анимация с Assimp
     конструкторе VertexBoneData), это значит, что мы можем использовать эти вычисления для любого кол-ва костей.
 </p>
 > mesh.cpp:469</p>
-    Matrix4f Mesh::BoneTransform(float TimeInSeconds, vector&lt;Matrix4f&gt;&amp; Transforms)
+    Matrix4f Mesh::BoneTransform(float TimeInSeconds, vector<Matrix4f>& Transforms)
 {
     Matrix4f Identity;
     Identity.InitIdentity();
 
-    float TicksPerSecond = m_pScene-&gt;mAnimations[0]-&gt;mTicksPerSecond != 0 ?
-                           m_pScene-&gt;mAnimations[0]-&gt;mTicksPerSecond : 25.0f;
+    float TicksPerSecond = m_pScene->mAnimations[0]->mTicksPerSecond != 0 ?
+                           m_pScene->mAnimations[0]->mTicksPerSecond : 25.0f;
 
     float TimeInTicks = TimeInSeconds * TicksPerSecond;
-    float AnimationTime = fmod(TimeInTicks, m_pScene-&gt;mAnimations[0]-&gt;mDuration);
+    float AnimationTime = fmod(TimeInTicks, m_pScene->mAnimations[0]->mDuration);
 
-    ReadNodeHeirarchy(AnimationTime, m_pScene-&gt;mRootNode, Identity);
+    ReadNodeHeirarchy(AnimationTime, m_pScene->mRootNode, Identity);
 
     Transforms.resize(m_NumBones);
 
-    for (uint i = 0 ; i &lt; m_NumBones ; i++) {
+    for (uint i = 0 ; i < m_NumBones ; i++) {
         Transforms[i] = m_BoneInfo[i].FinalTransformation;
     }
 }
@@ -289,13 +289,13 @@ title: Урок 38 - Скелетная анимация с Assimp
     Результат - массив преобразований, которые вернутся в место вызова.
 </p>
 > mesh.cpp:424</p>
-    void Mesh::ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const Matrix4f&amp; ParentTransform)
+    void Mesh::ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const Matrix4f& ParentTransform)
 {
-    string NodeName(pNode-&gt;mName.data);
+    string NodeName(pNode->mName.data);
 
-    const aiAnimation* pAnimation = m_pScene-&gt;mAnimations[0];
+    const aiAnimation* pAnimation = m_pScene->mAnimations[0];
 
-    Matrix4f NodeTransformation(pNode-&gt;mTransformation);
+    Matrix4f NodeTransformation(pNode->mTransformation);
 
     const aiNodeAnim* pNodeAnim = FindNodeAnim(pAnimation, NodeName);
 
@@ -331,8 +331,8 @@ title: Урок 38 - Скелетная анимация с Assimp
                                                     m_BoneInfo[BoneIndex].BoneOffset;
     }
 
-    for (uint i = 0 ; i &lt; pNode-&gt;mNumChildren ; i++) {
-        ReadNodeHeirarchy(AnimationTime, pNode-&gt;mChildren[i], GlobalTransformation);
+    for (uint i = 0 ; i < pNode->mNumChildren ; i++) {
+        ReadNodeHeirarchy(AnimationTime, pNode->mChildren[i], GlobalTransformation);
     }
 }
 
@@ -340,7 +340,7 @@ title: Урок 38 - Скелетная анимация с Assimp
     Эта функция обходит листы дерева и генерирует итоговое преобразование для каждого листа / кости согласно указанному
     времени анимации. Она ограничена в том плане, что мы можем использовать только 1 анимационную последовательность.
     Если вы хотите поддерживать одновременно несколько анимаций, то вам потребуется сообщить название анимации и искать
-    по нему в массиве m_pScene-&gt;mAnimations[]. Код выше достаточно хорош для тестового меша, который мы используем.
+    по нему в массиве m_pScene->mAnimations[]. Код выше достаточно хорош для тестового меша, который мы используем.
 </p>
 <p>
     Преобразования для кости инициализируются из свойства листа mTransformation. Если лист не соответствует какой-либо
@@ -364,23 +364,23 @@ title: Урок 38 - Скелетная анимация с Assimp
     лучше использовать Assimp.
 </p>
 > mesh.cpp:383</p>
-    void Mesh::CalcInterpolatedRotation(aiQuaternion&amp; Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
+    void Mesh::CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
     // для интерполирования требуется не менее 2 значений...
-    if (pNodeAnim-&gt;mNumRotationKeys == 1) {
-        Out = pNodeAnim-&gt;mRotationKeys[0].mValue;
+    if (pNodeAnim->mNumRotationKeys == 1) {
+        Out = pNodeAnim->mRotationKeys[0].mValue;
         return;
     }
 
     uint RotationIndex = FindRotation(AnimationTime, pNodeAnim);
     uint NextRotationIndex = (RotationIndex + 1);
-    assert(NextRotationIndex &lt; pNodeAnim-&gt;mNumRotationKeys);
-    float DeltaTime = pNodeAnim-&gt;mRotationKeys[NextRotationIndex].mTime -
-                      pNodeAnim-&gt;mRotationKeys[RotationIndex].mTime;
-    float Factor = (AnimationTime - (float)pNodeAnim-&gt;mRotationKeys[RotationIndex].mTime) / DeltaTime;
-    assert(Factor &gt;= 0.0f &amp;&amp; Factor &lt;= 1.0f);
-    const aiQuaternion&amp; StartRotationQ = pNodeAnim-&gt;mRotationKeys[RotationIndex].mValue;
-    const aiQuaternion&amp; EndRotationQ   = pNodeAnim-&gt;mRotationKeys[NextRotationIndex].mValue;
+    assert(NextRotationIndex < pNodeAnim->mNumRotationKeys);
+    float DeltaTime = pNodeAnim->mRotationKeys[NextRotationIndex].mTime -
+                      pNodeAnim->mRotationKeys[RotationIndex].mTime;
+    float Factor = (AnimationTime - (float)pNodeAnim->mRotationKeys[RotationIndex].mTime) / DeltaTime;
+    assert(Factor >= 0.0f && Factor <= 1.0f);
+    const aiQuaternion& StartRotationQ = pNodeAnim->mRotationKeys[RotationIndex].mValue;
+    const aiQuaternion& EndRotationQ   = pNodeAnim->mRotationKeys[NextRotationIndex].mValue;
     aiQuaternion::Interpolate(Out, StartRotationQ, EndRotationQ, Factor);
     Out = Out.Normalize();
 }
@@ -396,10 +396,10 @@ title: Урок 38 - Скелетная анимация с Assimp
 > mesh.cpp:335</p>
     uint Mesh::FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
-    assert(pNodeAnim-&gt;mNumRotationKeys &gt; 0);
+    assert(pNodeAnim->mNumRotationKeys > 0);
 
-    for (uint i = 0 ; i &lt; pNodeAnim-&gt;mNumRotationKeys - 1 ; i++) {
-        if (AnimationTime &lt; (float)pNodeAnim-&gt;mRotationKeys[i + 1].mTime) {
+    for (uint i = 0 ; i < pNodeAnim->mNumRotationKeys - 1 ; i++) {
+        if (AnimationTime < (float)pNodeAnim->mRotationKeys[i + 1].mTime) {
             return i;
         }
     }
@@ -462,8 +462,8 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
 
 m_mesh.BoneTransform(RunningTime, Transforms);
 
-for (uint i = 0 ; i &lt; Transforms.size() ; i++) {
-     m_pEffect-&gt;SetBoneTransform(i, Transforms[i]);
+for (uint i = 0 ; i < Transforms.size() ; i++) {
+     m_pEffect->SetBoneTransform(i, Transforms[i]);
 }
 
 <p>

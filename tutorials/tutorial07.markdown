@@ -22,7 +22,7 @@ sin(a+b) = sinacosb+cosa sinb
 x<sub>2</sub>=cos(a<sub>1</sub>+a<sub>2</sub>) = cosa<sub>1</sub>cosa<sub>2 </sub>- sina<sub>1</sub>sina<sub>2</sub> = x<sub>1</sub>cosa<sub>2 </sub>-y<sub>1</sub>sina<sub>2    
 </sub>y<sub>2</sub>=sin(a<sub>1</sub>+a<sub>2</sub>) = sina<sub>1</sub>cosa<sub>2 </sub>+ cosa<sub>1</sub>sina<sub>2</sub> = y<sub>1</sub>cosa<sub>2 </sub> + x<sub>1</sub>sina<sub>2</sub>
 
-В диаграмме мы смотрим на плоскость XY, а ось Z - это точка. Если X&amp;Y части 4-вектора, тогда уравнения выше можно записать в форме матрицы (не затрагивая Z&amp;W):
+В диаграмме мы смотрим на плоскость XY, а ось Z - это точка. Если X&Y части 4-вектора, тогда уравнения выше можно записать в форме матрицы (не затрагивая Z&W):
 
 ![](/images/t7_07_01.png)
 

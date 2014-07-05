@@ -54,8 +54,8 @@ float CalcShadowFactor(vec4 LightSpacePos)
 
     float Factor = 0.0;
 
-    for (int y = -1 ; y &lt;= 1 ; y++) {
-        for (int x = -1 ; x &lt;= 1 ; x++) {
+    for (int y = -1 ; y <= 1 ; y++) {
+        for (int x = -1 ; x <= 1 ; x++) {
             vec2 Offsets = vec2(x * xOffset, y * yOffset);
             vec3 UVC = vec3(UVCoords + Offsets, z + EPSILON);
             Factor += texture(gShadowMap, UVC);
@@ -93,10 +93,10 @@ float CalcShadowFactor(vec4 LightSpacePos)
     bool ShadowMapFBO::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
     // Создаем FBO
-    glGenFramebuffers(1, &amp;m_fbo);
+    glGenFramebuffers(1, &m_fbo);
 
     // Создаем буфер глубины
-    glGenTextures(1, &amp;m_shadowMap);
+    glGenTextures(1, &m_shadowMap);
     glBindTexture(GL_TEXTURE_2D, m_shadowMap);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32,
     WindowWidth, WindowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);

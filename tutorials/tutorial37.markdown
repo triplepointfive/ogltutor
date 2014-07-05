@@ -137,7 +137,7 @@ title: Урок 37 - Deferred Shading - Часть 3
 
     m_scale += 0.05f;
 
-    m_pGameCamera-&gt;OnRender();
+    m_pGameCamera->OnRender();
 
     <b>m_gbuffer.StartFrame();</b>
 
@@ -148,7 +148,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     // только при успешном проходе трафарета.
     <b>glEnable(GL_STENCIL_TEST);
 
-    for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_pointLight); i++) {
+    for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_pointLight); i++) {
         DSStencilPass(i);
         DSPointLightPass(i);
     }
@@ -196,11 +196,11 @@ title: Урок 37 - Deferred Shading - Часть 3
     glEnable(GL_DEPTH_TEST);
 
     Pipeline p;
-    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
     p.SetPerspectiveProj(m_persProjInfo);
     p.Rotate(0.0f, m_scale, 0.0f);
 
-    for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_boxPositions) ; i++) {
+    for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_boxPositions) ; i++) {
         p.WorldPos(m_boxPositions[i]);
         m_DSGeomPassTech.SetWVP(p.GetWVPTrans());
         m_DSGeomPassTech.SetWorldMatrix(p.GetWorldTrans());
@@ -242,7 +242,7 @@ title: Урок 37 - Deferred Shading - Часть 3
         float BBoxScale = CalcPointLightBSphere(m_pointLight[PointLightIndex].Color,
                                                 m_pointLight[PointLightIndex].DiffuseIntensity);
     p.Scale(BBoxScale, BBoxScale, BBoxScale);
-         p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+         p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
          p.SetPerspectiveProj(m_persProjInfo);
 
     m_nullTech.SetWVP(p.GetWVPTrans());
@@ -267,7 +267,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     m_gbuffer.BindForLightPass();
 
     m_DSPointLightPassTech.Enable();
-    m_DSPointLightPassTech.SetEyeWorldPos(m_pGameCamera-&gt;GetPos());
+    m_DSPointLightPassTech.SetEyeWorldPos(m_pGameCamera->GetPos());
 
     glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
 
@@ -284,7 +284,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     float BBoxScale = CalcPointLightBSphere(m_pointLight[PointLightIndex].Color,
                                             m_pointLight[PointLightIndex].DiffuseIntensity);
     p.Scale(BBoxScale, BBoxScale, BBoxScale);
-    p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
     p.SetPerspectiveProj(m_persProjInfo);
     m_DSPointLightPassTech.SetWVP(p.GetWVPTrans());
     m_DSPointLightPassTech.SetPointLight(m_pointLight[PointLightIndex]);
@@ -362,7 +362,7 @@ title: Урок 37 - Deferred Shading - Часть 3
     bool GBuffer::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
     ...
-    glGenTextures(1, &amp;m_finalTexture);
+    glGenTextures(1, &m_finalTexture);
     ...
     // depth
     glBindTexture(GL_TEXTURE_2D, m_depthTexture);
@@ -427,7 +427,7 @@ title: Урок 37 - Deferred Shading - Часть 3
 {
     glDrawBuffer(GL_COLOR_ATTACHMENT4);
 
-    for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_textures); i++) {
+    for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_textures); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, m_textures[GBUFFER_TEXTURE_TYPE_POSITION + i]);
     }

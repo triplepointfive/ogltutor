@@ -77,7 +77,7 @@ TES похож на VS тем, что он тоже всегда принима�
 > tutorial30.cpp:80</p>
     
     	GLint MaxPatchVertices = 0;
-	glGetIntegerv(GL_MAX_PATCH_VERTICES, &amp;MaxPatchVertices);
+	glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
 	printf("Max supported patch vertices %d\n", MaxPatchVertices);	
 	glPatchParameteri(GL_PATCH_VERTICES, 3);
 
@@ -185,10 +185,10 @@ out vec3 Normal_ES_in[];
 {
 	 float AvgDistance = (Distance0 + Distance1) / 2.0;
 
-	 if (AvgDistance &lt;= 2.0) {
+	 if (AvgDistance <= 2.0) {
 		return 10.0;
 	 }
-	 else if (AvgDistance &lt;= 5.0) {
+	 else if (AvgDistance <= 5.0) {
 		return 7.0;
 	 }
 	 else {

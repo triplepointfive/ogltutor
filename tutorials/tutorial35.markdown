@@ -75,14 +75,14 @@ private:
     bool GBuffer::Init(unsigned int WindowWidth, unsigned int WindowHeight)
 {
 	// Создаем FBO
-	glGenFramebuffers(1, &amp;m_fbo);    
+	glGenFramebuffers(1, &m_fbo);    
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
 
 	// Создаем текстуры gbuffer
 	glGenTextures(ARRAY_SIZE_IN_ELEMENTS(m_textures), m_textures);
-	glGenTextures(1, &amp;m_depthTexture);
+	glGenTextures(1, &m_depthTexture);
     
-	for (unsigned int i = 0 ; i &lt; ARRAY_SIZE_IN_ELEMENTS(m_textures) ; i++) {
+	for (unsigned int i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_textures) ; i++) {
 		glBindTexture(GL_TEXTURE_2D, m_textures[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, WindowWidth, WindowHeight, 0, GL_RGB, GL_FLOAT, NULL);
 			
@@ -139,7 +139,7 @@ private:
         
 	m_scale += 0.05f;
 
-	m_pGameCamera-&gt;OnRender();
+	m_pGameCamera->OnRender();
 
 	DSGeometryPass();
 	DSLightPass();
@@ -168,7 +168,7 @@ private:
 	p.Scale(0.1f, 0.1f, 0.1f);
 	p.Rotate(0.0f, m_scale, 0.0f);
 	p.WorldPos(-0.8f, -1.0f, 12.0f);
-	p.SetCamera(m_pGameCamera-&gt;GetPos(), m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+	p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
 	p.SetPerspectiveProj(m_persProjInfo);
 	m_DSGeomPassTech.SetWVP(p.GetWVPTrans());        
 	m_DSGeomPassTech.SetWorldMatrix(p.GetWorldTrans());

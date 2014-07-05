@@ -55,7 +55,7 @@ title: Урок 15 - Управление камерой - часть 2
     
 > camera.cpp:38
     
-    Camera::Camera(int WindowWidth, int WindowHeight, const Vector3f&amp; Pos, const Vector3f&amp; Target, const Vector3f&amp; Up)
+    Camera::Camera(int WindowWidth, int WindowHeight, const Vector3f& Pos, const Vector3f& Target, const Vector3f& Up)
     {
         m_windowWidth  = WindowWidth;
         m_windowHeight = WindowHeight;
@@ -79,8 +79,8 @@ title: Урок 15 - Управление камерой - часть 2
         Vector3f HTarget(m_target.x, 0.0, m_target.z);
         HTarget.Normalize();
         
-        if (HTarget.z &gt;= 0.0f){
-            if (HTarget.x &gt;= 0.0f){
+        if (HTarget.z >= 0.0f){
+            if (HTarget.x >= 0.0f){
                 m_AngleH = 360.0f - ToDegree(asin(HTarget.z));
             }
             else{
@@ -88,7 +88,7 @@ title: Урок 15 - Управление камерой - часть 2
             }
         }
         else{
-            if (HTarget.x &gt;= 0.0f){
+            if (HTarget.x >= 0.0f){
                 m_AngleH = ToDegree(asin(-HTarget.z));
             }
             else{
@@ -126,10 +126,10 @@ title: Урок 15 - Управление камерой - часть 2
         m_AngleV += (float)DeltaY / 20.0f;
     
         if (DeltaX == 0){
-            if (x &lt;= MARGIN){
+            if (x <= MARGIN){
                 m_OnLeftEdge = true;
             }
-            else if (x &gt;= (m_windowWidth - MARGIN)){
+            else if (x >= (m_windowWidth - MARGIN)){
                 m_OnRightEdge = true;
             }
         }
@@ -139,10 +139,10 @@ title: Урок 15 - Управление камерой - часть 2
         }
     
         if (DeltaY == 0){
-            if (y &lt;= MARGIN){
+            if (y <= MARGIN){
                 m_OnUpperEdge = true;
             }
-            else if (y &gt;= (m_windowHeight - MARGIN)){
+            else if (y >= (m_windowHeight - MARGIN)){
                 m_OnLowerEdge = true;
             }
         }
@@ -174,13 +174,13 @@ title: Урок 15 - Управление камерой - часть 2
         }
     
         if (m_OnUpperEdge){
-            if (m_AngleV &gt; -90.0f){
+            if (m_AngleV > -90.0f){
                 m_AngleV -= 0.1f;
                 ShouldUpdate = true;
             }
         }
         else if (m_OnLowerEdge){
-            if (m_AngleV &lt; 90.0f){
+            if (m_AngleV < 90.0f){
                 m_AngleV += 0.1f;
                 ShouldUpdate = true;
             }
@@ -251,7 +251,7 @@ title: Урок 15 - Управление камерой - часть 2
     
     static void PassiveMouseCB(int x, int y)
     {
-         pGameCamera-&gt;OnMouse(x, y);
+         pGameCamera->OnMouse(x, y);
     }
 
 Теперь мы используем полноэкранный режим, поэтому может возникнуть проблема с выходом из приложения. При нажатии 'q' мы выходим. Обратный вызов для мыши просто передает ее координаты в камеру.
@@ -260,6 +260,6 @@ title: Урок 15 - Управление камерой - часть 2
     
     static void RenderSceneCB()
     {
-	    pGameCamera-&gt;OnRender();
+	    pGameCamera->OnRender();
 
 Где-то в функции рендера мы должны вызвать камеру. Это дает ей шанс для действий, если мышь не двигалась, но находится около границы экрана.

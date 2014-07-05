@@ -64,7 +64,7 @@ title: Урок 13 - Пространство камеры
 
 > math3d.h:21
 
-    Vector3f Vector3f::Cross(const Vector3f&amp; v) const
+    Vector3f Vector3f::Cross(const Vector3f& v) const
     {
         const float _x = y * v.z - z * v.y;
         const float _y = z * v.x - x * v.z;
@@ -77,7 +77,7 @@ Vector3f приобрел новый метод для векторного ум
 
 > math3d.h:30
 
-    Vector3f&amp; Vector3f::Normalize()
+    Vector3f& Vector3f::Normalize()
     {
         const float Length = sqrtf(x * x + y * y + z * z);
     
@@ -92,7 +92,7 @@ Vector3f приобрел новый метод для векторного ум
 
 > math3d.cpp:84
 
-    void Matrix4f::InitCameraTransform(const Vector3f&amp; Target, const Vector3f&amp; Up)
+    void Matrix4f::InitCameraTransform(const Vector3f& Target, const Vector3f& Up)
     {
         Vector3f N = Target;
         N.Normalize();
@@ -132,7 +132,7 @@ Vector3f приобрел новый метод для векторного ум
                    CameraTranslationTrans * TranslationTrans * 
                    RotateTrans * ScaleTrans;
     
-        return &amp;m_transformation;
+        return &m_transformation;
     }
 
 Давайте обновим функцию, генерирующую итоговую матрицу преобразований объектов. Она станет немного сложнее с 2 новыми матрицами, характеризующими участие камеры. После завершения мировых преобразований (комбинация масштабирования, вращения и перемещения объекта), мы начинаем преобразования камеры 'движением' ее обратно в начало координат. Это делается смещением на обратный вектор позиции камеры. Поэтому если камера находится в точке (1,2,3), мы двигаем объекты на (-1,-2,-3). После этого мы генерируем вращение камеры, основываясь на направлении камеры и ее векторе вверх. На этом участие камеры завершено. В конце мы проецируем координаты.

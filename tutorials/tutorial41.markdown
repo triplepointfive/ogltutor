@@ -45,7 +45,7 @@ title: Урок 41 - Размытие (Motion Blur)
 {
     CalcFPS();
 
-    m_pGameCamera-&gt;OnRender();
+    m_pGameCamera->OnRender();
 
     <b>RenderPass();
 
@@ -67,7 +67,7 @@ title: Урок 41 - Размытие (Motion Blur)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_pSkinningTech-&gt;Enable();
+    m_pSkinningTech->Enable();
 
     vector<matrix4f> Transforms;
 
@@ -75,23 +75,23 @@ title: Урок 41 - Размытие (Motion Blur)
 
     m_mesh.BoneTransform(RunningTime, Transforms);
 
-    for (uint i = 0 ; i &lt; Transforms.size() ; i++) {
-        m_pSkinningTech-&gt;SetBoneTransform(i, Transforms[i]);
-        <b>m_pSkinningTech-&gt;SetPrevBoneTransform(i, m_prevTransforms[i]);</b>
+    for (uint i = 0 ; i < Transforms.size() ; i++) {
+        m_pSkinningTech->SetBoneTransform(i, Transforms[i]);
+        <b>m_pSkinningTech->SetPrevBoneTransform(i, m_prevTransforms[i]);</b>
     }
 
-    m_pSkinningTech-&gt;SetEyeWorldPos(m_pGameCamera-&gt;GetPos());
+    m_pSkinningTech->SetEyeWorldPos(m_pGameCamera->GetPos());
 
-    m_pipeline.SetCamera(m_pGameCamera-&gt;GetPos(),
-    m_pGameCamera-&gt;GetTarget(), m_pGameCamera-&gt;GetUp());
+    m_pipeline.SetCamera(m_pGameCamera->GetPos(),
+    m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
     m_pipeline.SetPerspectiveProj(m_persProjInfo);
     m_pipeline.Scale(0.1f, 0.1f, 0.1f);
 
     Vector3f Pos(m_position);
     m_pipeline.WorldPos(Pos);
     m_pipeline.Rotate(270.0f, 180.0f, 0.0f);
-    m_pSkinningTech-&gt;SetWVP(m_pipeline.GetWVPTrans());
-    m_pSkinningTech-&gt;SetWorldMatrix(m_pipeline.GetWorldTrans());
+    m_pSkinningTech->SetWVP(m_pipeline.GetWVPTrans());
+    m_pSkinningTech->SetWorldMatrix(m_pipeline.GetWorldTrans());
 
     m_mesh.Render();
 
@@ -116,7 +116,7 @@ title: Урок 41 - Размытие (Motion Blur)
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    m_pMotionBlurTech-&gt;Enable();
+    m_pMotionBlurTech->Enable();
 
     m_quad.Render();
 }
@@ -198,11 +198,11 @@ shader FSmain(in VSOutput FSin, out <b>FSOutput FSOut</b>)
 
     vec4 TotalLight = CalcDirectionalLight(In);
 
-    for (int i = 0 ; i &lt; gNumPointLights ; i++) {
+    for (int i = 0 ; i < gNumPointLights ; i++) {
         TotalLight += CalcPointLight(gPointLights[i], In);
     }
 
-    for (int i = 0 ; i &lt; gNumSpotLights ; i++) {
+    for (int i = 0 ; i < gNumSpotLights ; i++) {
         TotalLight += CalcSpotLight(gSpotLights[i], In);
     }
 

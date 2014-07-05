@@ -74,9 +74,9 @@ public:
 	BillboardList();
 	~BillboardList();
     
-	bool Init(const std::string&amp; TexFilename);
+	bool Init(const std::string& TexFilename);
     
-	void Render(const Matrix4f&amp; VP, const Vector3f&amp; CameraPos);
+	void Render(const Matrix4f& VP, const Vector3f& CameraPos);
 
 private:
 	void CreatePositionBuffer();
@@ -94,13 +94,13 @@ private:
     
 > billboard_list.cpp:80</p>
     
-    void BillboardList::Render(const Matrix4f&amp; VP, const Vector3f&amp; CameraPos)
+    void BillboardList::Render(const Matrix4f& VP, const Vector3f& CameraPos)
 {
 	m_technique.Enable();
 	m_technique.SetVP(VP);
 	m_technique.SetCameraPosition(CameraPos);
     
-	m_pTexture-&gt;Bind(COLOR_TEXTURE_UNIT);
+	m_pTexture->Bind(COLOR_TEXTURE_UNIT);
     
 	glEnableVertexAttribArray(0);
     
@@ -128,8 +128,8 @@ public:
  
 	virtual bool Init();
     
-	void SetVP(const Matrix4f&amp; VP);
-	void SetCameraPosition(const Vector3f&amp; Pos);
+	void SetVP(const Matrix4f& VP);
+	void SetCameraPosition(const Vector3f& Pos);
 	void SetColorTextureUnit(unsigned int TextureUnit);
     
 private:
@@ -250,7 +250,7 @@ void main()
 {
 	FragColor = texture2D(gColorMap, TexCoord);
 
-	if (FragColor.r == 0 &amp;&amp; FragColor.g == 0 &amp;&amp; FragColor.b == 0) {
+	if (FragColor.r == 0 && FragColor.g == 0 && FragColor.b == 0) {
 	discard;
 	}
 }

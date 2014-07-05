@@ -18,7 +18,7 @@ OpenGL предоставляет несколько функций отрисо
 
 Использование такой отрисовки в OpenGL требует создания и заполнения буфера индексов. Этот буфер должен быть указан вместе с вершинным до вызова функции отрисовки, а так же необходимо использовать другое API.
 
-## [Прямиком к коду!](https://github.com/triplepointfive/ogldev/tree/master/tutorial10) 
+## [Прямиком к коду!](https://github.com/triplepointfive/ogldev/tree/master/tutorial10)
 
     GLuint IBO;
 
@@ -42,7 +42,7 @@ OpenGL предоставляет несколько функций отрисо
                            
 Буфер индексов заполняется с помощью массива индексов. Индексы указывают на расположение вершин в вершинном буфере. Если смотреть на массив и чертеж выше, то вы заметите, что последний треугольник - основание пирамиды, остальные же - ее грани. Пирамида не симметрична, но это легко исправляется.
 
-    glGenBuffers(1, &amp;IBO);
+    glGenBuffers(1, &IBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 

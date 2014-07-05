@@ -41,7 +41,7 @@ title: Урок 04 - Шейдеры
 Скомпилировать шейдер очень просто...
 
     GLint success;
-    glGetShaderiv(ShaderObj, GL_COMPILE_STATUS, &amp;success);
+    glGetShaderiv(ShaderObj, GL_COMPILE_STATUS, &success);
     if (!success) {
         GLchar InfoLog[1024];
         glGetShaderInfoLog(ShaderObj, sizeof(InfoLog), NULL, InfoLog);
@@ -58,7 +58,7 @@ title: Урок 04 - Шейдеры
 
 После компиляции всех шейдеров и подсоединения их к программе мы наконец можем линковать их. Заметьте, после линковки программы вы можете избавиться промежуточных шейдерный объектов с помощью вызова glDeleteShader для каждого из них по отдельности.
 
-    glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &amp;Success);
+    glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &Success);
     if (Success == 0) {
         glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
         fprintf(stderr, "Error linking shader program: '%s'\n", ErrorLog);

@@ -51,9 +51,9 @@ public:
     
 	~ParticleSystem();
     
-	bool InitParticleSystem(const Vector3f&amp; Pos);
+	bool InitParticleSystem(const Vector3f& Pos);
     
-	void Render(int DeltaTimeMillis, const Matrix4f&amp; VP, const Vector3f&amp; CameraPos);
+	void Render(int DeltaTimeMillis, const Matrix4f& VP, const Vector3f& CameraPos);
     
 private:
     
@@ -93,7 +93,7 @@ private:
     
 > particle_system.cpp:67</p>
     
-    bool ParticleSystem::InitParticleSystem(const Vector3f&amp; Pos)
+    bool ParticleSystem::InitParticleSystem(const Vector3f& Pos)
 {   
 	Particle Particles[MAX_PARTICLES];
 	ZERO_MEM(Particles);
@@ -106,7 +106,7 @@ private:
 	glGenTransformFeedbacks(2, m_transformFeedback);    
 	glGenBuffers(2, m_particleBuffer);
     
-	for (unsigned int i = 0; i &lt; 2 ; i++) {
+	for (unsigned int i = 0; i < 2 ; i++) {
 		glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, m_transformFeedback[i]);
 		glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, m_particleBuffer[i]);
 		glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
@@ -128,7 +128,7 @@ private:
     
 > particle_system.cpp:124</p>
     
-    void ParticleSystem::Render(int DeltaTimeMillis, const Matrix4f&amp; VP, const Vector3f&amp; CameraPos)
+    void ParticleSystem::Render(int DeltaTimeMillis, const Matrix4f& VP, const Vector3f& CameraPos)
 {
 	m_time += DeltaTimeMillis;
     
@@ -137,7 +137,7 @@ private:
 	RenderParticles(VP, CameraPos);
 
 	m_currVB = m_currTFB;
-	m_currTFB = (m_currTFB + 1) &amp; 0x1;
+	m_currTFB = (m_currTFB + 1) & 0x1;
 }
 
 <p>
@@ -242,12 +242,12 @@ glDrawTransformFeedback() принимает 2 параметра. Первый 
 > particle_system.cpp:177</p>
     
     
-void ParticleSystem::RenderParticles(const Matrix4f&amp; VP, const Vector3f&amp; CameraPos)
+void ParticleSystem::RenderParticles(const Matrix4f& VP, const Vector3f& CameraPos)
 {
 	m_billboardTechnique.Enable();
 	m_billboardTechnique.SetCameraPosition(CameraPos);
 	m_billboardTechnique.SetVP(VP);
-	m_pTexture-&gt;Bind(COLOR_TEXTURE_UNIT);
+	m_pTexture->Bind(COLOR_TEXTURE_UNIT);
 
 <p>
 Текущий рендер мы начинаем с разрешения метода billboarding и назначение в него параметров. Каждая вершина будет превращена в квадрат и текстура, которую мы привязали, будет на них наложена.
@@ -420,7 +420,7 @@ uniform float gSecondaryShellLifetime;
 	float Age = Age0[0] + gDeltaTimeMillis;
 
 	if (Type0[0] == PARTICLE_TYPE_LAUNCHER) {
-		if (Age &gt;= gLauncherLifetime) {
+		if (Age >= gLauncherLifetime) {
 			Type1 = PARTICLE_TYPE_SHELL;
 			Position1 = Position0[0];
 			vec3 Dir = GetRandomDir(gTime/1000.0);
@@ -458,7 +458,7 @@ uniform float gSecondaryShellLifetime;
 
 
     		if (Type0[0] == PARTICLE_TYPE_SHELL){
-			if (Age &lt; gShellLifetime){
+			if (Age < gShellLifetime){
 				Type1 = PARTICLE_TYPE_SHELL;
 				Position1 = Position0[0] + DeltaP;
 				Velocity1 = Velocity0[0] + DeltaV;
@@ -467,7 +467,7 @@ uniform float gSecondaryShellLifetime;
 				EndPrimitive();
 			}
 			else{
-				for (int i = 0 ; i &lt; 10 ; i++){
+				for (int i = 0 ; i < 10 ; i++){
 					Type1 = PARTICLE_TYPE_SECONDARY_SHELL;
 					Position1 = Position0[0];
 					vec3 Dir = GetRandomDir((gTime + i)/1000.0);
@@ -486,7 +486,7 @@ uniform float gSecondaryShellLifetime;
 
     
 		else{
-			if (Age &lt; gSecondaryShellLifetime){
+			if (Age < gSecondaryShellLifetime){
 				Type1 = PARTICLE_TYPE_SECONDARY_SHELL;
 				Position1 = Position0[0] + DeltaP;
 				Velocity1 = Velocity0[0] + DeltaV;
@@ -508,13 +508,13 @@ uniform float gSecondaryShellLifetime;
     bool RandomTexture::InitRandomTexture(unsigned int Size){
 	Vector3f* pRandomData = new Vector3f[Size];
 
-	for (unsigned int i = 0 ; i &lt; Size ; i++) {
+	for (unsigned int i = 0 ; i < Size ; i++) {
 		pRandomData[i].x = RandomFloat();
 		pRandomData[i].y = RandomFloat();
 		pRandomData[i].z = RandomFloat();
 	}
         
-	glGenTextures(1, &amp;m_textureObj);
+	glGenTextures(1, &m_textureObj);
 	glBindTexture(GL_TEXTURE_1D, m_textureObj);
 	glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, Size, 0.0f, GL_RGB, GL_FLOAT, pRandomData);
 	glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
