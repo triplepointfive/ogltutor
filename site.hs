@@ -19,6 +19,10 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
+    match "googled4d987086e77b257.html" $ do
+        route   idRoute
+        compile copyFileCompiler
+
     match "css/style.sass" $do
         route   $ gsubRoute "css/" (const "css/") `composeRoutes` setExtension "css"
         compile $ liftM (fmap compressCss) (getResourceString >>= withItemBody (unixFilter "sass" ["-s"]))
