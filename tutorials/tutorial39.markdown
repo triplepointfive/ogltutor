@@ -185,7 +185,8 @@ title: Урок 39 - Обнаружение силуэта
         p.WorldPos(m_boxPos);
         m_LightingTech.SetWorldMatrix(p.GetWorldTrans());
         m_LightingTech.SetWVP(p.GetWVPTrans());
-        <b>m_mesh.Render();</b>
+        
+            m_mesh.Render();
 
         // Рендерим его силуэт
         m_silhouetteTech.Enable();
@@ -196,7 +197,7 @@ title: Урок 39 - Обнаружение силуэта
 
         glLineWidth(5.0f);
 
-        <b>m_mesh.Render();</b>
+            m_mesh.Render();
     }
 
 А вот как мы используем технику силуэта. Один объект рендерится дважды. Первый с обычным шейдером света. А затем с шейдером силуэта. Обратите внимание, как функция glLightWidth() делает силуэт толще, а следовательно заметнее.

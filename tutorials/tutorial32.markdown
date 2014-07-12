@@ -26,18 +26,22 @@ Vertex Array Object (или VAO) - специальный тип объекто�
 
     private:
         bool InitFromScene(const aiScene* pScene, const std::string& Filename);
-        <b>void InitMesh(const aiMesh* paiMesh,
+
+
+            void InitMesh(const aiMesh* paiMesh,
                                 std::vector<vector3f>& Positions,
                                 std::vector<vector3f>& Normals,
                                 std::vector<vector2f>& TexCoords,
-                                std::vector<unsigned int="">& Indices);</b>
+                                std::vector<unsigned int="">& Indices);
+
 
         bool InitMaterials(const aiScene* pScene, const std::string& Filename);
         void Clear();
 
     #define INVALID_MATERIAL 0xFFFFFFFF
 
-    <b>#define INDEX_BUFFER 0
+        #define INDEX_BUFFER 0
+
     #define POS_VB 1
     #define NORMAL_VB2
     #define TEXCOORD_VB3 
@@ -58,7 +62,7 @@ Vertex Array Object (или VAO) - специальный тип объекто�
             unsigned int NumIndices;
             unsigned int MaterialIndex;
         };
-    </b>
+
         std::vector<meshentry> m_Entries;
         std::vector<texture*> m_Textures;
     };
@@ -71,12 +75,12 @@ Vertex Array Object (или VAO) - специальный тип объекто�
         // Удаляем предыдущую загруженную модель (если есть)
         Clear();
 
-        <b>// Создание VAO
+        // Создание VAO
         glGenVertexArrays(1, &m_VAO); 
         glBindVertexArray(m_VAO);
 
         // Создание буферов для атрибутов вершин
-        glGenBuffers(ARRAY_SIZE_IN_ELEMENTS(m_Buffers), m_Buffers);</b>
+        glGenBuffers(ARRAY_SIZE_IN_ELEMENTS(m_Buffers), m_Buffers);
 
         bool Ret = false;
         Assimp::Importer Importer;
@@ -90,7 +94,7 @@ Vertex Array Object (или VAO) - специальный тип объекто�
         }
 
         // Удостоверимся, что VAO не изменится из внешнего кода
-        <b>glBindVertexArray(0);</b>	
+        glBindVertexArray(0);	
 
         return Ret;
     }

@@ -22,7 +22,7 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
     {
     public:
         ...
-        void Render(<b>unsigned int NumInstances, const Matrix4f* WVPMats, const Matrix4f* WorldMats</b>); 
+        void Render(unsigned int NumInstances, const Matrix4f* WVPMats, const Matrix4f* WorldMats); 
         ...
     private:
         ...
@@ -30,11 +30,13 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
         #define POS_VB       1
         #define NORMAL_VB    2
         #define TEXCOORD_VB  3    
-        <b>#define WVP_MAT_VB   4
-        #define WORLD_MAT_VB 5</b>
+
+            #define WVP_MAT_VB   4
+            #define WORLD_MAT_VB 5
 
         GLuint m_VAO;
-        <b>GLuint m_Buffers[6];</b>
+
+            GLuint m_Buffers[6];
     ...
 
 Это изменения в классе меша. Функция Render() теперь принимает 2 массива, которые содержат матрицы WVP и мировую для всех образцов и NumInstances - количество матриц в каждом массиве. Мы так же добавили 2 VBs для их хранения.
@@ -63,7 +65,7 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices[0]) * Indices.size(), &Indices[0], GL_STATIC_DRAW);
 
-        <b>glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WVP_MAT_VB]);
+        glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WVP_MAT_VB]);
 
         for (unsigned int i = 0; i < 4 ; i++) {
             glEnableVertexAttribArray(WVP_LOCATION + i);
@@ -77,7 +79,7 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
             glEnableVertexAttribArray(WORLD_LOCATION + i);
             glVertexAttribPointer(WORLD_LOCATION + i, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4f), (const GLvoid*)(sizeof(GLfloat) * i * 4));
             glVertexAttribDivisor(WORLD_LOCATION + i, 1);
-        }</b>
+        }
 
         return GLCheckError();
     }
@@ -90,13 +92,13 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
 
 > mesh.cpp:253
 
-    void Mesh::Render(<b>unsigned int NumInstances, const Matrix4f* WVPMats, const Matrix4f* WorldMats</b>)
+    void Mesh::Render(unsigned int NumInstances, const Matrix4f* WVPMats, const Matrix4f* WorldMats)
     {
-        <b>glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WVP_MAT_VB]);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Matrix4f) * NumInstances, WVPMats, GL_DYNAMIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WVP_MAT_VB]);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(Matrix4f) * NumInstances, WVPMats, GL_DYNAMIC_DRAW);
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WORLD_MAT_VB]);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Matrix4f) * NumInstances, WorldMats, GL_DYNAMIC_DRAW);</b>
+            glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[WORLD_MAT_VB]);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(Matrix4f) * NumInstances, WorldMats, GL_DYNAMIC_DRAW);
 
         glBindVertexArray(m_VAO);
 
@@ -109,12 +111,12 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
                 m_Textures[MaterialIndex]->Bind(GL_TEXTURE0);
             }
 
-            <b>glDrawElementsInstancedBaseVertex</b>(GL_TRIANGLES,
+            glDrawElementsInstancedBaseVertex(GL_TRIANGLES,
                 m_Entries[i].NumIndices,
                 GL_UNSIGNED_INT, 
                 (void*)(sizeof(unsigned int) * 
                 m_Entries[i].BaseIndex), 
-                <b>NumInstances</b>,
+                NumInstances,
                 m_Entries[i].BaseVertex);
         }
 
@@ -122,7 +124,7 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
         glBindVertexArray(0);
     }
 
-Это обновленная функция Render() класса Mesh. Она теперь принимает 2 массива матриц - матрицы WVP и мировых преобразований (NumInstances - это размер обоих массивов). До привязывания нашего VAO (подробнее об этом в предыдущем уроке) мы привязываем и загружаем матрицы в соответствующие им буферы вершин. Мы вызываем glDrawElements<b>Instanced</b>BaseVertex вместо glDrawElementsBaseVertex. Единственное изменение в этой функции в том, что она принимает количество образцов пятым параметром. Это означает, что одинаковые индексы (согласно другим параметрам) будут отрисовываться опять и опять - всего NumInstances раз. OpenGL будет получать данные для каждой вершины из VBs, чей делитель равен 0 (по старому). Он будет получать новые данные из VBs, чей делитель - 1 только после того, как весь образец будет отрисован. Общий алгоритм этого вызова таков:
+Это обновленная функция Render() класса Mesh. Она теперь принимает 2 массива матриц - матрицы WVP и мировых преобразований (NumInstances - это размер обоих массивов). До привязывания нашего VAO (подробнее об этом в предыдущем уроке) мы привязываем и загружаем матрицы в соответствующие им буферы вершин. Мы вызываем glDrawElements**Instanced**BaseVertex вместо glDrawElementsBaseVertex. Единственное изменение в этой функции в том, что она принимает количество образцов пятым параметром. Это означает, что одинаковые индексы (согласно другим параметрам) будут отрисовываться опять и опять - всего NumInstances раз. OpenGL будет получать данные для каждой вершины из VBs, чей делитель равен 0 (по старому). Он будет получать новые данные из VBs, чей делитель - 1 только после того, как весь образец будет отрисован. Общий алгоритм этого вызова таков:
 
 - for (i = 0 ; i < NumInstances ; i++)
     - if (i mod divisor == 0)
@@ -138,13 +140,15 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
     layout (location = 0) in vec3 Position;
     layout (location = 1) in vec2 TexCoord;
     layout (location = 2) in vec3 Normal;
-    <b>layout (location = 3) in mat4 WVP;
-    layout (location = 7) in mat4 World;</b>
+
+        layout (location = 3) in mat4 WVP;
+        layout (location = 7) in mat4 World;
 
     out vec2 TexCoord0;
     out vec3 Normal0;
     out vec3 WorldPos0;
-    <b>flat out int InstanceID;</b>
+
+        flat out int InstanceID;
 
     void main()
     {
@@ -152,7 +156,8 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
         TexCoord0   = TexCoord;
         Normal0     = World * vec4(Normal, 0.0)).xyz;
         WorldPos0   = World * vec4(Position, 1.0)).xyz;
-        <b>InstanceID = gl_InstanceID</b>;
+        
+            InstanceID = gl_InstanceID;
     };
 
 Это новый VS. Вместо получения WVP и мировой матриц как uniform-переменных, они теперь приходят как обычные вершинные атрибуты. VS не волнует, что значения будут обновляться только один раз за образец. Как объяснено выше, матрица WVP занимает позиции, а мировая матрица 7-10.
@@ -178,7 +183,7 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
             TotalLight += CalcSpotLight(gSpotLights[i], Normal);
         }
 
-        FragColor = texture(gColorMap, TexCoord0.xy) * TotalLight <b>* gColor[InstanceID % 4]</b>;
+        FragColor = texture(gColorMap, TexCoord0.xy) * TotalLight * gColor[InstanceID % 4];
     };
 
 Чтобы продемонстрировать использование gl_InstanceID я добавил uniform-массив из 4 вещественных векторов в FS. FS получает ID образца из VS и использует остаток от деления как индекс в массиве. Цвет, который был вычислен по формулам света умножается на один из цветов из массива. Помещая различные цвета в массив мы сможем получить интересную расцветку образцов.
@@ -198,8 +203,9 @@ title: Урок 33 - Дублирующий рендер (Instanced Rendering)
         Vector3f Pos(m_positions[i]);
         Pos.y += sinf(m_scale) * m_velocity[i];
         p.WorldPos(Pos);
-        WVPMatrics[i] = p.GetWVPTrans()<b>.Transpose()</b>;
-        WorldMatrices[i] = p.GetWorldTrans().<b>Transpose()</b>;
+
+            WVPMatrics[i] = p.GetWVPTrans().Transpose();
+            WorldMatrices[i] = p.GetWorldTrans().Transpose();
     }
 
     m_pMesh->Render(NUM_INSTANCES, WVPMatrics, WorldMatrices);

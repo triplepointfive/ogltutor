@@ -211,17 +211,17 @@ Deferred shading - популярная технология, используе
         VSout.WorldPos   = (gWorld * vec4(VSin.Position, 1.0)).xyz;
     };
 
-    <b>struct FSOutput
+    struct FSOutput
     {
         vec3 WorldPos;
         vec3 Diffuse;
         vec3 Normal;
         vec3 TexCoord;
-    };</b>
+    };
 
     uniform sampler2D gColorMap;
 
-    shader FSmain(in VSOutput FSin, <b>out FSOutput FSout</b>)
+    shader FSmain(in VSOutput FSin, out FSOutput FSout)
     {
         FSout.WorldPos = FSin.WorldPos;
         FSout.Diffuse  = texture(gColorMap, FSin.TexCoord).xyz;
@@ -241,12 +241,12 @@ Deferred shading - популярная технология, используе
 
     void GBuffer::BindForWriting()
     {
-        glBindFramebuffer(<b>GL_DRAW_FRAMEBUFFER</b>, m_fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
     }
 
     void GBuffer::BindForReading()
     {
-        glBindFramebuffer(<b>GL_READ_FRAMEBUFFER</b>, m_fbo);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
     }
 
     void GBuffer::SetReadBuffer(GBUFFER_TEXTURE_TYPE TextureType)

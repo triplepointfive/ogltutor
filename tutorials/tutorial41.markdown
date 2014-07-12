@@ -26,9 +26,9 @@ title: Урок 41 - Размытие (Motion Blur)
 
         m_pGameCamera->OnRender();
 
-        <b>RenderPass();
+            RenderPass();
 
-        MotionBlurPass();</b>
+            MotionBlurPass();
 
         RenderFPS();
 
@@ -41,7 +41,7 @@ title: Урок 41 - Размытие (Motion Blur)
 
     void RenderPass()
     {
-        <b>m_intermediateBuffer.BindForWriting();</b>
+            m_intermediateBuffer.BindForWriting();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -55,7 +55,7 @@ title: Урок 41 - Размытие (Motion Blur)
 
         for (uint i = 0 ; i < Transforms.size() ; i++) {
             m_pSkinningTech->SetBoneTransform(i, Transforms[i]);
-            <b>m_pSkinningTech->SetPrevBoneTransform(i, m_prevTransforms[i]);</b>
+                m_pSkinningTech->SetPrevBoneTransform(i, m_prevTransforms[i]);
         }
 
         m_pSkinningTech->SetEyeWorldPos(m_pGameCamera->GetPos());
@@ -73,7 +73,7 @@ title: Урок 41 - Размытие (Motion Blur)
 
         m_mesh.Render();
 
-        <b>m_prevTransforms = Transforms;</b>
+            m_prevTransforms = Transforms;
     }
 
 Это наш проход рендера. Он почти такой же, как и в уроке Скелетной Анимации, изменения выделены жирным. Промежуточный буфер (intermediate) - простой класс, который хранит буферы цвета, глубины и вектора движения в едином буфере кадра. Мы уже сталкивались с этим в уроках по deferred rendering (#35-#37), поэтому на нем останавливаться не будем. За подробностями в исходный код. Идея в рендере в FBO, а не прямо на экран. В проходе размытия мы будем считывать из промежуточного буфера.
@@ -111,8 +111,9 @@ title: Урок 41 - Размытие (Motion Blur)
         vec2 TexCoord;
         vec3 Normal;
         vec3 WorldPos;
-        <b>vec4 ClipSpacePos;
-        vec4 PrevClipSpacePos;</b>
+
+            vec4 ClipSpacePos;
+            vec4 PrevClipSpacePos;
     };
 
     const int MAX_BONES = 100;
@@ -120,7 +121,7 @@ title: Урок 41 - Размытие (Motion Blur)
     uniform mat4 gWVP;
     uniform mat4 gWorld;
     uniform mat4 gBones[MAX_BONES];
-    <b>uniform mat4 gPrevBones[MAX_BONES];</b>
+        uniform mat4 gPrevBones[MAX_BONES];
 
     shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     {
@@ -136,7 +137,7 @@ title: Урок 41 - Размытие (Motion Blur)
         vec4 NormalL   = BoneTransform * vec4(VSin.Normal, 0.0);
         VSout.Normal   = (gWorld * NormalL).xyz;
         VSout.WorldPos = (gWorld * PosL).xyz;
-    <b>
+    
         mat4 PrevBoneTransform = gPrevBones[VSin.BoneIDs[0]] * VSin.Weights[0];
         PrevBoneTransform     += gPrevBones[VSin.BoneIDs[1]] * VSin.Weights[1];
         PrevBoneTransform     += gPrevBones[VSin.BoneIDs[2]] * VSin.Weights[2];
@@ -144,20 +145,20 @@ title: Урок 41 - Размытие (Motion Blur)
 
         VSout.ClipSpacePos = ClipSpacePos;
         vec4 PrevPosL      = PrevBoneTransform * vec4(VSin.Position, 1.0);
-        VSout.PrevClipSpacePos = gWVP * PrevPosL;</b>
+        VSout.PrevClipSpacePos = gWVP * PrevPosL;
     }
 
 Выше мы видим изменения в VS в алгоритме скиннинга. Мы добавили uniform-массив с преобразованиями костей из предыдущего кадра, он будет использован для нахождения позиции текущей вершины в пространстве клиппера в предыдущем кадре. Эта позиция, так же, как и позиция текущей вершины в пространстве клиппера в текущем кадре, будет передана в FS.
 
 > skinning.glsl:165
 
-    <b>struct FSOutput
+    struct FSOutput
     {
         vec3 Color;
         vec2 MotionVector;
-    };</b>
+    };
 
-    shader FSmain(in VSOutput FSin, out <b>FSOutput FSOut</b>)
+    shader FSmain(in VSOutput FSin, out FSOutput FSOut)
     {
         VSOutput1 In;
         In.TexCoord = FSin.TexCoord;
@@ -174,11 +175,11 @@ title: Урок 41 - Размытие (Motion Blur)
             TotalLight += CalcSpotLight(gSpotLights[i], In);
         }
 
-        <b>vec4 Color = texture(gColorMap, In.TexCoord) * TotalLight;
+        vec4 Color = texture(gColorMap, In.TexCoord) * TotalLight;
         FSOut.Color = Color.xyz;
         vec3 NDCPos = (FSin.ClipSpacePos / FSin.ClipSpacePos.w).xyz;
         vec3 PrevNDCPos = (FSin.PrevClipSpacePos / FSin.PrevClipSpacePos.w).xyz;
-        FSOut.MotionVector = (NDCPos - PrevNDCPos).xy;</b>
+        FSOut.MotionVector = (NDCPos - PrevNDCPos).xy;
     }
 
 FS техники скиннинга обновлен так, что теперь он выдает 2 вектора в 2 отдельных буфера (буферы цвета и вектора движения). Цвет вычисляется как обычно. Для вычисления вектора движения мы проецируем позиции в пространстве клиппера текущего и предыдущего кадров через деление перспективы и вычитаем один из другого.

@@ -73,7 +73,7 @@ title: Урок 29 - 3D Выбор
         // Создание объекта текстуры для буфера с информацией о примитиве
         glGenTextures(1, &m_pickingTexture);
         glBindTexture(GL_TEXTURE_2D, m_pickingTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, <b>GL_RGB32UI</b>, WindowWidth, WindowHeight, 0, <b>GL_RGB_INTEGER, GL_UNSIGNED_INT</b>, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32UI, WindowWidth, WindowHeight, 0, GL_RGB_INTEGER, GL_UNSIGNED_INT, NULL);
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_pickingTexture, 0);
 
         // Создание объекта текстуры для буфера глубины
@@ -183,7 +183,7 @@ FS класса PickingTechnique записывает информацию о п
 
 > mesh.cpp:201
 
-    void Mesh::Render(<b>IRenderCallbacks* pRenderCallbacks</b>)
+    void Mesh::Render(IRenderCallbacks* pRenderCallbacks)
     {
         ...
 
@@ -191,9 +191,9 @@ FS класса PickingTechnique записывает информацию о п
 
             ...
 
-            <b>if (pRenderCallbacks) {
+            if (pRenderCallbacks) {
                     pRenderCallbacks->DrawStartCB(i);
-            }</b>
+            }
 
             glDrawElements(GL_TRIANGLES, m_Entries[i].NumIndices, GL_UNSIGNED_INT, 0);
         }
@@ -267,14 +267,13 @@ FS класса PickingTechnique записывает информацию о п
         // Если мышь кликнула, то проверяем попадает ли она на треугольник. В этом случае цвет красный.
 
         if (m_leftMouseButton.IsPressed) {
-            <b>PickingTexture::PixelInfo Pixel = m_pickingTexture.ReadPixel(m_leftMouseButton.x, 				
-                WINDOW_HEIGHT - m_leftMouseButton.y - 1);</b>
+            PickingTexture::PixelInfo Pixel = m_pickingTexture.ReadPixel(m_leftMouseButton.x, WINDOW_HEIGHT - m_leftMouseButton.y - 1);
 
-            if (<b>Pixel.PrimID != 0</b>) {
+            if (Pixel.PrimID != 0) {
                 m_simpleColorEffect.Enable();
                 p.WorldPos(m_worldPos[Pixel.ObjectID]);
                 m_simpleColorEffect.SetWVP(p.GetWVPTrans());
-                m_pMesh->Render(Pixel.DrawID, <b>Pixel.PrimID - 1</b>);
+                m_pMesh->Render(Pixel.DrawID, Pixel.PrimID - 1);
             }
         }
 

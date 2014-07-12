@@ -229,13 +229,15 @@ glDrawTransformFeedback() принимает 2 параметра. Первый 
             return false;
         }
 
-        <b>    const GLchar* Varyings[4];
-        Varyings[0] = "Type1";
-        Varyings[1] = "Position1";
-        Varyings[2] = "Velocity1";    
-        Varyings[3] = "Age1";
 
-        glTransformFeedbackVaryings(m_shaderProg, 4, Varyings, GL_INTERLEAVED_ATTRIBS);</b> 
+            const GLchar* Varyings[4];
+            Varyings[0] = "Type1";
+            Varyings[1] = "Position1";
+            Varyings[2] = "Velocity1";    
+            Varyings[3] = "Age1";
+
+            glTransformFeedbackVaryings(m_shaderProg, 4, Varyings, GL_INTERLEAVED_ATTRIBS);
+
 
         if (!Finalize()) {
             return false;

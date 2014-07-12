@@ -63,18 +63,17 @@ Id костей являются индексами в массиве преоб
 
         bool Ret = false;
 
-        <b>m_pScene = m_Importer</b>.ReadFile(Filename.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals |
-
-
-        aiProcess_FlipUVs);
+            m_pScene = m_Importer.ReadFile(Filename.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
 
         if (m_pScene) {
-            <b>m_GlobalInverseTransform = m_pScene->mRootNode->mTransformation;
-            m_GlobalInverseTransform.Inverse();</b>
-            Ret = InitFromScene(<b>m_pScene</b>, Filename);
+
+                m_GlobalInverseTransform = m_pScene->mRootNode->mTransformation;
+                m_GlobalInverseTransform.Inverse();
+
+            Ret = InitFromScene(m_pScene, Filename);
         }
         else {
-            printf("Error parsing '%s': '%s'\n", Filename.c_str(),<b> m_Importer</b>.GetErrorString());
+            printf("Error parsing '%s': '%s'\n", Filename.c_str(), m_Importer.GetErrorString());
         }
 
         // Убедимся, что VAO не изменится из вне
@@ -108,13 +107,15 @@ Id костей являются индексами в массиве преоб
         glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[BONE_VB]);
         glBufferData(GL_ARRAY_BUFFER, sizeof(Bones[0]) * Bones.size(), &Bones[0], GL_STATIC_DRAW);
         glEnableVertexAttribArray(BONE_ID_LOCATION);
-        <b>glVertexAttribIPointer</b>(BONE_ID_LOCATION, 4, GL_INT, sizeof(VertexBoneData), (const GLvoid*)0);
+
+            glVertexAttribIPointer(BONE_ID_LOCATION, 4, GL_INT, sizeof(VertexBoneData), (const GLvoid*)0);
+
         glEnableVertexAttribArray(BONE_WEIGHT_LOCATION);
         glVertexAttribPointer(BONE_WEIGHT_LOCATION, 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)16);
         ...
     }
 
-Структура выше содержит все, что нам потребуется на уровне вершин. По-умолчанию, нам достаточно пространства для 4 костей (ID и вес на кость). VertexBoneData устроена похожим образом, что упрощает передачу в шейдер. У нас уже имеется позиция, координаты текстур и нормаль, привязанные к позициям 0, 1 и 2 соответственно. Хотя, мы настроили наш VAO для привязывания ID кости под позицией 3 и вес под 4. Важно заметить, что мы используем glVertexAttrib<b>I</b>Pointer вместо glVertexAttribPointer для привязывания ID. Причина в том, что ID - целое число, а не значение с плавующей точкой. Не упустите это или данные в шейдере повредятся.
+Структура выше содержит все, что нам потребуется на уровне вершин. По-умолчанию, нам достаточно пространства для 4 костей (ID и вес на кость). VertexBoneData устроена похожим образом, что упрощает передачу в шейдер. У нас уже имеется позиция, координаты текстур и нормаль, привязанные к позициям 0, 1 и 2 соответственно. Хотя, мы настроили наш VAO для привязывания ID кости под позицией 3 и вес под 4. Важно заметить, что мы используем glVertexAttrib**I**Pointer вместо glVertexAttribPointer для привязывания ID. Причина в том, что ID - целое число, а не значение с плавующей точкой. Не упустите это или данные в шейдере повредятся.
 
 > mesh.cpp:215
 
@@ -296,8 +297,9 @@ Id костей являются индексами в массиве преоб
         vec3  Position;
         vec2  TexCoord;
         vec3  Normal;
-        <b>ivec4 BoneIDs;
-        vec4  Weights;</b>
+
+            vec4 BoneIDs;
+            vec4  Weights;
     };
 
     interface VSOutput

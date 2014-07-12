@@ -20,7 +20,7 @@ title: Урок 42 - Percentage Closer Filtering
 
 > lighting.glsl:80
 
-    uniform <b>sampler2DShadow</b> gShadowMap;
+    uniform sampler2DShadow gShadowMap;
 
     #define EPSILON 0.00001
 
@@ -32,7 +32,7 @@ title: Урок 42 - Percentage Closer Filtering
         UVCoords.y = 0.5 * ProjCoords.y + 0.5;
         float z = 0.5 * ProjCoords.z + 0.5;
 
-        <b>float xOffset = 1.0/gMapSize.x;
+        float xOffset = 1.0/gMapSize.x;
         float yOffset = 1.0/gMapSize.y;
 
         float Factor = 0.0;
@@ -45,7 +45,7 @@ title: Урок 42 - Percentage Closer Filtering
             }
         }
 
-        return (0.5 + (Factor / 18.0));</b>
+        return (0.5 + (Factor / 18.0));
     }
 
 Это обновленная функция вычисления порога теней. Она начинается с того, что мы вручную производим деление перспективы на координаты пространства клиппера с позиции источника света, а затем преобразования из отрезка (-1,+1) в (0,1). Теперь у нас есть координаты, которые мы можем использовать для выборки из карты теней и Z значение для сравнения с результатом выборки. Дальше все немного по-другому. Мы собираемся выбрать квадрат 3 на 3, для этого нам потребуются всего 9 координат текстуры. Координаты должны соответствовать выборке текселя ровно на единичном интервале по осям X и/или Y. Поскольку UV координаты текстуры идут от 0 до 1 и отображаются в отрезок текселей (0, Ширина-1) и (0, Высота-1), соответственно, мы делим 1 на ширину и высоту текстуры. Эти значения хранятся в
@@ -68,8 +68,10 @@ uniform-переменной gMapSize (подробности в исходно�
         WindowWidth, WindowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        <b>glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);</b>
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 

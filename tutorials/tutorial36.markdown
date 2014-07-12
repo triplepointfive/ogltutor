@@ -28,11 +28,11 @@ title: Урок 36 - Deferred Shading - Часть 2
         m_scale += 0.05f;
         m_pGameCamera->OnRender();
         DSGeometryPass();
-    <b>
-        BeginLightPasses();
-        DSPointLightsPass();
-        DSDirectionalLightPass();
-    </b>
+
+            BeginLightPasses();
+            DSPointLightsPass();
+            DSDirectionalLightPass();
+
         RenderFPS();
         glutSwapBuffers();
     }
@@ -48,13 +48,12 @@ title: Урок 36 - Deferred Shading - Часть 2
         m_gbuffer.BindForWriting();
 
         // Only the geometry pass updates the depth buffer
-        <b>glDepthMask(GL_TRUE);</b>
+            glDepthMask(GL_TRUE);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        <b>glEnable(GL_DEPTH_TEST);
-
-        glDisable(GL_BLEND);</b>
+            glEnable(GL_DEPTH_TEST);
+            glDisable(GL_BLEND);
 
         Pipeline p;
         p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
@@ -70,9 +69,8 @@ title: Урок 36 - Deferred Shading - Часть 2
 
         // When we get here the depth buffer is already populated and the stencil pass
         // depends on it, but it does not write to it.
-        <b>glDepthMask(GL_FALSE);</b>
-
-        <b>glDisable(GL_DEPTH_TEST);</b>
+            glDepthMask(GL_FALSE);
+            glDisable(GL_DEPTH_TEST);
     }
 
 Вот 3 главных изменения в геометрическом проходе. Первое - использование функции glDepthMask() для запрета записи в буфер глубины где-либо кроме геометрического прохода. Нам требуется буфер глубины что бы записать в G буфер ближайшие точки. В проходе света у нас будет только 1 тексель на пиксель экрана, поэтому мы ничего не записываем в буфер глубины. Нет никакого смысла проверять глубину, если нет конкурирующих точек. Важно не забыть очистить буфер глубины перед записью, а glClear() не даст нужного эффекта, если маска глубины установлена в FALSE. Последнее изменение - отключение смешивания. Позднее мы увидим, как проход света использует смешивание для объединения нескольких источников света вместе. В геометрическом проходе это не требуется.
@@ -155,24 +153,24 @@ VS элементарный. В случае направленного свет
 
     shader FSmainDirLight(out vec4 FragColor)
     {
-        <b>vec2 TexCoord = CalcTexCoord();</b>
+            vec2 TexCoord = CalcTexCoord();
         vec3 WorldPos = texture(gPositionMap, TexCoord).xyz;
         vec3 Color = texture(gColorMap, TexCoord).xyz;
         vec3 Normal = texture(gNormalMap, TexCoord).xyz;
         Normal = normalize(Normal);
 
-        FragColor = vec4(Color, 1.0) * <b>CalcDirectionalLight</b>(WorldPos, Normal);
+        FragColor = vec4(Color, 1.0) * CalcDirectionalLight(WorldPos, Normal);
     }
 
     shader FSmainPointLight(out vec4 FragColor)
     {
-        <b>vec2 TexCoord = CalcTexCoord();</b>
+            vec2 TexCoord = CalcTexCoord();
         vec3 WorldPos = texture(gPositionMap, TexCoord).xyz;
         vec3 Color = texture(gColorMap, TexCoord).xyz;
         vec3 Normal = texture(gNormalMap, TexCoord).xyz;
         Normal = normalize(Normal);
 
-        FragColor = vec4(Color, 1.0) * <b>CalcPointLight</b>(WorldPos, Normal);
+        FragColor = vec4(Color, 1.0) * CalcPointLight(WorldPos, Normal);
     }
 
 Это фрагментный шейдер для направленного и точечного света. Мы разделили функции для них, так как используется разная логика. В нашем случае это дает выигрыш в произмодительности - использование ветвлений в шейдере. Внутреннии функции для света не изменились. Мы берем сэмпл из G буфера для получения мировых координат, цвета и нормалей. В предыдущем уроке мы так же отвели место для координат текстуры в G буфере, но лучше вычислять их на лету для экономии места. Это очень просто и делается в функции ниже.

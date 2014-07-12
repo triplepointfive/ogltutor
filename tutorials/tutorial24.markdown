@@ -54,10 +54,13 @@ title: Урок 24 - Карта теней - часть 2
     layout (location = 2) in vec3 Normal;
     
     uniform mat4 gWVP;
-    <b>uniform mat4 gLightWVP;</b>
+
+        uniform mat4 gLightWVP;
+
     uniform mat4 gWorld;
     
-    <b>out vec4 LightSpacePos;</b>
+        out vec4 LightSpacePos;
+
     out vec2 TexCoord0;
     out vec3 Normal0;
     out vec3 WorldPos0;
@@ -65,7 +68,9 @@ title: Урок 24 - Карта теней - часть 2
     void main()
     {
          gl_Position= gWVP * vec4(Position, 1.0);
-         <b>LightSpacePos= gLightWVP * vec4(Position, 1.0);</b>
+
+            LightSpacePos= gLightWVP * vec4(Position, 1.0);
+
          TexCoord0= TexCoord;
          Normal0= (gWorld * vec4(Normal, 0.0)).xyz;
          WorldPos0= (gWorld * vec4(Position, 1.0)).xyz;
@@ -94,10 +99,10 @@ title: Урок 24 - Карта теней - часть 2
 
 > lighting_technique.cpp:121
     
-    vec4 CalcLightInternal(struct BaseLight Light, vec3 LightDirection, vec3 Normal<b>, float ShadowFactor</b>)
+    vec4 CalcLightInternal(struct BaseLight Light, vec3 LightDirection, vec3 Normal, float ShadowFactor)
     {
                 ...
-        return (AmbientColor + <b>ShadowFactor * </b>(DiffuseColor + SpecularColor));
+        return (AmbientColor + ShadowFactor * (DiffuseColor + SpecularColor));
     }
 
 Изменения в главной функции вычисления света минимальны. Вызов должен вернуть рассеянный и отраженный свет, умножаный на коэффициент теней. Фоновый свет остается без изменений - он всюду по определению.
@@ -106,21 +111,22 @@ title: Урок 24 - Карта теней - часть 2
     
     vec4 CalcDirectionalLight(vec3 Normal)
     {
-        return CalcLightInternal(gDirectionalLight.Base, gDirectionalLight.Direction, Normal<b>, 1.0</b>);
+        return CalcLightInternal(gDirectionalLight.Base, gDirectionalLight.Direction, Normal, 1.0);
     }
 
 Наша реализация отображения теней ограниченна прожектором. Для того, что бы найти матрицу WVP света нам требуются из позиция и направление, из-за которых нельзя использовать точечный и рассеянный свет. Мы добавим этот функционал в будущем, пока что мы просто указываем коэффициент теней равным 1 для направленного света.
 
 > lighting_technique.cpp:151
 
-    vec4 CalcPointLight(struct PointLight l, vec3 Normal<b>, vec4 LightSpacePos</b>)
+    vec4 CalcPointLight(struct PointLight l, vec3 Normal, vec4 LightSpacePos)
     {
          vec3 LightDirection = WorldPos0 - l.Position;
          float Distance = length(LightDirection);
          LightDirection = normalize(LightDirection);
-        <b>float ShadowFactor = CalcShadowFactor(LightSpacePos);</b>
+         
+            float ShadowFactor = CalcShadowFactor(LightSpacePos);
     
-         vec4 Color = CalcLightInternal(l.Base, LightDirection, Normal<b>, ShadowFactor</b>);
+         vec4 Color = CalcLightInternal(l.Base, LightDirection, Normal, ShadowFactor);
          float Attenuation =l.Atten.Constant +
              l.Atten.Linear * Distance +
              l.Atten.Exp * Distance * Distance;
@@ -132,13 +138,13 @@ title: Урок 24 - Карта теней - часть 2
 
 > lighting_technique.cpp:166
     
-    vec4 CalcSpotLight(struct SpotLight l, vec3 Normal<b>, vec4 LightSpacePos</b>)
+    vec4 CalcSpotLight(struct SpotLight l, vec3 Normal, vec4 LightSpacePos)
     {
         vec3 LightToPixel = normalize(WorldPos0 - l.Base.Position);
         float SpotFactor = dot(LightToPixel, l.Direction);
     
         if (SpotFactor > l.Cutoff) {
-            vec4 Color = CalcPointLight(l.Base, Normal<b>, LightSpacePos</b>);
+            vec4 Color = CalcPointLight(l.Base, Normal, LightSpacePos);
             return Color * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - l.Cutoff));
         }
         else {
@@ -156,11 +162,11 @@ title: Урок 24 - Карта теней - часть 2
         vec4 TotalLight = CalcDirectionalLight(Normal);
     
         for (int i = 0 ; i < gNumPointLights ; i++) {
-            TotalLight += CalcPointLight(gPointLights[i], Normal<b>, LightSpacePos</b>);
+            TotalLight += CalcPointLight(gPointLights[i], Normal, LightSpacePos);
         }
     
         for (int i = 0 ; i < gNumSpotLights ; i++) {
-            TotalLight += CalcSpotLight(gSpotLights[i], Normal<b>, LightSpacePos</b>);
+            TotalLight += CalcSpotLight(gSpotLights[i], Normal, LightSpacePos);
         }
     
         vec4 SampledColor = texture2D(gSampler, TexCoord0.xy);
@@ -208,7 +214,7 @@ title: Урок 24 - Карта теней - часть 2
     
         glClear(GL_DEPTH_BUFFER_BIT);
     
-        <b>m_pShadowMapEffect->Enable();</b>
+            m_pShadowMapEffect->Enable();
     
         Pipeline p;
         p.Scale(0.1f, 0.1f, 0.1f);
@@ -239,11 +245,15 @@ title: Урок 24 - Карта теней - часть 2
         p.Scale(10.0f, 10.0f, 10.0f);
         p.WorldPos(0.0f, 0.0f, 1.0f);
         p.Rotate(90.0f, 0.0f, 0.0f);
-        <b>p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());</b>
-        <b>m_pLightingEffect->SetWVP(p.GetWVPTrans());</b>
+
+            p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
+            m_pLightingEffect->SetWVP(p.GetWVPTrans());
+
         m_pLightingEffect->SetWorldMatrix(p.GetWorldTrans());
-        <b>p.SetCamera(m_spotLight.Position, m_spotLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));</b>
-        <b>m_pLightingEffect->SetLightWVP(p.GetWVPTrans());</b>
+
+            p.SetCamera(m_spotLight.Position, m_spotLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));
+            m_pLightingEffect->SetLightWVP(p.GetWVPTrans());
+
         m_pLightingEffect->SetEyeWorldPos(m_pGameCamera->GetPos());
         m_pGroundTex->Bind(GL_TEXTURE0);
         m_pQuad->Render();
@@ -251,11 +261,14 @@ title: Урок 24 - Карта теней - часть 2
         p.Scale(0.1f, 0.1f, 0.1f);
         p.Rotate(0.0f, m_scale, 0.0f);
         p.WorldPos(0.0f, 0.0f, 3.0f);
-         <b> p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());</b>
-         <b> m_pLightingEffect->SetWVP(p.GetWVPTrans());</b>
+
+            p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
+            m_pLightingEffect->SetWVP(p.GetWVPTrans());
+
         m_pLightingEffect->SetWorldMatrix(p.GetWorldTrans());
-         <b> p.SetCamera(m_spotLight.Position, m_spotLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));</b>
-         <b>m_pLightingEffect->SetLightWVP(p.GetWVPTrans());</b>
+
+             p.SetCamera(m_spotLight.Position, m_spotLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));
+             m_pLightingEffect->SetLightWVP(p.GetWVPTrans());
     
         m_pMesh->Render();
     }

@@ -60,7 +60,7 @@ title: Урок 40 - Теневой объем (Stencil Shadow Volume)
 
 > glut_backend.cpp:80
 
-    glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH<b>|GLUT_STENCIL</b>);
+    glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH|GLUT_STENCIL);
 
 Прежде чем начать работать над этим уроком, убедитесь, что вы добавили код выделенный жирным. Без него буфер кадра будет создан без буфера трафарета и ничего не будет работать. Я потратил время, прежде чем осознал, что пропустил его, поэтому убедитесь, что добавили его.
 
@@ -370,7 +370,7 @@ GS начинается так же, как и шейдер для силуэт�
     program ShadowVolume
     {
         vs(420)=VSmain();
-        gs(420)=GSmain() : in(triangles_adjacency), out(triangle_strip, <b>max_vertices = 18</b>);
+        gs(420)=GSmain() : in(triangles_adjacency), out(triangle_strip, max_vertices = 18);
         fs(420)=FSmain();
     };
 

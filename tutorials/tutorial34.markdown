@@ -2,7 +2,7 @@
 title: Урок 34 - GLFX - An OpenGL Effect Library
 ---
 
-Этот урок слегка отличается от предыдущих. Вместо изучения возможностей технологий OpenGL мы собираемся рассмотреть GLFX, библиотеку эффектов OpenGL. <i>Эффект</i> - это текстовый файл, который, возможно, содержит несколько шейдеров и упрощает комбинирование их в программе. Это позволяет обойти ограничение функции glShaderSource(), которая требует указать текст только одного этапа шейдеров. Она насильно заставляет использовать различные текстовые файлы для каждого шейдера (или различные буферы, как мы делали в прошлых уроках). Помещение всех шейдеров в один файл упрощает обмен определением структур между ними. Кроме того, GLFX предоставляет простой API для перевода эффектов в программу GLSL, что частично скрывает сложность функций OpenGL.
+Этот урок слегка отличается от предыдущих. Вместо изучения возможностей технологий OpenGL мы собираемся рассмотреть GLFX, библиотеку эффектов OpenGL. *Эффект* - это текстовый файл, который, возможно, содержит несколько шейдеров и упрощает комбинирование их в программе. Это позволяет обойти ограничение функции glShaderSource(), которая требует указать текст только одного этапа шейдеров. Она насильно заставляет использовать различные текстовые файлы для каждого шейдера (или различные буферы, как мы делали в прошлых уроках). Помещение всех шейдеров в один файл упрощает обмен определением структур между ними. Кроме того, GLFX предоставляет простой API для перевода эффектов в программу GLSL, что частично скрывает сложность функций OpenGL.
 
 Идея файлов эффектов не нова. На самом деле, Microsoft уже годами раннее реализовало это в мире DirectX. Я уверен, что игровые студии имеют их собственный инструментарий, но к стыду говорят, в OpenGL нет для этого стандарта. Библиотека эффектов, которую мы будем использовать, - свободный проект Max Aizenshtein. Домашняя страница библиотеки [тута](http://code.google.com/p/glfx/).
 
@@ -40,17 +40,17 @@ title: Урок 34 - GLFX - An OpenGL Effect Library
 
 Создание указателя на эффект:
 
-    int effect = <b>glfxGenEffect</b>();
+    int effect = glfxGenEffect();
 
 Проход по файлу эффекта (мы получим его содержание мгновенно):
 
-    if (!<b>glfxParseEffectFromFile</b>(effect, "effect.glsl")) {
+    if (!glfxParseEffectFromFile(effect, "effect.glsl")) {
     #ifdef __cplusplus	// C++ error handling
-        std::string log = <b>glfxGetEffectLog</b>(effect);
+        std::string log = glfxGetEffectLog(effect);
         std::cout << "Error parsing effect: " << log << std::endl;
     #else // C error handling
         char log[10000];
-        <b>glfxGetEffectLog</b>(effect, log, sizeof(log));
+        glfxGetEffectLog(effect, log, sizeof(log));
         printf("Error parsing effect: %s:\n", log);
     #endif
         return;
@@ -58,7 +58,7 @@ title: Урок 34 - GLFX - An OpenGL Effect Library
 
 Компилирование программы (комбинация из VS, FS и прочих) определяется в файле эффекта следующим образом:
 
-    int shaderProg = <b>glfxCompileProgram</b>(effect, "ProgramName");
+    int shaderProg = glfxCompileProgram(effect, "ProgramName");
 
     if (shaderProg < 0) {
         // таже ошибка с указателем, что и ранее
@@ -70,7 +70,7 @@ title: Урок 34 - GLFX - An OpenGL Effect Library
 
 Так как эффект больше не требуется, то удаляем его через
 
-    <b>glfxDeleteEffect</b>(effect);
+    glfxDeleteEffect(effect);
 
 ### Использование GLFX
 
@@ -89,12 +89,12 @@ title: Урок 34 - GLFX - An OpenGL Effect Library
 **Использование 'shader' вместо 'void' для объявления главной функции шейдера.**
 
 Главная точка входа в шейдер должна быть объявлена как 'shader' вместо 'void'. Вот пример:
-    <b>void</b> calculate_something()
+    void calculate_something()
     {
         ...
     }
 
-    <b>shader</b> VSmain()
+    shader VSmain()
     {
         calculate_something();
     }
@@ -120,12 +120,12 @@ title: Урок 34 - GLFX - An OpenGL Effect Library
         vec3 Normal;
     };
 
-    shader VSmain(in VSInput VSin, out <b>VSOutput</b> VSout)
+    shader VSmain(in VSInput VSin, out VSOutput VSout)
     {
         // преобразуем 'VSin' и обновляем 'VSout'
     }
 
-    shader FSmain(in <b>VSOutput</b> FSin, out vec4 FragColor)
+    shader FSmain(in VSOutput FSin, out vec4 FragColor)
     {
         // 'FSin' соответствует 'VSout' из VS. используем ее
         // для вычисления света и записываем результат в 'FragColor'
@@ -165,8 +165,8 @@ GLSL предоставляет несколько квалификаторов,
 
     interface foo
     {
-        <b>flat</b> int a;
-        <b>noperspective</b> float b;
+        flat int a;
+        noperspective float b;
     };
 
     struct bar
