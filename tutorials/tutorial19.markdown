@@ -61,9 +61,9 @@ title: Урок 19 - Отраженный свет
         GLuint m_matSpecularIntensityLocation;
         GLuint m_matSpecularPowerLocation;
         
-    > lighting_technique.cpp:154
+> lighting_technique.cpp:154
         
-        bool LightingTechnique::Init(){
+    bool LightingTechnique::Init(){
         ...
         m_eyeWorldPosition = GetUniformLocation("gEyeWorldPos");
         m_matSpecularIntensityLocation = GetUniformLocation("gMatSpecularIntensity");
