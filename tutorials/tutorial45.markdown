@@ -2,69 +2,54 @@
 title: Урок 45 - Screen Space Ambient Occlusion
 ---
 
-Do you remember how our lighting model began evolving? Back in <a href="../tutorial17/tutorial17.html">tutorial 17</a>
-we took a first look at the lighting model, starting with the ambient lighting type. The ambient lighting
-which is supposed to mimic the general feeling of "everything is bright" that you
-get in a highly lit, mid-day environment, was implemented using a single floating point
-value that was attached to each lighting source and we multiplied that value by
-the color of the surface which we sampled from the texture bound to that surface.
-So you could have a single light source in your scene called "sun" and you could
-play with the ambient light to control how well the scene was generally lit - values closer
-to zero produced a darker scene while values closer to 1 produced a lighter
-scene.
+Помните как развивалась наша модель освещения? В [уроке 17](tutorial17.html) мы увидели нашу первую модель освещения,
+которая начиналась с фонового освещения. Фоновое освещение имитирует ощущение "все освещено", которое можно почуствовать
+в светлый полдень. Оно было реализовано с использованием одного значения с плавающей точкой, которое прилогалось к
+каждому источнику света; мы умножали на это значение на цвет текстуры поверхности. Таким образом, вы можете иметь один
+источник света, названный "солнце", и вы можете поиграться с фоновым освещением для управления общей освещенностью
+сцены - значение близкое к нулю создает темные сцены, а близкие к единице - яркие.
 
-In the following tutorials we implemented diffuse and specular lighting which
-contributed to the overall quality of the scene but the basic ambient light
-remained the same. In the recent years we see a rise of what is known as
-<a href="http://en.wikipedia.org/wiki/Ambient_occlusion">Ambient Occlusion</a>
-which basically means that instead of going with a fixed ambient light value
-for each pixel we can calculate how much the pixel is exposed to the ambient
-light source. A pixel on the floor in the middle of room is much more exposed
-to the light than, say, a pixel in the corner. This means that the corner will
-be a bit darker than the rest of the floor. This is the core of ambient occlusion.
-So in order to implement it we need to find a way to differentiate between those
-"tightly packed in corners pixels" vs. "out in the open pixels". The product of
-this calculation is an ambient occlusion term which will control the ambient light
-in the final lighting stage. Here's a visualization of this ambient occlusion term:
+В последующих уроках мы реализовали диффузный и отраженный свет, который способствовал общему качеству сцены, но базовый
+фоновый свет остался без изменений. В последние года мы видели рассвет
+[Ambient occlusion](https://ru.wikipedia.org/wiki/Ambient_occlusion), который в общем означает, что вместо
+фиксированного значения фонового света мы можем вычислять насколько пиксель открыт по отношению к источнику фонового
+света. Пиксель в центре пола болешь подвержен влиянию источника света чем, скажем, пиксель в углу. Это значит, что угол
+будет немного темнее, чем остальная часть пола. В этом вся суть ambient occlusion. Для того, что бы реализовать его
+нам нужно найти способ отличать "плотно набитые в угол пиксели" от "открытых пикселей". Итогом вычислений является
+ambient occlusion, который будет управлять фоновым освещением на последнем этапе освещения. Вот визуализация для
+ambient occlusion:
 
 ![](/images/45/ao.jpg)
 
-You can see how the edges are the brightest and the corners where we expect
-to get the smaller amount of lighting are much darker.
+Как вы видите, ребра самые яркие, а углы, куда как мы ожидали попадет меньше всего света, ощутимо темнее.
 
-There is a lot of research on the subject of ambient occlusion and many algorithms
-have been developed to approximate it. We are going to study a branch of these algorithms
-known as <i>Screen Space Ambient Occlusion</i> or SSAO, which was developed by
-<a href="http://en.wikipedia.org/wiki/Crytek">Crytek</a>
-and became highly popular with their 2007 release of <a href="http://en.wikipedia.org/wiki/Crysis&quot;">Crysis</a>.
-Many games have since implemented SSAO and a lot of variations were created
-on top of it. We are going to study a simplified version of the algorithm based
-on a <a href="http://john-chapman-graphics.blogspot.co.il/2013/01/ssao-tutorial.html">SSAO tutorial by John Chapman</a>.
+Существует немало исследовательских работ по теме ambient occlusion и много алгоритмов, которые приблизительно его
+находят. Мы собираемся изучить одно из ветвлений этих алгоритмов, известное как *Screen Space Ambient Occlusion (SSAO)*,
+разработка [Crytek](http://en.wikipedia.org/wiki/Crytek), ставшее популярным в 2007 после выхода
+[http://en.wikipedia.org/wiki/Crysis](Crysis). Много игр реализую свои вариации SSAO на его основе. Мы рассмотрим
+самую простую версию алгоритма, основываясь на статью
+[SSAO tutorial by John Chapman](http://john-chapman-graphics.blogspot.co.il/2013/01/ssao-tutorial.html).
 
-Ambient occlusion can be very compute intensive. Crytek came up with a good compromise
-where the occlusion term is calculated once per pixel. Hence the prefix 'Screen Space'
-to the algorithm name. The idea was to go over the window pixel by pixel, extract
-the view space position in that location, sample a few random points very near that position
-and check whether they fall inside or outside the real geometry in that area. If many
-points fall inside the geometry it means the original pixel is cornered by many polygons
-and receives less light.
-If many points are outside of any geometry it means the original pixel is "highly exposed"
-and therefore receives more light. For example, take a look at the following image:
+Ambient occlusion может потребовать немало вычислительных ресурсов. Crytek пришли к компромису, где окклюзия вычисляется
+один раз для пикселя. Отсюда и префикс "Пространства Экрана" в имени алгоритма. Идея была в том, что бы пробежаться по
+экрану пиксель за пикселем, извлечь позицию в пространстве экрана, выбрать несколько случайных точек в окрестности этой
+позиции и проверить, лежат ли эти точки внутри или снаружи геометрического объекта. Если большинство точек лежат внутри,
+то исходный пиксель находится в углу, образованного несколькими полигонами, и получает меньше света. Если большинство
+точек лежат снаружи, то исходный пикслеь хорошо освещен, и следовательно, получает больше света. Для примера рассмотрим
+следующее изображение:
 
 ![](/images/45/algorithm.jpg)
 
-We have a surface with two points on it - P0 and P1. Assume that we are looking
-at it from somewhere on the upper left corner of the image. We sample a few points
-around each point and check whether they fall inside or outside the geometry.
-In the case of P0 there is a greater chance that random points around it will fall inside
-the geometry. For P1 it is the opposite. Therefore we expect to get a greater ambient
-occlusion term for P1 which means it will look lighter in the final frame.
+Мы имеем поверхность с 2 точками на ней - P0 и P1. Предположим, что мы смотрим на неё откуда-то с верхнего левого угла
+изображения. Мы выбираем несколько точек в окрестности каждой точки и проверяем, лежат ли они внутри или снаружи
+геометрического объекта. В случае P0 шанс на то, что случаяйная точка будет внутри объекта, выше. Для P1 наоборот.
+Поэтому мы ожидем большее освещение для P1, т.е. в итоге рендера точка будет ярче.
 
-Let's take it to the next level of details. We are going to plug in an ambient occlusion
-pass somewhere before our standard lighting pass (we will need the ambient term for the
-lighting). This ambient occlusion pass will be a standard full screen quad pass where
-the calculation is done once per pixel. For every pixel we will need its view space position
-and we want to generate a few random points in close vicinity to that position. The easiest
+Давайте перейдем к более глубокому уровню. Мы собираемся добавить проход ambient occlusion где-то до нашего стандартного
+этапа освещения (нам понадобится фоновые значения для освещения). Этап ambient occlusion будет стандартным проходом с
+полноэкранным четырехугольником, где вычисления происходят один раз для пикселя. Для каждого пикселя нам нужны его
+позиция в пространстве экрана и мы хотим генерировать несколько случайных точек в близкой окрестности к этой позиции.
+The easiest
 way will be to have a texture ready at the point fully populated with the view space
 positions of the entire scene geometry (obviously - only of the closest pixels). For
 this we will need a geometry pass before the ambient pass where something very similar
