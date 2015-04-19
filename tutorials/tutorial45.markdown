@@ -49,46 +49,35 @@ Ambient occlusion может потребовать немало вычисли�
 этапа освещения (нам понадобится фоновые значения для освещения). Этап ambient occlusion будет стандартным проходом с
 полноэкранным четырехугольником, где вычисления происходят один раз для пикселя. Для каждого пикселя нам нужны его
 позиция в пространстве экрана и мы хотим генерировать несколько случайных точек в близкой окрестности к этой позиции.
-The easiest
-way will be to have a texture ready at the point fully populated with the view space
-positions of the entire scene geometry (obviously - only of the closest pixels). For
-this we will need a geometry pass before the ambient pass where something very similar
-to the gbuffer that we saw in deferred rendering will be filled with view space
-position information (and that's it - we don't need normals, color, etc). So now
-getting the view space position for the current pixel in the ambient pass is just one
-sample operation away.
+Проще всего будет использовать текстуру, включающую в себя всю геометрию (очевидно, что только для ближайших пикселей),
+заполненную позицией из пространства камеры. Для этого нам потребуется геометрический этап перед фоновым проходом, где
+что-то похожее на G буфер из урока про Deferred Shading будет заполнено данными из пространства позиции камеры (на этом
+все, нам не нужны нормали, цвета и т.д.). Таким образом получение позиции текущего пикслея из пространства камеры всего
+лишь одна операция выборки.
 
-So now we are in a fragment shader holding the view space position for the current
-pixel. Generating random points around it is very easy. We will pass into the shader
-an array of random vectors (as uniform variables) and add each one to the view space position.
-For every generated point we want to check whether it lies inside or outside the geometry.
-Remember that these points are virtual, so no match to the actual surface is expected.
-We are going to do something very similar to what we did in shadow mapping. Compare the Z
-value of the random point to the Z value of the closest point in the actual geometry.
-Naturally, that actual geometry point must lie on the ray that goes from the camera to the virtual
-point. Take a look at the following diagram:
+Итак, теперь мы находимся во фрагментном шейдере, при этом мы имеем позицию в пространстве камеры для текущего пикселя.
+Генерировать случайные точки вокруг неё очень просто. Мы будем передавать в шейдер (как uniform-переменные) массив
+случайных векторов, и по одному прибавлять их к позиции пикселя. Для каждой полученной точки мы хотим проверить, лежит
+ли пиксели внутри или снаружи объекта. Вспомните, что эти точки виртуальные, т.е. не стоит ожидать проверки с настоящей
+поверхностью. Мы собираемся использовать что-то подобное тому, что мы использовали для карт теней. Будем сравнивать
+значение Z для случайной точки со значением Z ближайшей точки исходной геометрии. Разумеется, что точка исходной
+геометрии должна лежать на одном луче из камеры до виртуальной точки. Посмотрим на диаграмму:
 
 ![](/images/45/diagram1.jpg)
 
-Point P lies on the red surface and the red and green points were generated randomly around it.
-The green point lies outside (before) the geometry and the red is inside (thus contributes to
-the ambient occlusion). The circle represents the radius in which random points are
-generated (we don't want them to be too far off point P). R1 and R2 are the rays from the camera
-(at 0,0,0) to the red and green points. They intersect the geometry somewhere. In order
-to calculate the ambient occlusion we must compare the Z values of the red
-and green points vs the Z value of the corresponding geometry points that are formed
-by the intersection of R1/R2 and the surface. We already have the Z value of the
-red and green points (in view space; after all - this is how we created them). But
-where's the Z value of the points formed by the above intersection?
+Точка P лежит на красной поверхности, а красная и зеленая точки были случайно созданы. Зеленая точка лежит вне (до)
+объекта, а красная внутри (это используется для ambient occlusion). Окружность обозначает радиус, в котором могут
+генерироваться случайные точки (мы не хотим, что бы они были слишком далеко от точки P). R1 и R2 являются лучами из
+камеры (в 0,0,0) до красной и зеленой точек. Оба пересекаются с геометрическим объектом. Для того, что бы вычислить
+ambient occlusion мы должны сравнить значения Z красной и зеленой точек со значением Z соответствующих точек, полученных
+при пересечении объекта лучами R1/R2. У нас уже есть значения Z для красной и зеленой точек (в пространстве камеры, в
+конце концов так мы их и создавали). Но какое значение Z для точек пересечения?
 
-Well, there's more than one solution to that question but since we already have a texture
-ready with the view space position of the entire scene the simplest way will be
-to find it somehow in it. To do that we will need the two texture coordinates
-that will sample the view space position for the R1 and R2 rays. Remember that the original
-texture coordinates that were used to find the view space position of P are not
-what we need. These coordinates were formed based on the interpolation of the
-full screen quad that we are scanning in that pass. But R1 and R2 don't intersect P.
-They intersect the surface somewhere else.
+Что ж, существует более одного решения у этой проблемы, но поскольку у нас уже есть текстура со сначениями в
+пространстве камеры для всей сцены, проще всего будет искать каким-то образом в этой текстуре. Для этого нам нужны две
+координаты для лучей R1 и R2. Вспомним, что исходные координаты текстуры, которые мы использовали нахождения позиции P
+не подходят. Эти координаты были сформированы при интерполяции полноэкранного прямоугольника, который мы развертываем
+в этом проходе. Но лучи R1 и R2 не проходят через P. Они где-то пересекают поверхность.
 
 Now we need to do a quick refresher on the way the texture with the view space positions
 was originally created. After transforming the object space coordinates to view space
