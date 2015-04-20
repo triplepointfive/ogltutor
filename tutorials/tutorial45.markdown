@@ -79,28 +79,22 @@ ambient occlusion мы должны сравнить значения Z крас
 не подходят. Эти координаты были сформированы при интерполяции полноэкранного прямоугольника, который мы развертываем
 в этом проходе. Но лучи R1 и R2 не проходят через P. Они где-то пересекают поверхность.
 
-Now we need to do a quick refresher on the way the texture with the view space positions
-was originally created. After transforming the object space coordinates to view space
-the resulting vectors were multiplied by the projection matrix (in fact - all these
-transformation were performed by a single matrix). All this happened in the vertex
-shader and on the way to the fragment shader the GPU automatically performed
-perspective divide to complete the projection. This projection placed the view space
-position on the near clipping plane and the points inside the frustum have
-a (-1,1) range for their XYZ components. As the view space position was written out to
-the texture in the fragment shader (the above calculation is performed only on gl_Position; the data
-written to the texture is forwarded in a different variable) the XY were transformed
-to the (0,1) range and the results are the texture coordinates where the view space
-position is going to be written.
+Теперь нам надо быстро обновлять текстуру с позицией пространства камеры способом аналогичным тому, который мы
+использовали для её создания. После переноса объекта из локального пространства в пространство камеры полученые векторы
+были умножены на матрицу проекции (по факту, все эти преобразования были выполнены одной матрицей). Все это происходило
+в вершинном шейдере, и на пути к фрагментному шейдеру GPU автоматически выполнило деление перспективы для завершения
+проецирования. Такое проецирование размещает позицию из пространства камеры на ближайшей плоскости клиппера, а
+координаты XYZ точек внутри усеченного конус лежат на отрезке (-1,1). В то время как позиция в пространстве камеры
+пишется в текстуру в фрагментном шейдере (вычисления выше будут выполняться только над gl_Position; данные для записи в
+текстуру будут переданы ещё одной переменной), XY переносятся на отрезок (0,1), т.е. будут использоваться для указания
+позиции на текстуре, куда будет записана позиция в пространстве камеры.
 
-So can we use the same procedure in order to calculate the texture coordinates
-for the red and green points? Well, why not? The math is the same. All we
-need to do is provide the shader with the projection matrix and use
-it to project the red and green points on the near clipping plane. We will need
-to perform the perspective divide manually but that's a no-brainer. Next we will
-need to transform the result to the (0,1) and here's our texture coordinate!
-We are now just a sample away from getting the missing Z value and checking
-whether the virtual point that we generated is located inside or outside the geometry.
-Now let's see the code.
+Итак, можем ли мы использовать такую же процедуру для вычисления координат текстуры для красной и зеленой точек? Что-ж,
+почему бы и нет? Математика остается той же самой. Все что нам требуется, это передать в шейдер матрицу проекции и
+использовать её для проецирования красной и зеленой точек на ближнюю плоскость клиппера. Нам потребуется вручную
+произвести деление перспективы, но в этом ничего заумного. Затем нам потребуется перенести результат на (0,1), а вот и
+наши координаты текстуры! Нас отделяет только выборка значения из текстуры от получения координаты Z и проверки, будет
+ли виртуальная точка лежать внутри или снаружи геометрии. Теперь перейдем к коду.
 
 ## [Прямиком к коду!](https://github.com/triplepointfive/ogldev/tree/master/tutorial45)
 
