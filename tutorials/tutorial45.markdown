@@ -113,12 +113,10 @@ ambient occlusion мы должны сравнить значения Z крас
         OgldevBackendSwapBuffers();
     }
 
-We will start the source walkthru from the top level and work our way down. This is the main
-render loop and in addition to the three passes that we discussed in the
-background section there's also a blur pass whose job is to apply a blur
-kernel on the ambient occlusion map formed by the SSAO pass. This helps smooth
-things up a bit and is not part of the core algorithm. It's up to you to decide
-whether to include it or not in your engine.
+Мы будем изучать код начиная с самого верхнего уровня и постепенно будем переходить к нижним уровням. Выше приведен
+главный цикл рендера, и в дополнении к трем этапам, которые мы обсудили ранее, также добавлен этап размытия, который
+будет применять эффект размытия к карте ambient occlusion, сформированной на этапе SSAO. Это поможет слегка смягчить
+карту, хотя и не является обязательной частью алгоритма. Сами решайте, хотите ли вы включать этот шаг в ваш движек.
 
 > tutorial45.cpp:177
 
@@ -136,9 +134,8 @@ whether to include it or not in your engine.
         m_mesh.Render();
     }
 
-In the geometry pass we render the entire scene into a texture. In this
-example there's only one mesh. In the real world there will probably
-be many meshes.
+В геометрическом проходе вся сцена рендерится в текстуру. В этом примере только один меш. На практике мешей скорее всего
+будет несколько.
 
 > geometry_pass.vs
 
@@ -170,14 +167,12 @@ be many meshes.
         PosOut = ViewPos;
     }
 
-These are the vertex and fragment shaders of the geometry pass. In the vertex shader
-we calculate the gl_position as usual and we pass the view
-space position to the fragment shader in a separate variable. Remember that there is no perspective
-divide for this variable but it is a subject to the regular interpolations performed
-during rasterization.
+Это вершинный и фрагментный шейдеры для геометрического прохода. В вершинном шейдере мы как обычно вычисляем gl_position
+и передаем позицию в пространстве камеры в фрагментный шейдер в виде ещё одной переменной. Вспомним, что деление
+перспективы для этой переменной не выполнялось, но это работа для обычной интерполяции, выполняемой в процессе
+растеризации.
 
-In the fragment shader we write the interpolated view space position to the
-texture. That's it.
+В фрагментном шейдере мы записываем интерполированную позицию в пространстве камеры в текстуру. На этом всё.
 
 > tutorial45.cpp:192
 
@@ -190,10 +185,9 @@ texture. That's it.
         m_quad.Render();
     }
 
-This is the application code of the SSAO pass and it is very simple. On the
-input side we have the view space position from the previous pass and
-we write the output to an AO buffer. For the rendering we use a full screen quad.
-This will generate the AO term for every pixel. The real meat is in the shaders.
+Это код для прохода SSAO, и он очень прост. На вход подаётся позиция в пространстве камеры, полученная на предыдущем
+шаге, а результат мы пишем в AO буфер. Для рендера мы используем прямоугольник во весь экран. При таком подходе
+значение AO будет сгенерировано для каждого пикселя. Настоящее мясо начинается в шейдерах.
 
 > ssao.vs
 
@@ -209,13 +203,11 @@ This will generate the AO term for every pixel. The real meat is in the shaders.
         TexCoord = (Position.xy + vec2(1.0)) / 2.0;
     }
 
-As in many screen space based techniques in the vertex shader we just need to
-pass-thru the position of the full screen quad. gl_Position will be consumed
-by the GPU for the purposes of rasterization but we use it's XY components for
-the texture coordinates. Remember that the full screen quad coordinates
-range from (-1,-1) to (1,1) so everything in the fragment shader will be interpolated
-in that range. We want our texture coordinates to be in the (0,1) so we transform
-it here before sending it out to the fragment shader.
+Как и во многих алгоритмах с позицией в пространстве камеры вершинный шейдер просто передает координаты полноэкранного
+прямоугольника. gl_Position будет использована GPU для растеризации, но мы используем её координаты XY в качестве
+координат текстуры. Вспомним, что для полноэкранного прямоугольника координаты лежат в квадрате от (-1,-1) до (1,1),
+таким образом во фрагментном шейдере всё будет интерполироваться в этой области. Мы же хотим, что бы координаты текстуры
+лежали на отрезке (0,1), поэтому мы преобразуем их здесь, до отправки в фрагментный шейдер.
 
 > ssao.fs
 
@@ -239,11 +231,11 @@ it here before sending it out to the fragment shader.
         float AO = 0.0;
 
         for (int i = 0 ; i &lt; MAX_KERNEL_SIZE ; i++) {
-            vec3 samplePos = Pos + gKernel[i];   // generate a random point
-            vec4 offset = vec4(samplePos, 1.0);  // make it a 4-vector
-            offset = gProj * offset;        // project on the near clipping plane
-            offset.xy /= offset.w;      // perform perspective divide
-            offset.xy = offset.xy * 0.5 + vec2(0.5);    // transform to (0,1) range
+            vec3 samplePos = Pos + gKernel[i];   // генерируем случайные точки
+            vec4 offset = vec4(samplePos, 1.0);  // преобразуем в 4-вектор
+            offset = gProj * offset;        // проецируем на ближнюю плоскость клиппера
+            offset.xy /= offset.w;      // производим деление перспективы
+            offset.xy = offset.xy * 0.5 + vec2(0.5);    // переносим на отрезок (0,1)
 
             float sampleDepth = texture(gPositionMap, offset.xy).b;
 
