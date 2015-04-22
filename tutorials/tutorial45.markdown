@@ -249,27 +249,23 @@ ambient occlusion мы должны сравнить значения Z крас
         FragColor = vec4(pow(AO, 2.0));
     }
 
-Here's the core of the SSAO algorithm. We take the texture coordinates
-we got from the vertex shader and sample the position map to fetch our view space position. Next we
-enter a loop and start generating random points. This is done using an array of
-uniform vectors (gKernel). This array is populated by random vectors in the
-(-1,1) range in the ssao_technique.cpp file (which I haven't included here because it's pretty
-standard; check the code for more details). We now need to find the texture coordinates
-that will fetch the Z value for the geometry point that matches the current random point.
-We project the random point from view space on the near clipping plane using the projection matrix, perform perspective divide on
-it and transform it to the (0,1) range. We can now use it to sample the view space position
-of the actual geometry and compare its Z value to the random point. But before we do
-that we make sure that the distance between the origin point and the one whose Z value
-we just fetched is not too far off. This helps us avoid all kinds of nasty artifacts.
-You can play with the gSampleRad variable for that.
+В вот и сердце алгоритма SSAO. Мы используем координаты текстуры, полученные из вершинного шейдера, для взятия из карты
+с позицией в пространстве камеры координат текущего пикселя. Затем мы входим в цикл и создаем случайные точки. Для этого
+мы используем массив случайных векторов (gKernel). Массив заполнен случайными векторами, принадлежащими кубу, координаты
+вершин которого лежат на отрезке (-1,1). Заполнение происходит в файле *ssao_technique.cpp*, код которого я не привожу,
+поскольку он довольно стандартный. Теперь нам нужны координаты текстуры для получения значения Z для точки геометрии,
+которая бы соответствовала виртуальной точке. Мы проецируем случайную точку на ближнюю плоскость клиппера используя
+матрицу проекции, производим деление перспективы и переносим на отрезок (0,1). Теперь мы можем использовать её для
+получения позиции в пространстве экрана точки геометрии, а затем сравнить её Z координату со случайной точкой. Но перед
+этим мы должны убедиться, что расстояние между исходной точкой и той, чьё значение Z мы только что получили, не сликом
+большое. Это поможет избежать некоторых неприятных артефактов. Попробуйте изменить значения gSampleRad, что бы добиться
+лучшего результата.
 
-Next we compare the depth of the virtual point with the one from the actual
-geometry. The GLSL step(x,y) function returns 0 if y &lt; x and 1 otherwise.
-This means that the local variable AO increases as more points end up behind the geometry.
-We plan to multiply the result by the color of the lighted pixel so we do a 'AO = 1.0 - AO/128.0'
-to kind-of reverse it. The result is written to the output buffer. Note that we take
-the AO to the power of 2 before writing it out. This simply makes it look a bit better in my
-opinion. This is another artist variable you may want to play with in your engine.
+Далее мы сравниваем значение глубины виртуальной точки и соответствующей ей точки исходной геометрии. Функция step(x,y)
+возвращает 0, если y &lt; x, иначе 1. Это значит, что локальная переменная AO увеличивается для каждой точки позади
+геометрии. Мы планируем умножать результат на цвет подсвеченного пикселя, поэтому мы делаем `AO = 1.0 - AO/128.0`, что
+бы обратить значение. Результат записывается в выходной буфер. Заметим, что мы берём квадрат значения AO перед записью.
+На мой взгляд так результат получается немного лучше. Это ещё одна переменная, с которой вы можете поиграться.
 
 > tutorial45.cpp:205
 
@@ -286,9 +282,8 @@ opinion. This is another artist variable you may want to play with in your engin
         m_quad.Render();
     }
 
-The application code of the blur pass is identical to the SSAO pass. Here the input
-is the ambient occlusionn term we just calculated and the output is a buffer
-containing the blurred results.
+Для этапа размытия код в цикле рендера аналогичен проходу SSAO. На вход подается текстура ambient occlusionn, а
+результатом будет буфер, содержащий смягченные значения.
 
 > blur.vs
 
@@ -334,9 +329,8 @@ containing the blurred results.
         FragColor = vec4(Color, 1.0);
     }
 
-This is an example of a very simple blur technique. The VS is actually identical to the
-one from the SSAO. In the fragment shader we sample 16 points around the origin and average
-them out.
+Это пример очень простого алгоритма размытия. VS такой же, как и для SSAO. В фрагментном шейдере мы выбираем 16 точек
+вокруг исходной и находим среднее значение.
 
 > tutorial45.cpp:219
 
@@ -356,8 +350,7 @@ them out.
         m_mesh.Render();
     }
 
-We have a pretty standard application code for the lighting pass. The only addition
-here is the blurred AO term buffer which is bound as input.
+Для прохода света у нас уже давно привычный код. Единственное отличие - это добавление буфера AO.
 
 > lighting.fs
 
@@ -377,11 +370,9 @@ here is the blurred AO term buffer which is bound as input.
 
         ...
 
-I haven't included the entire lighting shader since the change is very minor.
-The ambient color is modulated by the ambient occlusion term sampled from the AO map for
-the current pixel. Since we are rendering the actual geometry here and not a full screen quad
-we have to calculate the texture coordinates using the system maintained gl_FragCoord. gShaderType
-is a user controlled variable that helps us switch from SSAO to no-SSAO and only-ambient-occlusion-term
-display. Play with the 'a' key to see how it goes.
+Я не стал включать код шейдера полностью, поскольку изменения не значительны. Значение фонового освещения домножается
+на значение из карты AO для текущего пикселя. Поскольку мы рендерим саму сцену, а не полноэкранный прямоугольник, для
+вычисления координат текстуры используется gl_FragCoord. gShaderType - это пользовательская переменная, которая помогает
+переключаться на SSAO и обратно на обычный фоновый свет. Для переключения используйте кнопку 'a'.
 
 #### Использованая литература: [SSAO tutorial by John Chapman](http://john-chapman-graphics.blogspot.co.il/2013/01/ssao-tutorial.html)
