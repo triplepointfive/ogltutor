@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <title>Уроки по OpenGL с сайта OGLDev - Инструкция</title>
+    <meta name="keywords" content />
+    <meta name="description" content />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="./js/shCore.js"></script>
+    <script type="text/javascript" src="./js/shBrushCpp.js"></script>
+    <script type="text/javascript" src="./js/highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+    <link rel="stylesheet" type="text/css" href="./css/foundation.css" />
+    <link rel="stylesheet" type="text/css" href="./css/normalize.css" />
+    <link type="text/css" rel="stylesheet" href="./css/shCoreDefault.css" />
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-35259428-1', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+</head>
+
+<body>
+    <div class="row header">
+        <div class="large-12 columns">
+            <div class="nav-bar right">
+                <ul class="button-group">
+                    <li><a href="./" class="button nav-left">Содержание</a></li>
+                    <li><a href="./instr.html" class="button">Инструкции</a></li>
+                    <li><a href="./cont.html" class="button nav-right">Контакты</a></li>
+                </ul>
+            </div>
+            <h1><small>Уроки по OpenGL с сайта OGLDev</small></h1>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-12 columns">
+            <p>
+Эти уроки написаны на C++. Я надеюсь, что читатель имеет опыт написания программ, в том числе на данном языке.
+</p>
+<p>
+Прежде всего потребуется видеокарта, которая поддерживает OpenGL версии не менее 3.3 (хотя некоторые уроки, т.к. тесселяция, требуют поддержки 4.x). Исходный код был написан под Ubuntu Linux используя NetBeans в качестве IDE. Для компиляции достаточно использовать команду ‘make’ в командной строке. Для этого потребуются следующие библиотеки (все они доступны через apt-get):
+</p>
+<ol>
+<pre><code>&lt;li&gt;g++&lt;/li&gt;
+&lt;li&gt;freeglut3-dev&lt;/li&gt;
+&lt;li&gt;libglew1.5-dev&lt;/li&gt;</code></pre>
+</ol>
+<p>
+Под Fedora эти же пакеты названы немного по-другому, но так же доступны через yum:
+</p>
+<ol>
+<pre><code>&lt;li&gt;gcc-c++&lt;/li&gt;
+&lt;li&gt;glew&lt;/li&gt;
+&lt;li&gt;freeglut-devel&lt;/li&gt;</code></pre>
+</ol>
+<p>
+Весь код был протестирован на моей машине со следующими характеристиками:
+</p>
+<p><br> CPU: Intel Core 2 Extreme QX9770<br> OS: Ubuntu Linux 11.04 64 bits<br> Video card: GIGABYTE NVIDIA GeForce GTX550 TI<br> Driver version: 280.13 <br></p>
+        </div>
+    </div>
+    <footer class="row">
+        <div class="large-12 columns text-right">
+            <hr>
+            Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            <br /><small><a href="https://github.com/triplepointfive/hakydev">Исходный код</a></small>
+        </div>
+    </footer>
+</body>
+</html>

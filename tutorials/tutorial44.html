@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <title>Уроки по OpenGL с сайта OGLDev - Урок 44 - GLFW</title>
+    <meta name="keywords" content />
+    <meta name="description" content />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/shCore.js"></script>
+    <script type="text/javascript" src="../js/shBrushCpp.js"></script>
+    <script type="text/javascript" src="../js/highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../css/foundation.css" />
+    <link rel="stylesheet" type="text/css" href="../css/normalize.css" />
+    <link type="text/css" rel="stylesheet" href="../css/shCoreDefault.css" />
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-35259428-1', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+</head>
+
+<body>
+    <div class="row header">
+        <div class="large-12 columns">
+            <div class="nav-bar right">
+                <ul class="button-group">
+                    <li><a href="../" class="button nav-left">Содержание</a></li>
+                    <li><a href="../instr.html" class="button">Инструкции</a></li>
+                    <li><a href="../cont.html" class="button nav-right">Контакты</a></li>
+                </ul>
+            </div>
+            <h1><small>Уроки по OpenGL с сайта OGLDev</small></h1>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-12 columns">
+            <div class="tutorial">
+    <h2>
+        <a href="http://ogldev.atspace.co.uk/www/tutorial44/tutorial44.html">Урок 44 - GLFW</a>
+    </h2>
+    <p>В первом уроке мы выяснили, что OpenGL это API, которое относится исключительно к графике — в него не входят функции по созданию окон; за это отвечают сторонние API (GLX, WGL и другие). Для удобства мы использовали GLUT для обработки окон, помимо того, это позволяло легко портировать уроки для различных ОС. До сегодняшнего дня мы использовали исключительно GLUT. Теперь рассмотрим другую популярную библиотеку, выполняющую те же функции, названную <a href="www.glfw.org">GLFW</a>. Одно главное отличие заключается в том, что GLFW современная и находится в активной разработке, в то время как GLUT старее и почти не разрабатывается. GLFW имеет много особенностей, которые можно найти на главной странице библиотеки.</p>
+<p>Поскольку в этом уроке нет математического раздела, мы можем сразу перейти к обзору кода. Я выделил общее API по настройке окна и обработке пользовательского ввода, а также разделил использование библиотек по файлам glut_backend.h и glut_backend.cpp. Вы можете легко переключаться между GLUT и GLFW, что дает гибкость в использовании для будущих уроков.</p>
+<p>Установка GLFW (от root):</p>
+<p>Fedora Core: yum install glfw glfw-devel</p>
+<p>Ubuntu: apt-get install libglfw3 libglfw3-dev</p>
+<p>Остальные дистрибутивы Linux также предоставляют GLFW. В противном случае, мы можете скачать исходный код с сайта GLFW и собрать самостоятельно. Если вы пользуетесь Windows просто используйте заголовочные файлы и библиотеки GLFW, которые я приложил к <a href="http://ogldev.atspace.co.uk/ogldev-source.zip">исходному коду</a>. Урок должен легко скомпилироваться без каких-либо изменений (сообщите мне, если возникнут проблемы…).</p>
+<p>Для того, что бы использовать GLFW вы должны сообщить компилятору где находятся файлы библиотеки. Для систем Linux я советую использовать программу pkg-config:</p>
+<blockquote>
+<p>pkg-config –cflags –libs glfw3</p>
+</blockquote>
+<p>Флаг <em>–cflags</em> выводит требуемые флаги для GCC, которые необходимы для компиляции, а флаг <em>–libs</em> выводит всё необходимое для линковки. Я использую эти флаги в проекте Netbeans, который я использую под Linux, так же вы можете использовать их при написании своего makefile. Если вы используете системы автоматической сборки наподобие autotools, cmake и scons, вам стоит изучить документацию для подробностей.</p>
+<h2 id="прямиком-к-коду"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial44">Прямиком к коду!</a></h2>
+<blockquote>
+<p>ogldev_glfw_backend.cpp:24</p>
+</blockquote>
+<pre><code>#define GLFW_DLL
+#include</code></pre>
+<p>Так подключается GLFW. Макрос <em>GLFW_DLL</em> требуется для Windows для использования GLFW в качестве DLL.</p>
+<blockquote>
+<p>ogldev_glfw_backend.cpp:168</p>
+</blockquote>
+<pre><code>void GLFWBackendInit(int argc, char** argv, bool WithDepth, bool WithStencil)
+{
+    sWithDepth = WithDepth;
+    sWithStencil = WithStencil;
+
+    if (glfwInit() != 1) {
+        OGLDEV_ERROR(&quot;Error initializing GLFW&quot;);
+        exit(1);
+    }
+
+    int Major, Minor, Rev;
+
+    glfwGetVersion(&amp;Major, &amp;Minor, &amp;Rev);
+
+    printf(&quot;GLFW %d.%d.%d initialized\n&quot;, Major, Minor, Rev);
+
+    glfwSetErrorCallback(GLFWErrorCallback);
+}</code></pre>
+<p>Инициализация GLFW крайне проста. Заметим, что хотя параметры <em>argc/argv</em> не используются, мы передаем их что бы аналогичная функция для GLUT имела тот же набор параметров. Помимо инициализации мы также выводим информацию о версии библиотеки и задаем функнцию обработки ошибок. Если что-то пойдет не так мы напечатаем сообщение ошибки и выйдем из приложения.</p>
+<blockquote>
+<p>ogldev_glfw_backend.cpp:195</p>
+</blockquote>
+<pre><code>bool GLFWBackendCreateWindow(uint Width, uint Height, bool isFullScreen, const char* pTitle)
+{
+    GLFWmonitor* pMonitor = isFullScreen ? glfwGetPrimaryMonitor() : NULL;
+
+    s_pWindow = glfwCreateWindow(Width, Height, pTitle, pMonitor, NULL);
+
+    if (!s_pWindow) {
+        OGLDEV_ERROR(&quot;error creating window&quot;);
+        exit(1);
+    }
+
+    glfwMakeContextCurrent(s_pWindow);
+
+    // Must be done after glfw is initialized!
+    glewExperimental = GL_TRUE;
+    GLenum res = glewInit();
+    if (res != GLEW_OK) {
+        OGLDEV_ERROR((const char*)glewGetErrorString(res));
+        exit(1);
+    }
+
+    return (s_pWindow != NULL);
+}</code></pre>
+<p>В функции выше мы создаем окно и выполняем прочую инициализацию. Первые 3 параметра для <a href="http://www.glfw.org/docs/latest/group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a> очевидны. Четвертый параметр указывает используемый монитор. <em>GLFWmonitor</em> представляет собой физический монитор. GLFW поддерживает несколько мониторов одновременно и для таких случаев функция <a href="http://www.glfw.org/docs/latest/group__monitor.html#ga3fba51c8bd36491d4712aa5bd074a537">glfwGetMonitors</a> возвращает список доступных мониторов. Если передать нулевой указатель, то мы получим обыкновенное окно; если передать указатель на текущий монитор (экран по умолчанию можно получить с помощью <a href="http://www.glfw.org/docs/latest/group__monitor.html#ga721867d84c6d18d6790d64d2847ca0b1">glfwGetPrimaryMonitor</a>) будет полноэкранное окно. Очень просто. Пятый и последний параметр используются для обмена содержимым, что не входит в данный урок.</p>
+<p>Перед использованием функций GL мы должны пометить окно текущим. Для этого используем комманду <a href="http://www.glfw.org/docs/latest/group__context.html#ga1c04dc242268f827290fe40aa1c91157">glfwMakeContextCurrent</a>. Наконец, инициализируем GLEW.</p>
+<blockquote>
+<p>ogldev_glfw_backend.cpp:238</p>
+</blockquote>
+<pre><code>while (!glfwWindowShouldClose(s_pWindow)) {
+    // OpenGL API calls go here...
+    glfwSwapBuffers(s_pWindow);
+    glfwPollEvents();
+}</code></pre>
+<p>В отличие от GLUT, GLFW не имеет собственной функции главного цикла. Поэтому, мы создаём её используя код выше, являющийся частью функции-обертки GLFWBackendRun(). <em>s_pWindow</em> это указатель на окно GLFW, созданное ранее функцией glfwCreateWindow(). Для того, что бы передать приложению сигнал об окончании цикла используется функция <a href="http://www.glfw.org/docs/latest/group__window.html#ga24e02fbfefbb81fc45320989f8140ab5">glfwSetWindowShouldClose</a>.</p>
+<blockquote>
+<p>ogldev_glfw_backend.cpp:122</p>
+</blockquote>
+<pre><code>static void KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods)
+{
+}
+
+
+static void CursorPosCallback(GLFWwindow* pWindow, double x, double y)
+{
+}
+
+
+static void MouseCallback(GLFWwindow* pWindow, int Button, int Action, int Mode)
+{
+}
+
+static void InitCallbacks()
+{
+    glfwSetKeyCallback(s_pWindow, KeyCallback);
+    glfwSetCursorPosCallback(s_pWindow, CursorPosCallback);
+    glfwSetMouseButtonCallback(s_pWindow, MouseCallback);
+}</code></pre>
+<p>Выше мы видим инициализацию функций для обработки событий мыши и клавиатуры. Если вы заинтересованны в использовании только GLFW, можете изучить документацию по <a href="http://www.glfw.org/docs/latest/group__input.html">ссылке</a> о значениях Button, Action и Mode. Для своих уроков я создал набор перечислений для описания различных кнопок мыши и клавиатуры и перевожу GLFW на эти перечисления. Аналогично я сделал для GLUT. Такой подход дает общность, которая позволяет одному коду приложения быстро переключаться между библиотеками окон (для подробностей смотрите реализацию функций выше).</p>
+<blockquote>
+<p>ogldev_glfw_backend.cpp</p>
+</blockquote>
+<pre><code>void GLFWBackendTerminate()
+{
+    glfwDestroyWindow(s_pWindow);
+    glfwTerminate();
+}</code></pre>
+<p>Так мы останавливаем приложение GLFW. Сначала мы уничтожаем окно и отключаем библиотеку и освобождаем все используемые ей ресурсы. После этого вызовы к GLFW делать нельзя, поэтому это и является последней функцией (затрагивающих графику) в приложении.</p>
+<blockquote>
+<p>ogldev_backend.h</p>
+</blockquote>
+<pre><code>enum OGLDEV_BACKEND_TYPE {
+    OGLDEV_BACKEND_TYPE_GLUT,
+    OGLDEV_BACKEND_TYPE_GLFW
+};
+
+void OgldevBackendInit(OGLDEV_BACKEND_TYPE BackendType, int argc, char** argv, bool WithDepth, bool WithStencil);
+
+void OgldevBackendTerminate();
+
+bool OgldevBackendCreateWindow(uint Width, uint Height, bool isFullScreen, const char* pTitle);
+
+void OgldevBackendRun(ICallbacks* pCallbacks);
+
+void OgldevBackendLeaveMainLoop();
+
+void OgldevBackendSwapBuffers();</code></pre>
+<p>Я создал новый интерфейс, который мы видим в заголовочном файле выше. Эти функции заменяют специфический код для GLUT, который мы использовали ранее. Они реализованы в ogldev_backend.cpp и используют либо GLUT либо GLFW. Вы выбираете библиотеку через OgldevBackendInit(), а дальше ничего не обычного.</p>
+<p>Поскольку в этом уроке для отображения не было добавлено ничего нового, я использую модель Sponza, которая очень популярна в 3D сообществе для тестирования алгоритмов глобального освещения.</p>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </div>
+    </div>
+    <footer class="row">
+        <div class="large-12 columns text-right">
+            <hr>
+            Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            <br /><small><a href="https://github.com/triplepointfive/hakydev">Исходный код</a></small>
+        </div>
+    </footer>
+</body>
+</html>
