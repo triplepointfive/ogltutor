@@ -1,80 +1,74 @@
 ---
-title: Урок 48 - User Interface with Ant Tweak Bar
+title: Урок 48 - Пользовательский интерфейс с Ant Tweak Bar
 ---
 
-In this tutorial we are going to leave 3D for a while and focus on adding something
-practical and useful to our programs. We will learn how to integrate a user interface
-library which will help in configuring the various values that
-interest us in the tutorials. The library that we will use is called <i>Ant Tweak Bar</i> (a.k.a ATB)
-which is hosted at <a href="http://anttweakbar.sourceforge.net/">anttweakbar.sourceforge.net</a>.
-There are many options available and if you do some research on the subject you will find
-a lot of discussions and opinions on the matter. In addition to OpenGL, ATB also
-supports DirectX 9/10/11 so if you want your UI to be
-portable this is a good advantage. I found it to be very useful and easy to
-learn. I hope you will too. So let's jump right in.
+В этом уроке мы на время собираемся покинуть 3D и сконцентрировать наше внимание
+на добавлении чего-то полезного и практичного для наших программ. Мы научимся создавать
+пользовательский интерфейс, который поможет в настройке различных значений.
+Библиотека, которую мы собираемся использовать, называется *Ant Tweak Bar* (или ATB),
+которая расположена на [anttweakbar.sourceforge.net](http://anttweakbar.sourceforge.net/).
+Существует немало настроек, и если вы захотите, то найдете гору обсуждений и мнений
+по поводу каждой. Кроме OpenGL, ATB также поддерживает DirectX 9/10/11, поэтому
+если вы хотите, что бы ваш интерфейс был портируемым, то это большое преимущество.
+Библиотека кажется мне очень удобной и легкой в освоении. И я надеюсь вы разделите
+это мнение. Ну что ж, приступим.
 
-<b><font color='red'>
-Disclaimer: as I was putting the finishing touches on this tutorial I noticed that ATB is no longer supported. The official website
-is alive but the author states that he is no longer actively maintaining it. After some thought I decided to publish this tutorial
-regardless. The library has proved to be very useful to me and I plan to keep using it. If you are looking for something like that
-and having the library being actively maintained is a requirement for you then you may need to find an alternative but I think
-many people can use it as it is. Since this is open source there is always a chance someone will pick up maintenance.
-</b></font>
+**<font color='red'>
+Важно: только когда я уже заканчивал этот урок, я заметил, что ATB больше не разрабатывается. Официальный сайт ещё жив,
+но автор предупреждает, что больше не будет активно его поддерживать. После небольших размышлений, я всё-таки решил опубликовать
+этот урок. Библиотека для меня оказалась крайне удобной и я продолжу её использовать. Если вы ищите что-то подобное по
+функционалу, но обязательно находящееся в активной разработке, то можете поискать альтернативу, хотя я считаю, что большинству
+должно хватить и того, что уже есть. Поскольку это открытое программное обеспечение, то всегда есть шанс найти нового разработчика.
+</font>**
 
-### Installation
+### Установка
 
-The first thing we need to do is to install ATB. You can grab the <a href=https://sourceforge.net/projects/anttweakbar/files/latest/download?source=dlp>zip file</a>
-from the ATB website (version 1.16 when this tutorial was published) which contains
-almost everything you need or use a copy of the files that I provide along with the
-tutorials source package. If you decide to go with the official package simply grab it
-from the link above, unzip it somewhere and grab AntTweakBar.h from the include directory and copy it
-where your project sees it. On Linux I recommend putting it in /usr/local/include (requires root access). In the
-tutorials source package this file is available under Include/ATB.
+Первое что нам нужно сделать - это установить ATB. Вы можете скачать [zip архив](https://sourceforge.net/projects/anttweakbar/files/latest/download?source=dlp)
+с сайта ATB (на момент публикации этого урока версию 1.6), который содержит почти всё что вам нужно,
+либо используйте файлы, которые я прикладываю ко всем урокам. Если вы пойдете путем с сайтом, то
+распакуйте архив и переложите файл *AntTweakBar.h* из католога *include* в тот католог, в котором
+он будет виден проекту. На Linux я бы рекомендовал положить его в /usr/local/include (потребуется
+доступ от суперпользователя). В пакете с уроками этот файл находится в катологе Include/ATB.
 
+Теперь о файлах библиотеки.
 
-Now for the libraries.
-If you are using Windows this is very easy. The official zip file contains a lib directory
-with AntTweakBar.dll and AntTweakBar.lib (there is also a matching couple for 64 bits). You
-will need to link your project to the lib file and when you run the executable have the dll
-in the local directory or in Windows\System32. On Linux you will need to go into the src directory
-and type 'make' to build the libraries. The result will be libAntTweakBar.a, libAntTweakBar.so and
-libAntTweakBar.so.1. I recommend you copy these into /usr/local/lib to make them available from everywhere.
-The tutorials source package contains the Windows libraries in Windows/ogldev/Debug and the Linux binaries
-in Lib (so you don't need to build them).
+Если вы пользуетесь Windows, то ничего сложного. Официальный архив содержит каталог lib с файлами
+AntTweakBar.dll и AntTweakBar.lib (и ещё одна такая же пара для архитектуры 64). Потребуется добавить
+lib файл в проект на стадии линковки, а dll файл должен быть доступным для исполняемого файла в
+локальный директории, либо в катологе Windows\System32. На Linux потребуется зайти в католог src
+и выполнить команду *make* для того, что бы собрать библиотеку. В результате получатся файлы
+libAntTweakBar.a, libAntTweakBar.so и libAntTweakBar.so.1. Я рекомендую скопировать эти файлы в
+каталог /usr/local/lib и сделать их доступными для всех. Архив с исходным кодом для этого урока
+содержит всё необходимое для обеих систем.
 
-### Integration
+### Интеграция
 
-In order to use ATB you will need to include the header AntTweakBar.h in your source code:
+Что бы начать использовать ATB добавте в ваш код следующий заголовочный файл:
 
     #include <AntTweakBar.h>
 
-If you are using the Netbeans project that I provide then the Include/ATB directory which
-contains this header is already in the include path. If not then make sure your build system
-sees it.
+Если вы используете мой проект Netbeans, то каталог Include/ATB уже добавлен в качестве
+источника заголовочных файлов. В противном случае убедитесь, что система сборки видит этот файл.
 
+Для линковки с библиотекой:
+- Windows: добавьте *AntTweakBar.lib* в ваш проект .
+- Linux: добавьте *-lAntTweakBar* в систему сборки, а так же проверьте, что сами файлы находятся в /usr/local/lib.
 
-To link against the libraries:
+Ещё раз напомню, что если вы используете мои проекты Visual Studio или Netbeans, то вся работа уже сделана за вас.
 
-- Windows: add the AntTweakBar.lib to your Visual Studio project
-- Linux: add '-lAntTweakBar' to the build command and make sure the Linux binaries are in /usr/local/lib
+### Инициализация
 
-Again, if you are using my Visual Studio or Netbeans projects then all of this
-is already set up for you so you don't need to worry about anything.
-
-### Initialization
-
-In order to initialize ATB you need to call:
+Для инициализации ATB понадобится вызов:
 
     TwInit(TW_OPENGL, NULL);
 
-or in case you want to initialize the GL context for core profile:
+а для случая с Core Profile используйте:
 
     TwInit(TW_OPENGL_CORE, NULL);
 
-For the tutorials series I created a class called ATB which encapsulates some
-of the functionality of the library and adds some stuff to make it easier for integration (that
-class is part of the Common project).
-You can initialize ATB via that class using a code similar to this:
+Для этого урока я создал класс-обертку над ATB, который инкапсулирует часть функционала
+библиотеки и немного упрощает интеграцию (этот класс находится в каталоге Common).
+Для инициализации ATB с помощью класса используйте код наподобии:
 
     ATB m_atb;
     if (!m_atb.Init()) {
