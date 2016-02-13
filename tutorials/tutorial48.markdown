@@ -76,16 +76,15 @@ libAntTweakBar.a, libAntTweakBar.so и libAntTweakBar.so.1. Я рекоменд�
         return false;
     }
 
-### Processing Events
+### Обработка Событий
 
-ATB provides widgets that allow you to modify their values in different ways. In some widgets you
-can simply type in a new value. Others are more graphical in nature and allows the use of the
-mouse in order to modify the value. This means that ATB must be notified on mouse and keyboard events
-in the system. This is done using a set of callback functions that ATB provides for each of the underlying
-windowing libraries it supports (glut, glfw, SDL, etc). If your framework is based on just one of these
-libraries you can simply hook ATB's callbacks inside your callbacks. See ATB website for an example. Since OGLDEV supports both glut
-and glfw I'm going to show you how I integrated the callbacks into my framework so that these two libraries
-are supported in a unified manner. Take a look at the following three functions from the ATB class:
+ATB предоставляет целый набор разнообразных виджетов. В некоторых вы можете просто вводить новые значения. А есть и более
+сложные, где можно использовать мышку для изменения значений. Как следствие, ATB должен получать события клавиатуры и мыши.
+Для этой цели используются несколько коллбэков, и для каждой графической библиотеки (glut, glfw, SDL, ...) ATB предоставляет
+свой набор. Если ваш фреймворк использует одну из этих библиотек, то вы можете просто вызывать каллбэки ATB внутри
+собственных. Пример приведен на сайте ATB. Поскольку OGLDEV поддерживает как glut так и glfw, я покажу как я интегрировал
+каллбэки в мой фреймворк таким образом, что обе библиотеки поддерживаются единым образом. Посмотрите на следующие функции
+из класса ATB:
 
     bool ATB::KeyboardCB(OGLDEV_KEY OgldevKey)
     {
@@ -113,11 +112,10 @@ are supported in a unified manner. Take a look at the following three functions 
           return (TwMouseButton(ma, btn) == 1);
     }
 
-These functions are basically wrappers around the native ATB callback functions. They translate
-OGLDEV types to ATB types and then pass the call down to ATB. They return true if ATB processed the
-event (in which case you can simply discard it) and false if not (so you should take a look at
-the event and see if it interests you). Here's how I hooked these functions into the callbacks of
-the tutorial:
+По сути эти функции - обертки над каллбэками ATB. Они переводят внутренние типы OGLDEV в типы ATB и
+передают их дальше в ATB. Функции возвращают true если ATB обработал событие (и можно просто
+проигнорировать) и false если нет (так что стоит обратить на это событие внимание). Вот пример того
+как я добавил эти функции в каллбэки этого урока:
 
     virtual void KeyboardCB(OGLDEV_KEY OgldevKey, OGLDEV_KEY_STATE OgldevKeyState)
     {
@@ -127,13 +125,13 @@ the tutorial:
                 }
           }
 
-               switch (OgldevKey) {
-                  .
-                  .
-                  .
-                   default:
-                          m_pGameCamera->OnKeyboard(OgldevKey);
-               }
+          switch (OgldevKey) {
+             .
+             .
+             .
+              default:
+                     m_pGameCamera->OnKeyboard(OgldevKey);
+          }
     }
 
 
@@ -150,21 +148,20 @@ the tutorial:
            m_atb.MouseCB(Button, State, x, y);
     }
 
-If you are not familiar with OGLDEV framework then the above may not make much sense to you so
-make sure you spend some time with the tutorials first and get to know how things are done. Every
-tutorial is just a class that inherits from ICallbacks and OgldevApp. ICallbacks provides the (not surprisingly)
-callback functions that are called from the backend (by glut or glfw). We first let ATB know about the events
-and if it didn't process them we let the app handle them (e.g passing them on to the camera object).
+Если вы не знакомы с фреймворком OGLDEV, то код выше, возможно, не имеет для вас никакого смысла,
+поэтому обязательно ознакомтесь с предыдущими уроками, что бы понять как всё устроено.
+Каждый урок - это всего лишь класс, который наследует *ICallbacks* и *OgldevApp*. ICallbacks
+предоставляет (не удивительно) каллбэки, вызываемые бэкендом (glut или glfw). Сначала мы
+передаём события ATB, и если он их не обработал, то передаём их приложению (конкретно объекту - камере).
 
+### Создание интерфейса
 
-### Create a tweak bar
-
-You need to create at least one tweak bar which is basically a window with widgets
-that ATB provides to tweak your application:
+Вам понадобится создать как минимум один экземпляр класса *TwNewBar*, представляющего
+собой окно с набором виджетов, позволяющих ATB взаимодействовать с приложением:
 
     TwBar *bar = TwNewBar("OGLDEV");
 
-The string in the parenthesis is just a way to name the tweak bar.
+Строка в скобках - это название окна.
 
 ### Draw the tweak bar
 
