@@ -163,73 +163,73 @@ ATB предоставляет целый набор разнообразных 
 
 Строка в скобках - это название окна.
 
-### Draw the tweak bar
+### Отрисовка интерфейса
 
 In order for the tweak bar to appear in your OpenGL window there must be a call present
 to the TwDraw() function in the render loop. The ATB website provides the following
 generic render loop as an example:
 
-    // main loop
+    // главный цикл
     while( ... )
     {
-          // clear the frame buffer
-          // update view and camera
-          // update your scene
-          // draw your scene
+          // очистка буферов
+          // обновление отображения и камеры
+          // обновление сцены
+          // отрисовка сцены
 
-          TwDraw();  // draw the tweak bar(s)
+          TwDraw();  // отрисовка интерфейса(ов)
 
-          // present/swap the frame buffer
-    } // end of main loop
+          // показ/смена буфера кадра
+    } // конец главного цикла
 
-I placed a call to TwDraw() in the beginning of OgldevBackendSwapBuffers() (ogldev_backend.cpp:97).
-This function is called at the end of every main render function and is a good place
-to integrate TwDraw() into the framework.
+Я поместил вызов *TwDraw()* в начале функции *OgldevBackendSwapBuffers()* (ogldev_backend.cpp:97).
+Эта функция вызывается каждый раз в конце главного цикла рендера и отличное
+место для встраивания TwDraw() в фреймворк.
 
-### Adding widgets
+### Добавление виджетов
 
-The above is everything you need to basically have ATB up and running in your application.
-Your ATB bar should now look like this:
+Всё что было выше необходимо только для того, что бы иметь работоспосоный ATB в вашем приложении.
+Сейчас ATB должен выглядеть как-то так:
 
 ![](/images/48/atb1.jpg)
 
-From now on what we need to do is to add widgets and link them to our application
-so that they can be used to tweak parameters of our code.
+Начиная с этого момента нам нужно добавлять виджеты и связывать их с нашим приложением
+что бы мы могли настраивать параметры в нашем коде.
 
-Let's add a drop down box. In this tutorial I will use it to select the mesh to
-be displayed. We need to use the TwEnumVal structure provided by ATB in order to create
-a list of available items in the drop down box. That structure is made of pairs of integer
-and a char array. The integer is an identifier for the drop down item and the
-char array is the name to be displayed. Once the item list is created as an array of TwEnumVal
-structs we create a TwType object using the TwDefineEnum function. TwType is an enum of a few
-parameter types that ATB understands (color, vectors, etc) but we can add user defined types
-to support our specific needs. Once our TwType is ready we can use TwAddVarRW to link it
-to the tweak bar. TwAddVarRW() also takes an address of an integer where ATB will place
-the current selection in the drop down box. We can then use that integer to change stuff
-in our application (the mesh to be displayed in our case).
+Давайте добавим выпадающий список. В этом уроке я буду использовать его для выбора меша
+для отобращения. Для того, что бы ATB мог создать список доступных элементов, я буду
+использовать структуру *TwEnumVal*, предоставляемую самой библиотекой.
+Эта структура состоит из пар из целого числа и строки. Число является идентификатором
+для элементов списка, а строка их названием, которое и будет отображаться.
+После создания списка в виде массива с элементами типа *TwEnumVal*, мы создаем объект
+*TwType* используя функцию *TwDefineEnum*. TwType является перечислением для некоторых
+простых типом, понимаемых ATB (цвет, вектора и т.д.), но так же есть поддержка
+пользовательских типов. Когда TwType уже готов, мы можем использовать *TwAddVarRW* для его
+присоединения к интерфейсу. *TwAddVarRW()* так же принимает адрес целого числа, куда ATB
+сможет поместить текущее выбранное значение. А мы уже можем использовать это число
+как пожелаем (в нашем случае отображать выбранный меш).
 
-        // Create an internal enum to name the meshes
-        typedef enum { BUDDHA, BUNNY, DRAGON } MESH_TYPE;
-    // A variable for the current selection - will be updated by ATB
+    // Создаем внутреннее перечисление с именами мешей
+    typedef enum { BUDDHA, BUNNY, DRAGON } MESH_TYPE;
+    // Переменная с текущим значением - она будет обновлена ATB
     MESH_TYPE m_currentMesh = BUDDHA;
-    // Array of drop down items
+    // Массив с элементами выпадающего списка
     TwEnumVal Meshes[] = { {BUDDHA, "Buddha"}, {BUNNY, "Bunny"}, {DRAGON, "Dragon"}};
-    // ATB identifier for the array
+    // ATB переменная для массива
     TwType MeshTwType = TwDefineEnum("MeshType", Meshes, 3);
-    // Link it to the tweak bar
+    // Добавляем к интерфейсу
     TwAddVarRW(bar, "Mesh", MeshTwType, &m_currentMesh, NULL);
 
-The result should look like this:
+В результате должно получиться что-то в стиле:
 
 ![](/images/48/atb2.jpg)
 
-We can add a seperator using the following line:
+Мы можем добавить разделитель используя следующую строку:
 
-
-        // The second parameter is an optional name
+    // Второй аргумент это не обязательное имя.
     TwAddSeparator(bar, "", NULL);
 
-Now we have:
+Теперь мы имеем:
 
 ![](/images/48/atb3.jpg)
 
@@ -248,14 +248,13 @@ the framework:
 
 > (ogldev_atb.cpp:38)
 
+    TwStructMember Vector3fMembers[] = {
+        { "x", TW_TYPE_FLOAT, offsetof(Vector3f, x), "" },
+        { "y", TW_TYPE_FLOAT, offsetof(Vector3f, y), "" },
+        { "z", TW_TYPE_FLOAT, offsetof(Vector3f, z), "" }
+    };
 
-        TwStructMember Vector3fMembers[] = {
-              { "x", TW_TYPE_FLOAT, offsetof(Vector3f, x), "" },
-              { "y", TW_TYPE_FLOAT, offsetof(Vector3f, y), "" },
-              { "z", TW_TYPE_FLOAT, offsetof(Vector3f, z), "" }
-        };
-
-        TW_TYPE_OGLDEV_VECTOR3F = TwDefineStruct("Vector3f", Vector3fMembers, 3, sizeof(Vector3f), NULL, NULL);
+    TW_TYPE_OGLDEV_VECTOR3F = TwDefineStruct("Vector3f", Vector3fMembers, 3, sizeof(Vector3f), NULL, NULL);
 
 We can now use TW_TYPE_OGLDEV_VECTOR3F whenever we want to add a widget to tweak a
 vector of 3 floats. Here's the complete AddToATB() function:
@@ -279,7 +278,6 @@ Here's how the tweak bar looks with the camera added:
 
 ![](/images/48/atb4.jpg)
 
-
 You are probably spending a lot of time playing with the orientation of your meshes. Let's add
 something to the tweak bar to simplify that. The solution is a visual quaternion that
 can be used to set the rotation of a mesh. We start by adding a local Quaternion variable (see ogldev_math_3d.h for
@@ -294,11 +292,9 @@ We then link the quaternion variable to the tweak bar using the parameter type T
 Again, we need to change from right handed to left handed system. Finally the quaternion
 is converted to degrees:
 
-
     m_mesh[m_currentMesh].GetOrientation().m_rotation = g_Rotation.ToDegrees();
 
 The rotation vector can now be used to orient the mesh and generate the WVP matrix for it:
-
 
     m_pipeline.Orient(m_mesh[m_currentMesh].GetOrientation());
 
@@ -310,24 +306,18 @@ Now let's add a check box. We will use the check box to toggle between automatic
 rotation of the mesh around the Y-axis and manual rotation (using the quaternion we
 saw earlier). First we make an ATB call to add a button:
 
-
-
     TwAddButton(bar, "AutoRotate", AutoRotateCB, NULL, " label='Auto rotate' ");
-
 
 The third parameter is a callback function which is triggered when the check box
 is clicked and the fourth parameter is a value to be transfered as a parameter to
 the callback. I don't need it here so I've used NULL.
 
-
-
     bool gAutoRotate = false;
 
     void TW_CALL AutoRotateCB(void *p)
     {
-              gAutoRotate = !gAutoRotate;
+        gAutoRotate = !gAutoRotate;
     }
-
 
 You can now use gAutoRotate to toggle between automatic and manual rotations.
 
@@ -339,26 +329,21 @@ Another useful widget that we can add is a read/write widget for controlling the
 of rotation (when auto rotation is enabled). This widget provides multiple ways to control
 its value:
 
-
-
     TwAddVarRW(bar, "Rot Speed", TW_TYPE_FLOAT, &m_rotationSpeed,
-                         " min=0 max=5 step=0.1 keyIncr=s keyDecr=S help='Rotation speed (turns/second)' ");
+               " min=0 max=5 step=0.1 keyIncr=s keyDecr=S help='Rotation speed (turns/second)' ");
 
-
- The first four parameters are obvious. We have the pointer to the tweak bar, the string to display, the type of the parameter and the
- address where ATB will place the updated value. The interesting stuff comes in the option string at the end. First we
- limit the value to be between 0 and 5 and we set the increment/decrement step to 0.1. We set the keys 's' and 'd' to be shortcuts
- to increment or decrement the value, respectively. When you hover over the widget you can see the shortcuts in the bottom of the tweak
- bar. You can either type in the value directly, use the shortcut keys, click on the '+' or '-' icons on the right or use the lever to
- modify the value (click on the circle to bring up the rotation lever). Here's the bar with this widget:
+The first four parameters are obvious. We have the pointer to the tweak bar, the string to display, the type of the parameter and the
+address where ATB will place the updated value. The interesting stuff comes in the option string at the end. First we
+limit the value to be between 0 and 5 and we set the increment/decrement step to 0.1. We set the keys 's' and 'd' to be shortcuts
+to increment or decrement the value, respectively. When you hover over the widget you can see the shortcuts in the bottom of the tweak
+bar. You can either type in the value directly, use the shortcut keys, click on the '+' or '-' icons on the right or use the lever to
+modify the value (click on the circle to bring up the rotation lever). Here's the bar with this widget:
 
 ![](/images/48/atb7.jpg)
 
 In all of the tutorials there is usually at least one light source so it makes sense to add some code that will allow us to
 easily hook it up to the tweak bar so we can play with it parameters. So I went ahead and added the following methods to the
 various light source classes:
-
-
 
     void BaseLight::AddToATB(TwBar *bar)
     {
@@ -418,13 +403,13 @@ in order to accomplish that so I used TwGetParam() in order to do that:
 
     virtual void KeyboardCB(OGLDEV_KEY OgldevKey)
     {
-              if (!m_atb.KeyboardCB(OgldevKey)) {
-                    switch (OgldevKey) {
-                          case OGLDEV_KEY_A:
-                          {
-                                int Pos[2], Size[2];
-                                <b>TwGetParam</b>(bar, NULL, "position", TW_PARAM_INT32, 2, Pos);
-                                <b>TwGetParam</b>(bar, NULL, "size", TW_PARAM_INT32, 2, Size);
-                                OgldevBackendSetMousePos(Pos[0] + Size[0]/2, Pos[1] + Size[1]/2);
-                                break;
-                          }
+        if (!m_atb.KeyboardCB(OgldevKey)) {
+            switch (OgldevKey) {
+                case OGLDEV_KEY_A:
+                {
+                    int Pos[2], Size[2];
+                    <b>TwGetParam</b>(bar, NULL, "position", TW_PARAM_INT32, 2, Pos);
+                    <b>TwGetParam</b>(bar, NULL, "size", TW_PARAM_INT32, 2, Size);
+                    OgldevBackendSetMousePos(Pos[0] + Size[0]/2, Pos[1] + Size[1]/2);
+                    break;
+                }
