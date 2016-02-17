@@ -233,20 +233,20 @@ generic render loop as an example:
 
 ![](/images/48/atb3.jpg)
 
-Let's see how we can link our camera so that its position and direction will always
-be displayed. Until now you are probably already used to printing the current
-camera parameters so that they can be reused later but displaying them in the UI
-is much nicer. To make the code reusable I've added the function AddToATB() to the camera
-class. It contains three calls to ATB functions. The first call just uses TwAddButton()
-in order to add a string to the tweak bar. TwAddButton() can do much more and we will see
-an example later on. Then we have TwAddVarRW() that adds a read/write variable and
-TwAddVarRO() that adds a read-only variable. The read/write variable we use here
-is simply the position of the camera and the UI can be used to modify this and
-have it reflected in the actual application. Surprisingly, ATB does no provide an
-internal TwType for an array of three floats so I created one to be used by
-the framework:
+Что же, давайте попробуем привязать нашу камеру таким образом, что бы всегда
+видить её положение и направление. К этому моменту вы должно быть уже печатали
+параметры камеры что бы использовать их после, но, согласитесь, отображать их в
+интерфейсе куда удобнее. Для повторного использования кода я добавил функцию
+*AddToATB()* в класс камеры. Она состоит из трёх вызовов к ATB. Первый просто
+использует *TwAddButton()* для добавления строки к интерфейсу. TwAddButton()
+очень мощная функция и мы узнаем другие её применения чуть позже. Затем мы
+вызываем *TwAddVarRW()*, которая добавляет изменяемую переменную и *TwAddVarRO()*
+для добавления переменных только для чтения. Изменяемой переменной в нашем
+случае будет позиция камеры, её легко изменить в интерфейсе и это отразится
+в приложении. Удивительно, но ATB не имеет внутреннего типа для массива их
+трёх чисел, поэтому я добавил собственный для использования фреймворком:
 
-> (ogldev_atb.cpp:38)
+> ogldev_atb.cpp:38
 
     TwStructMember Vector3fMembers[] = {
         { "x", TW_TYPE_FLOAT, offsetof(Vector3f, x), "" },
@@ -256,9 +256,8 @@ the framework:
 
     TW_TYPE_OGLDEV_VECTOR3F = TwDefineStruct("Vector3f", Vector3fMembers, 3, sizeof(Vector3f), NULL, NULL);
 
-We can now use TW_TYPE_OGLDEV_VECTOR3F whenever we want to add a widget to tweak a
-vector of 3 floats. Here's the complete AddToATB() function:
-
+Теперь мы можем использовать *TW_TYPE_OGLDEV_VECTOR3F* там, где требуется добавить
+виджет с вектором из трёх чисел. А вот и полная версия функции AddToATB():
 
     void Camera::AddToATB(TwBar* bar)
     {
@@ -267,14 +266,15 @@ vector of 3 floats. Here's the complete AddToATB() function:
           TwAddVarRO(bar, "Direction", TW_TYPE_DIR3F, &m_target, " axisz=-z ");
     }
 
-We have used the provided TW_TYPE_DIR3F as the parameter type that displays an array
-of 3 floats using an arrow. Note the addition of 'axisz=-z' as the last parameter
-of TwAddVarRO(). Many ATB functions take a string of options in the last parameter. This allows
-modifying the internal behavior of the function. axisz is used to change from right handed system (ATB default)
-to left handed system (OGLDEV default). There's a lot of additional options available that
-I simply cannot cover. You can find them <a href="http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:varparamsyntax">here</a>.
+Мы используем тип *TW_TYPE_DIR3F* для отображения массива из трёх чисел в виде стрелки.
+Обратим внимание на последний параметр *axisz=-z* функции TwAddVarRO(). Многие функции
+ATB принимают строку с настройками в качестве последнего аргумента. Это позволяет
+изменять внутреннее поведение функции. axisz используется для перехода от правосторонней
+системы координат (используется в ATB) к левосторонней (OGLDEV фреймворк). Есть ещё
+множество дополнительных опций, и я просто не могу рассказать о них всех.
+Вы можете найти их по [ссылке](http://anttweakbar.sourceforge.net/doc/tools:anttweakbar:varparamsyntax).
 
-Here's how the tweak bar looks with the camera added:
+Вот как выглядит интерфейс с добавленной камерой:
 
 ![](/images/48/atb4.jpg)
 
