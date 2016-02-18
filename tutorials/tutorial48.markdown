@@ -278,27 +278,27 @@ ATB принимают строку с настройками в качеств�
 
 ![](/images/48/atb4.jpg)
 
-You are probably spending a lot of time playing with the orientation of your meshes. Let's add
-something to the tweak bar to simplify that. The solution is a visual quaternion that
-can be used to set the rotation of a mesh. We start by adding a local Quaternion variable (see ogldev_math_3d.h for
-the definition of that struct):
+Наверняка вы проводите немало времени играясь с положением мешей в пространстве. Давайте
+добавим что-нибудь в интерфейс что бы упростить эту задачу. Идея состоит в использовании
+кватерниона, который может быть использован для вращения меша. Для начала мы добавим переменную
+с кватернионом (определение структуры в ogldev_math_3d.h):
 
     Quaternion g_Rotation = Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
 
-We then link the quaternion variable to the tweak bar using the parameter type TW_TYPE_QUAT4F:
+Затем мы привязываем переменную кватерниона к интерфейсу используя тип *TW_TYPE_QUAT4F*:
 
     TwAddVarRW(bar, "ObjRotation", TW_TYPE_QUAT4F, &g_Rotation, " axisz=-z ");
 
-Again, we need to change from right handed to left handed system. Finally the quaternion
-is converted to degrees:
+И снова мы должны перейти от правоориентированной системы к левоориентированной. Кроме того,
+конвертируем кватернион в градусы:
 
     m_mesh[m_currentMesh].GetOrientation().m_rotation = g_Rotation.ToDegrees();
 
-The rotation vector can now be used to orient the mesh and generate the WVP matrix for it:
+Теперь вектор вращения может быть использован для ориентации меша и генерации матрицы WVP:
 
     m_pipeline.Orient(m_mesh[m_currentMesh].GetOrientation());
 
-Our tweak bar now looks like this:
+Теперь интерфейс выглядит следующим образом:
 
 ![](/images/48/atb5.jpg)
 
