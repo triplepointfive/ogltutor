@@ -302,15 +302,13 @@ ATB принимают строку с настройками в качеств�
 
 ![](/images/48/atb5.jpg)
 
-Now let's add a check box. We will use the check box to toggle between automatic
-rotation of the mesh around the Y-axis and manual rotation (using the quaternion we
-saw earlier). First we make an ATB call to add a button:
+Теперь давайте добавим флажок, который будет включать и отключать автоматическое вращение
+меша вокруг оси Y. Для начала добавим кнопку:
 
     TwAddButton(bar, "AutoRotate", AutoRotateCB, NULL, " label='Auto rotate' ");
 
-The third parameter is a callback function which is triggered when the check box
-is clicked and the fourth parameter is a value to be transfered as a parameter to
-the callback. I don't need it here so I've used NULL.
+Третий параметр это функция, которая вызывается при щелчке на флажок, а четвёртый это
+параметр передаваемый в каллбэк. Поскольку он мне не нужен, я использую NULL.
 
     bool gAutoRotate = false;
 
@@ -319,25 +317,25 @@ the callback. I don't need it here so I've used NULL.
         gAutoRotate = !gAutoRotate;
     }
 
-You can now use gAutoRotate to toggle between automatic and manual rotations.
+Теперь можно использовать gAutoRotate для автоматического и ручного вращения.
 
-Here's how the tweak bar looks like:
+Теперь интерфейс выглядит так:
 
 ![](/images/48/atb6.jpg)
 
-Another useful widget that we can add is a read/write widget for controlling the speed
-of rotation (when auto rotation is enabled). This widget provides multiple ways to control
-its value:
+Другой полезным виджетом будет управление скоростью вращения (когда автоматическое вращение включено).
+Этот виджет предоставляет несколько способов задавать его значение:
 
     TwAddVarRW(bar, "Rot Speed", TW_TYPE_FLOAT, &m_rotationSpeed,
                " min=0 max=5 step=0.1 keyIncr=s keyDecr=S help='Rotation speed (turns/second)' ");
 
-The first four parameters are obvious. We have the pointer to the tweak bar, the string to display, the type of the parameter and the
-address where ATB will place the updated value. The interesting stuff comes in the option string at the end. First we
-limit the value to be between 0 and 5 and we set the increment/decrement step to 0.1. We set the keys 's' and 'd' to be shortcuts
-to increment or decrement the value, respectively. When you hover over the widget you can see the shortcuts in the bottom of the tweak
-bar. You can either type in the value directly, use the shortcut keys, click on the '+' or '-' icons on the right or use the lever to
-modify the value (click on the circle to bring up the rotation lever). Here's the bar with this widget:
+Первые четыре параметра очевидны. Это указатель на интерфейс, строка для показа, тип параметра и адрес
+переменной, куда будет записываться значение. Самое интересное в конце, в строке с параметрами. Для
+начала, мы ограничиваем значение в отрезке от 0 до 5, а шаг увеличения / уменьшения устанавливаем в 0.1.
+Мы назначаем горячие клавиши *s* и *d* для увеличения и уменьшения значения соответственно. Если провести
+курсором над виджетом, то вы увидите горячие клавиши внизу интерфейса. Можно ввести значение вручную,
+использовать горячие клавиши, нажимать на символы '+' или '-' справа или использовать рычаг для
+изменения значения (показывается при щелчке на кружек). Вот как выглядит интерфейс с этим виджетом:
 
 ![](/images/48/atb7.jpg)
 
