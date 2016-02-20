@@ -339,9 +339,9 @@ ATB принимают строку с настройками в качеств�
 
 ![](/images/48/atb7.jpg)
 
-In all of the tutorials there is usually at least one light source so it makes sense to add some code that will allow us to
-easily hook it up to the tweak bar so we can play with it parameters. So I went ahead and added the following methods to the
-various light source classes:
+В каждом уроке присутствует как минимум один источник света, поэтому было бы здорово добавить немного кода,
+что бы была возможность немного поиграться с параметрами света. Поэтому я добавил следующие методы
+в различные классы источников света:
 
     void BaseLight::AddToATB(TwBar *bar)
     {
@@ -381,23 +381,23 @@ various light source classes:
           TwAddVarRW(bar, s.c_str(), TW_TYPE_FLOAT, &Cutoff, "");
     }
 
-Note that 'Name' is a new string memeber of the BaseLight class that must be set before AddToATB() function
-is called on the light object. It represents the string that will be displayed in the tweak bar for that light.
-If you plan on adding multiple lights you must make sure to pick up unique names for them. AddToATB() is a virtual
-function so the correct instance according to the concrete class is always called. Here's the bar
-with a directional light source:
+Обратим внимание на новое свойство BaseLight - *Name*, которое обязательно нужно установить до вызова
+функции *AddToATB()*. Оно представляет из себя строку, которая будет отображаться в интерфейсе.
+Если вы планируете добавить несколько источников света, убедитесь, что все они имеют уникальные названия.
+AddToATB() является виртуальной функцией, поэтому для каждого класса вызывается своя реализация.
+Вот пример интерфейся для направленного источника:
 
 ![](/images/48/atb8.jpg)
 
-The last thing that I want to demonstrate is the ability to get and set various parameters that control the behaviour
-of the tweak bar. Here's an example of setting the refresh rate of the bar to one tenth of a second:
+Последнее что я хочу продемонстрировать - это способность получать и устанавливать различные переменные,
+управляющие поведением интерфейса. Вот, например, установка обновления переменной раз в 0.1 секунды:
 
     float refresh = 0.1f;
-    <b>TwSetParam</b>(bar, NULL, "refresh", TW_PARAM_FLOAT, 1, &refresh);
+    TwSetParam(bar, NULL, "refresh", TW_PARAM_FLOAT, 1, &refresh);
 
-Since moving the mouse to the tweak bar means that the camera also moves I made the key 'a' automatically move the
-mouse to the center of the tweak bar without touching the camera. I had to read the location and size of the tweak bar
-in order to accomplish that so I used TwGetParam() in order to do that:
+Поскольку движение курсора к интерфейсу влечет за собой поворот камеры, я добавил перемещение курсора
+в центр интерфейса при нажатии клавиши *a* без какого-либо влияния на камеру. Для этого мне было необходимо
+считывать текущее положение и размеры интерфейса, поэтому я использовал функцию *TwGetParam()*:
 
     virtual void KeyboardCB(OGLDEV_KEY OgldevKey)
     {
@@ -406,8 +406,10 @@ in order to accomplish that so I used TwGetParam() in order to do that:
                 case OGLDEV_KEY_A:
                 {
                     int Pos[2], Size[2];
-                    <b>TwGetParam</b>(bar, NULL, "position", TW_PARAM_INT32, 2, Pos);
-                    <b>TwGetParam</b>(bar, NULL, "size", TW_PARAM_INT32, 2, Size);
+
+                    TwGetParam(bar, NULL, "position", TW_PARAM_INT32, 2, Pos);
+                    TwGetParam(bar, NULL, "size", TW_PARAM_INT32, 2, Size);
+
                     OgldevBackendSetMousePos(Pos[0] + Size[0]/2, Pos[1] + Size[1]/2);
                     break;
                 }
