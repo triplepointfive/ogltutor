@@ -2,69 +2,66 @@
 title: Урок 49 - Cascaded Shadow Mapping
 ---
 
-Let's take a close up look of the shadow from [уроке 47](tutorial47.html):
+Давайте всмотримся в тени из [урока 47](tutorial47.html):
 
 ![](/images/49/img1.jpg)
 
-As you can see, the qaulity of the shadow is not high. It's too blocky. We've touched on the reason for that
-blockiness at the end of tutorial 47 and referred to it as <i>Perspective Aliasing</i> which
-means a large number of pixels in view space being mapped to the same pixel in the shadow map. This means
-that all these pixels will either be in shadow or in light, contributing to the sense of blockiness.
-In other words, since the resolution of the shadow map is not high enough it cannot cover the view space
-adequately. One obvious way to deal with this is to increase the resolution of the shadow map but
-that will increase the memory footprint of our app so it may not be the best course of action.
+Как вы можете заметить, качество теней не высоко. Слишком пиксилизированно. Мы уже разобрались с причиной такого
+эффета и назвали его *Perspective Aliasing*, представляющей собой отображение большого
+числа пикселей из пространства сцены на один пиксель карты теней. Это значит что все эти пиксели будут либо в тени,
+либо освещены одновременно. Другими словами, поскольку разрешение карты теней недостаточно высоко, она не может
+достаточно покрыть все пространство сцены. Самый простой способ решения - это увеличить разрешение карты теней,
+но это увеличит потребление памяти нашим приложением, так что этот метод не самый лучший.
 
-Another way to deal with this problem is to notice that shadows closer to the camera a far more important
-in terms of quality than shadow of objects that are far away. Distant objects are smaller anyway and
-usually the eye focuses on what happens close by, leaving the rest as a "background". If we can find a way
-to use a dedicated shadow map for closer objects and a different shadow map for distant objects then the
-first shadow map will only need to cover the a smaller region, thus decreasing the ratio that we discusses above.
-This, in a nutshell, is what Cascaded Shadow Mapping (a.k.a CSM) is all about. At the time of writing this tutorial
-CSM is considered one of the best ways to deal with Perspective Aliasing. Let's see how we can implement it.
+Другой способ решить эту проблему - это заметить, что тени ближе к камере в плане качества куда важнее, чем тени далеко
+находящихся объектов. В любом случае, объекты на расстоянии меньше по размеру, а глаза как раз фокусируются на том, что
+происходит на первом плане, а остальное воспринимается как фон. Если бы мы могли использовать детализированную карту
+теней для близких объектов, и другую для удаленных, то первая карта теней должна будет покрыть только небольшой
+участок, то есть, уменьшая соотношение, которое мы обсудили ранее. Кароче говоря, так и работает
+*Cascaded Shadow Mapping (a.k.a CSM)*. На момент написания этого урока, CSM считается одним из лучших способов для
+борьбы с Perspective Aliasing. Что же, давайте подумаем как мы могли бы это реализовать.
 
-From a high level view we are going to split the view frustum into several cascades (since it doesn't need
-to be just two as in the previous example). For the purpose of this tutorial we will use three cascades: near, middle and
-far. The algorithm itself is pretty generic so you can use more cascades if you feel like it. Every cascade will
-be rendered into its own private shadow map. The shadow algorithm itself will remain the same but when sampling
-the depth from the shadow map we will need to select the appropriate map based on the distance from the viewer.
-Let's take a look at a generic view frustum:
+В целом мы собираемся разбить пирамиду обзора на несколько частей - каскадов (их не обязательно должно быть два как в
+предыдущем примере). В данном уроке мы будем использовать три каскада: ближний, средний и дальний. Сам алгоритм достаточно
+обобщенный, так что не составит проблем увеличить число каскадов, если понадобится. Каждый каскад будет рендериться в его
+собственную карту теней. Сам алгоритм теней остаётся без изменений, за исключением того, что взятие значения глубины
+из карты теней должно выбирать подходящую карту, в зависимости от растояния до зрителя. Давайте посмотрим на усеченную
+пирамиду обзора:
 
 ![](/images/49/img2.png)
 
-As usual, we have a small near plane and a larger far plane. Now let's take a look at the same fustum from above:
+Как обычно, у нас есть маленькая ближняя и большая дальняя плоскости. Теперь давайте посмотрим на сцену сверху:
 
 ![](/images/49/img3.png)
 
-The next step is to split the range from the near plane to the far plane into three parts. We will call this near, middle and far.
-In addition, let's add the light direction (the arrow on the right hand side):
+Следующим шагом мы разбиваем расстояние от ближней плоскости до дальней на три части. Мы будем называть их ближней,
+средней и дальней. И ещё давайте добавим направление света (стрелка справа):
 
 ![](/images/49/img4.png)
 
-So how are we going to render each cascade into its own private shadow map? Let's think about the shadow
-phase in the shadow mapping algorithm. We set up things to render the scene from the light point of view. This
-means creating a WVP matrix with the world transform of the object, the view transform based on the light and
-a projection matrix. Since this tutorial is based on tutorial 47 which dealt with shadows of directional lights
-the projection matrix will be orthographic. In general CSMs make more sense in outdoor scenes where the
-main light source is usually the sun so using a directional light here is natural. If you look at the
-WVP matrix above you will notice that the first two parts (world and view) are the same for all cascades.
-After all, the position of the object in the world and the orientation of the camera based on the light source
-are not related to the splitting of the frustum into cascades. What matters here is only the projection matrix
-because it defines the extent of the region which will eventually be rendered. And since orthographic
-projections are defined using a box we need to define three different boxes which will be translated into
-three different orthographic projection matrices. These projection matrices will be used to create the three
-WVP matrices to render each cascade into its own shadow map.
+Итак, как же мы собираемся рендерить каждый каскад в отдельную карту теней? Вспомним этап теней в алгоритме карты
+теней. Мы настраиваем сцену для рендера с позиции источника света. Это заключается в создании матрицы WVP с
+мировыми преобразованиями объекта, преобразованиями пространства обзора для света и матрицу проекции. Так как этот
+урок основывается на уроке 47, который работает с тенями направленного света, то матрица проекции будет ортогональной.
+Обычно CSM используется для открытых сцен, где главный источник света это солнце, и использование направленного света
+здесь естественно. Если вы посмотрите на матрицу WVP выше, то вы заметите, что первые две части (мировая и обзора)
+одинаковые для всех каскадов. В конце концов, позиция объекта на сцене и параметры камеры относительно источника света
+не зависят от разбиение пирамиды на каскады. Так что важна здесь только матрица проекции, поскольку она задает
+область, которая будет отрендерена. А поскольку ортогональная матрица проекции задается параллелепипедом, то нам нужно
+задать три различных параллелепипеда, которые будут отображены в три разных ортогональных матрицы проекции.
+Все три матрицы будут использованы для получения трёх матриц WVP для рендера каждого каскада в его отдельную карту теней.
 
-The most logical thing to do will be to make these boxes as small as posible in order to keep the ratio
-of view pixels to shadow map pixels as low as possible. This means creating a bounding box for each cascade
-which is oriented along the light direction vector. Let's create such a bounding box for the first cascade:
+Логичнее всего было бы сделать эти рамки настолько маленькими, насколько это возможно для получения
+наименьшего коэфициента отношения пикселей пространства сцены к карте теней. Для этого создадим ограничивающую
+рамку для каждого каскада вдоль вектора света. Давайте добавим её к первому каскаду:
 
 ![](/images/49/img5.png)
 
-Now let's create a bounding box for the second cascade:
+Давайте теперь добавим ограничивающую рамку для второго каскада:
 
 ![](/images/49/img6.png)
 
-And finally a bouding box for the last cascade:
+И ещё одну для последнего каскада:
 
 ![](/images/49/img7.png)
 
