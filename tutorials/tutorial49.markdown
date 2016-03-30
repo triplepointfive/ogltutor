@@ -1,5 +1,5 @@
 ---
-title: Урок 49 - Cascaded Shadow Mapping
+title: Урок 49 - Каскадные карты теней
 ---
 
 Давайте всмотримся в тени из [урока 47](tutorial47.html):
@@ -18,7 +18,7 @@ title: Урок 49 - Cascaded Shadow Mapping
 происходит на первом плане, а остальное воспринимается как фон. Если бы мы могли использовать детализированную карту
 теней для близких объектов, и другую для удаленных, то первая карта теней должна будет покрыть только небольшой
 участок, то есть, уменьшая соотношение, которое мы обсудили ранее. Кароче говоря, так и работает
-*Cascaded Shadow Mapping (a.k.a CSM)*. На момент написания этого урока, CSM считается одним из лучших способов для
+*Каскадные карты теней (Cascaded Shadow Mapping a.k.a CSM)*. На момент написания этого урока, CSM считается одним из лучших способов для
 борьбы с Perspective Aliasing. Что же, давайте подумаем как мы могли бы это реализовать.
 
 В целом мы собираемся разбить пирамиду обзора на несколько частей - каскадов (их не обязательно должно быть два как в
@@ -65,46 +65,43 @@ title: Урок 49 - Cascaded Shadow Mapping
 
 ![](/images/49/img7.png)
 
-As you can see, there is some overlap of the bounding boxes due to the orientationn of the light which
-means some pixels will be rendered into more than one shadow map. There is no problem with that
-as long as all the pixels of a single cascade are entirely inside a single shadow map. The selection of
-the shadow map to use in the shader for shadow calculations will be based on the distance of the pixel from
-the actual viewer.
+Как вы можете заметить, из-за положения света в пространстве границы рамок слегка пересекаются, и как следствие,
+некоторые пиксели будут отрендерены сразу на несколько карт теней. Но до тех пор, пока все пиксели одного каскада
+находятся целиков в одной карте теней, для нас это не проблема. Выбор карты теней для вычислений в шейдере будет
+основан на растоянии пикселя от самого зрителя.
 
-Calculations of the bounding boxes that serve as the basis for the orthographic projection in the
-shadow phase is the most complicated part of the algorithm. These boxes must be described in light space
-because the projections come after world and view transforms (at which point the light "originates" from
-the origin and points along the positive Z axis). Since the boxes will be calculated as min/max values
-on all three axis they will be aligned on the light direction, which is what we need for projection. To calculate
-the bounding box we need to know how each cascade looks like in light space. To do that we need to follow these
-steps:
+Самой сложной частью алгоритма является нахождение ограничивающих рамок, которые и будут основой для
+ортогональной проекции в теневом проходе. Они должны быть заданы в пространстве источника света (в котором источник
+расположен в начале координат и направлен вдоль оси Z) так как проекции идут после мировых и камерных преобразований.
+Параллелипипиды будут заданы своими размерами по всем трем осям и выровнены вдоль направления света - то что нужно для
+проекции. Для нахождения рамок нам нужно знать как каждый каскад выглядит в пространстве света. Для этого проделаем
+следующие шаги:
 
-1. Calculate the eight corners of each cascade in view space. This is easy and requires simple trigonometry:
+1. Находим восемь углов в пространстве обзора. Это не сложно, требуется лишь немного тригонометрии:
 
     ![](/images/49/frustum1.png)
 
-    The above image represents an arbitrary cascade (since each cascade on its own is basically a frustum and
-    shares the same field-of-view angle with the other cascades). Note that we are looking from the top
-    down to the XZ plane. We need to calculate X<sub>1</sub> and
-    X<sub>2</sub>:
+    На изображение выше представлен произвольный каскад (так как каждый каскад является такой же усеченной пирамидой
+    с таким же углом обзора, как и остальные). Заметим, что мы смотрим сверху вниз на плоскость XZ. Нам нужно найти
+    X<sub>1</sub> и X<sub>2</sub>:
 
     ![](/images/49/calc1.png)
 
     ![](/images/49/calc2.png)
 
-    This gives us the X and Z components of the eight coordinates of the cascade in view space. Using
-    similar math with the vertical field-of-view angle we can get the Y component and finalize the coordinates.
+    Таким образом мы получаем координаты X и Z всех восьми координат каскада в пространстве обзора. Используя
+    аналогичные вычисления для вертикального угла обзора мы можем найти координату Y.
 
-2. Now we need to transform the cascade coordinates from view space back to world space. Let's say that the
-    viewer is oriented such that in world space the frustum looks like that (the red arrow is the light direction
-    but ignore it for now):
+2. Теперь нам нужно преобразовать координаты каскада из пространства обзора обратно в мировое пространство.
+    Предположим, что зритель расположен в мировом пространстве таким образом, что пирамида выглядит так
+    (красная стрелка обозначает источник света, но пока что мы можем её проигнорировать):
 
     ![](/images/49/frustum2.png)
 
-    In order to transform from world space to view space we multiply the world position vector by
-    the view matrix (which is based on the camera location and rotation). This means that if we already
-    have the coordinates of the cascade in view space we must multiply them by the inverse of the view matrix
-    in order to transform them to world space:
+    Для того что бы перенести из мирового пространства в пространство камеры, мы умножаем вектор позиции в
+    мировом пространстве на матрицу камеры (получаемую из позиции камеры и её угла поворота). Это значит, что
+    если мы уже имеем координаты каскада в пространстве камеры, то мы просто умножаем их на обратную матрицу
+    камеры для переноса в мировое пространство:
 
     ![](/images/49/calc3.png)
 
