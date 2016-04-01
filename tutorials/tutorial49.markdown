@@ -127,10 +127,10 @@ title: Урок 49 - Каскадные карты теней
 
     bool CascadedShadowMapFBO::Init(unsigned int WindowWidth, unsigned int WindowHeight)
     {
-          // Create the FBO
+          // Создаем FBO
           glGenFramebuffers(1, &m_fbo);
 
-          // Create the depth buffer
+          // Создаем буфер глубины
           glGenTextures(ARRAY_SIZE_IN_ELEMENTS(m_shadowMap), m_shadowMap);
 
           for (uint i = 0 ; i < ARRAY_SIZE_IN_ELEMENTS(m_shadowMap) ; i++) {
@@ -146,7 +146,7 @@ title: Урок 49 - Каскадные карты теней
           glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
           glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_shadowMap[0], 0);
 
-          // Disable writes to the color buffer
+          // Отключаем запись в буфер цвета
           glDrawBuffer(GL_NONE);
           glReadBuffer(GL_NONE);
 
@@ -215,11 +215,11 @@ render into the shadow maps and then use them for the actual lighting.
 
           Pipeline p;
 
-                  // The camera is set as the light source - doesn't change in this phase
+          // Камера помещается на позицию источника света и не меняет на протежении этого этапа
           p.SetCamera(Vector3f(0.0f, 0.0f, 0.0f), m_dirLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));
 
           for (uint i = 0 ; i < NUM_CASCADES ; i++) {
-                // Bind and clear the current cascade
+                // Привязываем и очищаем текущий каскад
                 m_csmFBO.BindForWriting(i);
                 glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -303,12 +303,12 @@ the calculations later.
     {
           Pipeline p;
 
-          // Get the inverse of the view transform
+          // Получаем обратные преобразования
           p.SetCamera(m_pGameCamera->GetPos(), m_pGameCamera->GetTarget(), m_pGameCamera->GetUp());
           Matrix4f Cam = p.GetViewTrans();
           Matrix4f CamInv = Cam.Inverse();
 
-          // Get the light space tranform
+          // Получаем преобразования света
           p.SetCamera(Vector3f(0.0f, 0.0f, 0.0f), m_dirLight.Direction, Vector3f(0.0f, 1.0f, 0.0f));
           Matrix4f LightM = p.GetViewTrans();
 
@@ -323,13 +323,13 @@ the calculations later.
                 float yf = m_cascadeEnd[i + 1] * tanHalfVFOV;
 
                 Vector4f frustumCorners[NUM_FRUSTUM_CORNERS] = {
-                      // near face
+                      // Ближняя плоскость
                       Vector4f(xn,   yn, m_cascadeEnd[i], 1.0),
                       Vector4f(-xn,  yn, m_cascadeEnd[i], 1.0),
                       Vector4f(xn,  -yn, m_cascadeEnd[i], 1.0),
                       Vector4f(-xn, -yn, m_cascadeEnd[i], 1.0),
 
-                      // far face
+                      // Дальняя плоскость
                       Vector4f(xf,   yf, m_cascadeEnd[i + 1], 1.0),
                       Vector4f(-xf,  yf, m_cascadeEnd[i + 1], 1.0),
                       Vector4f(xf,  -yf, m_cascadeEnd[i + 1], 1.0),
@@ -353,12 +353,12 @@ will be only 45 degrees).
                 float maxZ = std::numeric_limits<float>::min();
 
                 for (uint j = 0 ; j < NUM_FRUSTUM_CORNERS ; j++) {
-                      // Transform the frustum coordinate from view to world space
+                      // Преобразуем координаты усеченоой пирамиды из пространства камеры в мировое пространство
                       Vector4f vW = CamInv * frustumCorners[j];
-                      // Transform the frustum coordinate from world to light space
+                      // И ещё раз из мирового в пространство света
                       frustumCornersL[j] = LightM * vW;
 
-                       minX = min(minX, frustumCornersL[j].x);
+                      minX = min(minX, frustumCornersL[j].x);
                       maxX = max(maxX, frustumCornersL[j].x);
                       minY = min(minY, frustumCornersL[j].y);
                       maxY = max(maxY, frustumCornersL[j].y);
@@ -378,11 +378,11 @@ light space.
                 m_shadowOrthoProjInfo[i].t = maxY;
                 m_shadowOrthoProjInfo[i].f = maxZ;
                 m_shadowOrthoProjInfo[i].n = minZ;
-  		}
-	}
+          }
+    }
 
-The current entry in the m_shadowOrthoProjInfo array is populated using the values
-of the bounding box.
+
+Текущая запись в массиве ** заполняется используя значения обрамляющей рамки.
 
 > csm.vs
 
@@ -407,8 +407,7 @@ of the bounding box.
     {
     }
 
-There is nothing new in the vertex and fragment shaders of the shadow map phase. We just need to
-render the depth.
+Ничего нового в вершинном и фрагментном шейдерах этапа теней. Мы по прежнему просто рендерим глубину.
 
 > lighting.vs
 
@@ -446,15 +445,14 @@ render the depth.
           WorldPos0     = (gWorld * vec4(Position, 1.0)).xyz;
     }
 
-Let's review the changes in the vertex shader of the lighting phase. Instead
-of a single position in light space we are going to output one for each cascade
-and select the proper one for each pixel in the fragment shader. You can optimize this
-later but for educational purposes I found this to be the simplest way to go. Remember
-that you cannot select the cascade in the vertex shader anyway because a triangle
-can be cross cascade. So we have three light space WVP matrices and we output
-three light space positions. In addition, we also output the Z component of
-the clip space coordinate. We will use this in the fragment shader to select
-the cascade. Note that this is calculated in view space and not light space.
+Давайте расмотрим изменения в вершинном шейдере светового этапа. Вместо передачи одной
+вершины в пространстве света их теперь три - по одной для каждого каскада. Так же мы собираемся
+выбирать нужную в фрагментном шейдере. В дальнейшем вы можете захотеть оптимизировать это, но для
+обучающих целей я решил что и так пойдет. Не забывайте, что вы не можете выбрать каскад в вершинном
+шейдере так как треугольник может располагаться сразу в нескольких каскадах. Итого, у нас есть матрицы
+WVP и три вершины пространства света. Кроме того, мы также передаем значение Z в пространстве экрана.
+Она пригодится нам при выборе каскада в фрагментном шейдере. Заметим, что она вычислена в мировом
+пространстве, а не в пространстве света.
 
 > lighting.fs
 
@@ -466,12 +464,11 @@ the cascade. Note that this is calculated in view space and not light space.
     uniform sampler2D gShadowMap[NUM_CASCADES];
     uniform float gCascadeEndClipSpace[NUM_CASCADES];
 
-The fragment shader of the lighting phase requires some changes/additions in
-the general section. We get the three light space positions calculated by
-the vertex shader as input as well as the Z component of the clip space coordinate.
-Instead of a single shadow map we now have three. In addition, the application must supply
-the end of each cascade in clip space. We will see later how to calculate this. For now
-just assume that it is available.
+Фрагментный шейдер прохода света содержит некоторые дополнения в основной секции. На вход мы получаем
+три вершины в пространстве света, которые вычислил вершинный шейдер, а так же значение Z в пространстве
+экрана. Вместо одной карты теней их теперь три. Кроме того, приложение должно передавать конец каждого
+каскада в пространстве экрана. Чуть позже мы увидим как это вычисляется. А пока просто предположим что
+он уже есть.
 
     float CalcShadowFactor(int CascadeIndex, vec4 LightSpacePos)
     {
@@ -520,14 +517,14 @@ shadow map which matches that index. Everything else is the same.
               m_LightingTech.SetCascadeEndClipSpace(i, vClip.z);
         }
 
-The last piece of the puzzle is to prepare the values for the gCascadeEndClipSpace array.
-For this we simply take the (0, 0, Z) coordinate where Z is the end of the cascade in view space.
-We project it using our standard perspective projection transform to move it into clip space.
-We do this for each cascade in order to calculate the end of every cascade in clip space.
+Последний кусок мозайки - это подготовка значений для массива *gCascadeEndClipSpace*. Для этого
+возьмем координаты (0, 0, Z), где Z это конец каскада в пространстве камеры. Для перевода значения
+в пространство экрана мы просто используем обычную проекции перспективы. Такая операция проводится
+для каждого каскада для поиска границы в пространстве клиппера.
 
-If you study the tutorial sample code you will see that I've added a cascade indicator
-by adding a red, green or blue color to each cascade to make them stand out. This is
-very useful for debugging because you can actually see the extent of each cascade.
-With the CSM algorithm (and the cascade indicator) the scene should now look like this:
+Если вы посмотрите код урока, то вы увидите, что я добавил индикатор границы каскадов назначив
+каждому из них свой цвет (красный, зеленый или синий). Это очень полезно при отладке, так как вы
+явно можете видеть границы каждого каскада. С алгоритмом CSM и цветным индикатором сцена выглядит
+как-то так:
 
 ![](/images/49/final.jpg)
