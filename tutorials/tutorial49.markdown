@@ -89,7 +89,7 @@ title: Урок 49 - Каскадные карты теней
 
     ![](/images/49/calc2.png)
 
-    Таким образом мы получаем координаты X и Z всех восьми координат каскада в пространстве обзора. Используя
+    Таким образом мы получаем координаты X и Z всех восьми вершин каскада в пространстве обзора. Используя
     аналогичные вычисления для вертикального угла обзора мы можем найти координату Y.
 
 2. Теперь нам нужно преобразовать координаты каскада из пространства обзора обратно в мировое пространство.
@@ -105,21 +105,21 @@ title: Урок 49 - Каскадные карты теней
 
     ![](/images/49/calc3.png)
 
-3. With the frustum coordinates in world space we can now transform them to light space as any other object.
-    Remember that the light space is exactly like view space but instead of the camera we use the light source.
-    Since we are dealing with a directional light that has no origin we just need to rotate the world so that
-    the light direction becomes aligned with the positive Z axis. The origin of light can simply be the origin
-    of the light space coordinate system (which means we don't need any translation). If we do that using the previous
-    diagram (with the red arrow being the light direction) the cascade frustum in light space should look like:
+3. Как и любой другой объект, мы можем преобразовать координаты пирамиды из мирового пространства в пространство света.
+    Вспомним, что пространство света абсолютно индентично пространству камеры, разве что вместо камеры используется
+    источник света. Так как в нашем случае используется направленный свет, у которого нет позиции в пространстве, нам
+    требуется только повернуть сцену таким образом, чтобы свет был направлен вдоль положительного направления оси Z.
+    А положение света можно задать в начале координат пространства света (то есть, нам не нужно преобразований смещения).
+    Если мы сделаем это для рисунка выше (где красная стрелка задает источник света), то каскады в пространстве света
+    будут выглядить следующим образом:
 
     ![](/images/49/frustum3.png)
 
-4. With the cascade coordinates finally in light space we just need to generate a bounding box for it
-    by taking the min/max values of the X/Y/Z components of the eight coordinates. This bounding box
-    provides the values for the orthographic projection for rendering this cascade into its shadow map.
-    By generating an orthographic projection for each cascade separately we can now render each cascade
-    into different shadow map. During the light phase we will calculate the shadow factor by selecting
-    a shadow map based on the distance from the viewer.
+4. Наконец, получив координаты каскадов в пространстве света, нам остается только найти границы рамок. Для этого возьмем
+    наибольшие и наименьшие значения компонент X/Y/Z для всех восьми вершин. Такой параллелепипед содержит значения,
+    необходимые для ортогональной проекции для рендера каскада на карту теней. Получив для каждого каскада отдельную
+    матрицу проекции, мы можем рендерить каждый каскад в отдельную карту. На световом этапе мы будем вычислять коэффициент
+    теней выбирая карту теней ориентируясь на расстоянии от зрителя.
 
 ## [Прямиком к коду!](https://github.com/triplepointfive/ogldev/tree/master/tutorial49)
 
@@ -181,11 +181,10 @@ title: Урок 49 - Каскадные карты теней
           glBindTexture(GL_TEXTURE_2D, m_shadowMap[2]);
     }
 
-The CascadedShadowMapFBO class we see above is a modification of the ShadowMapFBO class
-that we have previously used for shadow mapping. The main change is that the m_shadowMap
-array has space for three shadow map objects which is the number of cascades we are going
-to use for this example. Here we have the three main functions of the class used to
-initialize it, bind it for writing in the shadow map phase and for reading in the lighting phase.
+Выше описан класс *CascadedShadowMapFBO* , который является модификацией класса *ShadowMapFBO*,
+используемого в предыдущих уроках. Главное отличие в том, что массив ** содержит три карты теней
+- ровно столько, сколько у нас каскадов. Также приведены три основных метода для инициализации,
+для привязки на запись в проходе теней и на чтение в проходе света.
 
 > tutorial49.cpp:197
 
@@ -202,8 +201,8 @@ initialize it, bind it for writing in the shadow map phase and for reading in th
           OgldevBackendSwapBuffers();
     }
 
-The main render function in the CCM algorithm is the same as in the standard shadow mapping algorithm - first
-render into the shadow maps and then use them for the actual lighting.
+Главная функция алгоритма CCM такая же, как и для обычного алгоритма карт теней - сначала рендерим
+на карту теней, а затем используем её для вычисления света.
 
 > tutorial49.cpp:211
 
@@ -235,12 +234,11 @@ render into the shadow maps and then use them for the actual lighting.
           glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-There are a few changes in the shadow mapping phase worth noting. The first is the call to CalOrthoProjs()
-at the start of the phase. This function is responsible for calculating the bounding boxes used for
-orthographic projections. The next change is the loop over the cascades. Each cascade must be bound for writing,
-cleared and rendered to separately. Each cascade has its own projection set up in the m_shadowOrthoProjInfo array (done by
-CalcOrthoProjs). Since we don't know which mesh goes to which cascade (and it can be more than one) we have
-to render the entire scene into all the cascades.
+В этапе теней добавлена парочка изменений, которые заслуживают внимания. Первое, вызов *CalOrthoProjs()* в начале этапа.
+Эта функция отвечает за вычисление ограничивающих рамок, используемых для ортогональной проекции. Следующее отличие это
+цикл по каскадом. Каждый из них по-отдельности должен быть привязан на запись, очищен и отрендерен. Каждый каскад имеет
+свою проекцию в массиве *m_shadowOrthoProjInfo* (который заполняет CalcOrthoProjs). Так как мы не знаем в какой каскад
+попадет каждый меш (а их может быть больше одного), то мы вынуждены рендерить всю сцену для каждого каскада.
 
 > tutorial49.cpp:238
 
@@ -279,9 +277,8 @@ to render the entire scene into all the cascades.
           }
     }
 
-The only change in the lighting phase is that instead of a single light WVP matrix we have three.
-They are identical except for the projection part. We set them up accordingly in the loop at the middle
-of the phase.
+Единственное отличие в проходе света в том, что для света вместо одной матрицы WVP их стало три. Они отличаются
+только проекциями. Мы получаем их в цикле в середине этапа.
 
 > tutorial49.cpp:80
 
@@ -290,12 +287,11 @@ of the phase.
     m_cascadeEnd[2] = 90.0f,
     m_cascadeEnd[3] = m_persProjInfo.zFar;
 
-Before we study how to calculate the orthographic projections we need to take a look
-at the m_cascadeEnd array (which is set up as part of the constructor). This array defines the
-cascades by placing the near Z and far Z in the first and last slots, respectively, and the ends of
-the cascades in between. So the first cascade ends in the value of slot one, the second in slot two
-and the last cascade ends with the far Z in the last slot. We need the near Z in the first slot to simplify
-the calculations later.
+Перед тем как мы займемся вычислением ортогональной проекции, нам следует обратить внимание на массив *m_cascadeEnd*
+(который инициализируется в конструкторе). Этот массив задает каскады записывая значения ближней и дальней Z в первый и
+последний слот соответственно и границы каскадов посередине. Таким образом первый каскад заканчивается в значении из
+первого слота, второй из второго и третий из последнего. А значение ближней Z плоскости в первом слоте позже поможет
+упростить вычисления.
 
 > tutorial49.cpp:317
 
