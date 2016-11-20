@@ -1,42 +1,46 @@
 ---
-title: Урок 50 - Introduction To Vulkan
+title: Урок 50 - Введение в Vulkan
 ---
 
-You've probably heard by now quite a bit about <a href="https://www.khronos.org/vulkan/">Vulkan</a>,
-the new Graphics API from Khronos (the non profit organization responsible for the development of OpenGL).
-Vulkan was announced in Feb-2016 and after 24 years with OpenGL it is a completely new
-standard and a departure from the current model. I won't go into many details about the various
-features of Vulkan only to say that in comparison to OpenGL it is much more low
-level and provides a lot of power and performance opportunities for the developer. But with great power comes
-great responsibility. The developer has to take charge of various aspects such as command buffer,
-synchronization and memory management that were previously the sole responsibility of the driver.
-Through the unique knowledge that the developer has about the way the application is structured,
-the usage of the Vulkan API can be tailored in a way to increase the overall performance of the system.
+Думаю, вы как минимум слышали об [Vulkan API](https://www.khronos.org/vulkan/) -
+новом графическом API от Khronos (некоммерческая организация разрабатывающая
+OpenGL). Vulkan был анонсирован в феврале 2016, через 24 года после OpenGL, и
+является полностью новым стандартом и уходом от текущей модели. Я не буду глубоко
+вдаваться в отличия Vulkan, а только скажу, что он в разы более низкоуровневый
+чем OpenGL, и даёт разработчику большой контроль над производительностью. Но с
+большой силой приходит и большая ответственность. Разработчик должен взять под
+контроль самые разные аспекты, например, буфер комманд, синхронизацию и 
+управление памятью; ранее этим занимался драйвер. Но благодаря тому, что
+разработчик детально знает структуру собственного приложения, Vulkan API может
+быть использован таким образом, чтобы увеличить общую производительность.
 
-The thing that surprises people the most, IMHO, about Vulkan is the amount of code that must be
-written only to get the first triangle on the screen. Comparing this to the few lines we had to
-write in OpenGL in the first few tutorials this is a major change and becomes a challenge when
-one tries to write a tutorial about it. Therefore, as always with OGLDEV, I'll try to present
-the material step by step. We will develop our first triangle demo in a few tutorials,
-making additional progress in each one. In addition, instead of laying out the dozens of APIs
-in one long piece of code I'll present a simple software design that I hope will make it simpler for you
-to understand without imposing too much restrictions on your future apps. Consider this an educational
-design which you are free to throw away later.
+На мой взляд, больше всего в Vulkan людей шокирует то, сколько требуется написать 
+кода только для того, что бы вывести на экран первый треугольник. В первых уроках 
+по OpenGL требуется буквально пара строк, но здесь, для многих, желающих начать
+цикл статей по Vulkan, это становится целым испытанием. Поэтому, как и всегда для
+OGLDEV, я начну представлять материал по шагам. Мы выведем первый треугольник за 
+пару уроков, понемногу продвигаясь в каждом. Кроме того, я постараюсь не 
+вываливать дюжину вызовов API в одном длинном куске кода, а сразу начну 
+заварачивать в приложение с простым дизайном, который, я надеюсь, пригодится вам
+для будущих приложений. Но в любом случае, это обучающее приложение, и не 
+стесняйтесь его изменять под себя.
 
-We will study the core components of Vulkan one by one as we make progress throught the code
-so at this point I just want to present a diagram of the general picture:
+Двигаясь по коду мы будем поочередно изучать ключевые компоненты Vulkan, поэтому 
+сейчас я просто хочу представить общую диаграмму:
 
 <img src="./Tutorial 50 - Introduction To Vulkan_files/vulkan.jpg" <="" img="">
 
-This diagram is by all means not a complete representation. It includes only the major components
-that will probably be present in most applications. The connectors between the objects represent
-the dependencies between them at creation or enumeration time. For example, in order to create a surface
-you need an instance object and when you enumerate the physical devices on your system you also
-need an instance. The two colors roughly describe the software design that we will
-use. The dark red objects will go into something I call the "core" and the light green objects will
-go into the "app". We will later see why this makes sense. The application code that you will write
-will actually inherit from "app" and all of its members will be available for you for further use.
-I hope this design will provide a solid base to develop future Vulkan tutorials.
+Эта диаграмма ни в коем случае не претендует на полноту. Она содержит только 
+основные компоненты, которые будут использоваться в большинстве приложений. Связи
+между компонентами обозначают зависимости в момент создания, либо перечисления.
+Например, для создания поверхности требуется экземпляр объекта, а когда вы 
+перечисляете физические устройства в системе, то также требуется экземпляр. Два 
+цвета объясняют наш дизайном в общих чертах. Красный объединяет то, что я бы 
+назвал "ядром", а зелёный те части, которые будут "приложением". Позже мы 
+разберем для чего это нужно. Код самого приложения, которое вы будете писать,
+будет наследоваться от "приложения", и все его части будут вам доступны для
+использования. Очень надеюсь, что этот дизайн поможет нам в разработке следующих
+частей этого цикла по Vulkan.
 
 ## System Setup
 
