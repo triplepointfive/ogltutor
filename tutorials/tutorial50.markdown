@@ -9,58 +9,62 @@ OpenGL). Vulkan был анонсирован в феврале 2016, через
 вдаваться в отличия Vulkan, а только скажу, что он в разы более низкоуровневый
 чем OpenGL, и даёт разработчику большой контроль над производительностью. Но с
 большой силой приходит и большая ответственность. Разработчик должен взять под
-контроль самые разные аспекты, например, буфер комманд, синхронизацию и 
+контроль самые разные аспекты, например, буфер комманд, синхронизацию и
 управление памятью; ранее этим занимался драйвер. Но благодаря тому, что
 разработчик детально знает структуру собственного приложения, Vulkan API может
 быть использован таким образом, чтобы увеличить общую производительность.
 
-На мой взляд, больше всего в Vulkan людей шокирует то, сколько требуется написать 
-кода только для того, что бы вывести на экран первый треугольник. В первых уроках 
+На мой взляд, больше всего в Vulkan людей шокирует то, сколько требуется написать
+кода только для того, что бы вывести на экран первый треугольник. В первых уроках
 по OpenGL требуется буквально пара строк, но здесь, для многих, желающих начать
 цикл статей по Vulkan, это становится целым испытанием. Поэтому, как и всегда для
-OGLDEV, я начну представлять материал по шагам. Мы выведем первый треугольник за 
-пару уроков, понемногу продвигаясь в каждом. Кроме того, я постараюсь не 
-вываливать дюжину вызовов API в одном длинном куске кода, а сразу начну 
+OGLDEV, я начну представлять материал по шагам. Мы выведем первый треугольник за
+пару уроков, понемногу продвигаясь в каждом. Кроме того, я постараюсь не
+вываливать дюжину вызовов API в одном длинном куске кода, а сразу начну
 заварачивать в приложение с простым дизайном, который, я надеюсь, пригодится вам
-для будущих приложений. Но в любом случае, это обучающее приложение, и не 
+для будущих приложений. Но в любом случае, это обучающее приложение, и не
 стесняйтесь его изменять под себя.
 
-Двигаясь по коду мы будем поочередно изучать ключевые компоненты Vulkan, поэтому 
+Двигаясь по коду мы будем поочередно изучать ключевые компоненты Vulkan, поэтому
 сейчас я просто хочу представить общую диаграмму:
 
 <img src="./Tutorial 50 - Introduction To Vulkan_files/vulkan.jpg" <="" img="">
 
-Эта диаграмма ни в коем случае не претендует на полноту. Она содержит только 
+Эта диаграмма ни в коем случае не претендует на полноту. Она содержит только
 основные компоненты, которые будут использоваться в большинстве приложений. Связи
 между компонентами обозначают зависимости в момент создания, либо перечисления.
-Например, для создания поверхности требуется экземпляр объекта, а когда вы 
-перечисляете физические устройства в системе, то также требуется экземпляр. Два 
-цвета объясняют наш дизайном в общих чертах. Красный объединяет то, что я бы 
-назвал "ядром", а зелёный те части, которые будут "приложением". Позже мы 
+Например, для создания поверхности требуется экземпляр объекта, а когда вы
+перечисляете физические устройства в системе, то также требуется экземпляр. Два
+цвета объясняют наш дизайном в общих чертах. Красный объединяет то, что я бы
+назвал "ядром", а зелёный те части, которые будут "приложением". Позже мы
 разберем для чего это нужно. Код самого приложения, которое вы будете писать,
 будет наследоваться от "приложения", и все его части будут вам доступны для
 использования. Очень надеюсь, что этот дизайн поможет нам в разработке следующих
 частей этого цикла по Vulkan.
 
-## System Setup
+## Подготовка системы
 
-The first thing we need to do is to make sure your system supports Vulkan and get
-everything ready for development. You need to verify that your graphics card supports Vulkan
-and install the latest drivers for it. Since Vulkan is still new it's best to check for
-drivers updates often because hardware vendors will probably fix a lot of bugs before everything
-stabilizes. Since there are many GPUs available I can't provide much help here. Updating/installing
-the driver on Windows should be fairly simple. On Linux the process may be a bit more involved. My main development
-system is Linux Fedora and I have a GT710 card by NVIDIA. NVIDIA provide a binary run file which can
-only be installed from the command line. Other vendors have their own processes.
-On Linux you can use the 'lspci' to scan your system for devices
-and see what GPU you have. You can use the '-v', '-vv' and '-vvv' options to get increasingly
-more info on your devices.
+Первое что нам нужно, это проверить, что система поддерживает Vulkan, и
+всё подготовить к разработке. Вы должны проверить, что ваша видеокарта поддерживает
+Vulkan, и установить свежие драйвера. Так как Vulkan ещё совсем недавно вышел в
+свет, то лучше почаще проверять обновления драйверов, там могут быть исправления
+ошибок. Поскольку существует огромное число GPU, я не могу подробно рассказать о
+каждом. Обновление / установка драйверов под Windows не должна вызвать затруднений.
+Под Linix могут потребоваться некоторые танцы с бубном. Для разработки я использую
+Linux Fedora с видеокартой GT710 от NVIDIA на борту. NVIDIA предоставляет один
+бинарный файл, который может быть установлен только из командной строки. У других
+производителей всё может быть иначе. Под Linux вы можете использовать `lspci` для
+скана системы и поиска своего GPU. Попробуйте добавить опции `-v`, `-vv` и `-vvv`
+чтобы увидеть больше деталей.
 
-The second thing we need is the Vulkan SDK by Khronos, available <a href="https://vulkan.lunarg.com/">here</a>.
-The SDK includes the headers and libraries we need as well as many samples that you can use
-to get more info beyond what this tutorial provides. At the time of writing this the latest version is 1.0.30.0
-and I urge you to update often because the SDK is in active development. That version number will be used throughout
-the next few sections so make sure you change it according to the version you have.
+Далее нам потребуется установить Vulkan SDK от компании Khronos, скачать который
+можно [по ссылке](https://vulkan.lunarg.com/). SDK помимо заголовочных файлов и
+библиотек включает в себя большое число примеров, которые вы можете использовать
+для лучшего ознакомления с возможностями API. На момент написания урока, актуальная
+версия SDK 1.0.30.0, и я призываю вас регулярно проверять обновления, так как
+SDK сейчас находится в активной разработке. В нескольких следующих разделах версия
+будет указываться в коммандах в явном виде, так что не забывайте изменять её на
+ту, которую вы устанавливаете.
 
 ### Linux
 
@@ -107,14 +111,14 @@ but the code I provide will assume it is in the home directory so you will need 
 
 ### Windows
 
-Installation on Windows is simpler than on Linux. You just need to get the latest version from
-<a href="https://vulkan.lunarg.com/sdk/home#windows">here</a>, double click the executable installer
-and after agreeing to the license agreement and selecting the target directory you are done.
-I suggest you install the SDK under c:\VulkanSDK to make it compatible
-with the Visual Studio solution that I provide, but it is not a must. If you install it somewhere else
-make sure you update the include and link directories in the project files. See details in the next section.
+Установка под Windows ощутимо проще чем под Linux. Просто скачайте последнюю версию
+[здесь](https://vulkan.lunarg.com/sdk/home#windows), дважды кликните по файлу установщика,
+согласитесь со всем, что вам предложат, выберите директорию установки, и, в общем-то, всё.
+Я бы предложил устанавливать SDK в *c:\VulkanSDK* для обеспечения совместимости с моим проектом
+в Visual Studio. Если вы устанавливает куда-то ещё, то не забудьте обновить в проекте
+директории с заголовочными файлами и библиотеками. Детали вы найдете в следующем разделе.
 
-## Building and Running
+## Сборка и запуск
 
 ### Linux
 
