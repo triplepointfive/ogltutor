@@ -53,8 +53,8 @@ Vulkan, и установить свежие драйвера. Так как Vul
 Под Linix могут потребоваться некоторые танцы с бубном. Для разработки я использую
 Linux Fedora с видеокартой GT710 от NVIDIA на борту. NVIDIA предоставляет один
 бинарный файл, который может быть установлен только из командной строки. У других
-производителей всё может быть иначе. Под Linux вы можете использовать `lspci` для
-скана системы и поиска своего GPU. Попробуйте добавить опции `-v`, `-vv` и `-vvv`
+производителей всё может быть иначе. Под Linux вы можете использовать *lspci* для
+скана системы и поиска своего GPU. Попробуйте добавить опции *-v*, *-vv* и *-vvv*
 чтобы увидеть больше деталей.
 
 Далее нам потребуется установить Vulkan SDK от компании Khronos, скачать который
@@ -68,46 +68,44 @@ SDK сейчас находится в активной разработке. В
 
 ### Linux
 
-Khronos provides a package only for Ubuntu in the form of an executable run file. Executing this
-file should install everything for you but on Fedora I encoutered some difficulties so I used the
-following procedure (which is also forward looking in terms of writing the code later):
+Khronos предоставляет запускаемый файл предназначенный для Ubuntu. После запуска он
+устанавливает всё что требуется, но при запуске под Fedora я столкнулся с некоторыми
+сложностями. Я использовал следующие команды:
 
 - bash$ chmod +x vulkansdk-linux-x86_64-1.0.30.0.run
 - base$ ./vulkansdk-linux-x86_64-1.0.30.0.run **--target** VulkanSDK-1.0.30.0 **--noexec**
 - base$ ln -s ~/VulkanSDK-1.0.30/1.0.30.0 ~/VulkanSDK
 
-The above commands extract the contents of the package without running its internal scripts. After
-extraction the directory VulkanSDK-1.0.30.0 will contain a directory called 1.0.30.0 where the actual
-content of the package will be located. Let's assume
-I ran the above commands in my home directory (a.k.a in bash as '~') so we should end up with a '~/VulkanSDK' symbolic
-link to the directory with the actual content (directories such as 'source', 'samples', etc).
-This link makes it easier to switch your development environment to newer versions of the SDK.
-It points to the location of the headers and libraries that we need. We will see later how to connect
-them to the rest of the system. Now do the following:
+Эти команды извлекают содержимое пакета без запуска внутренних скриптов. После распаковки
+директория *VulkanSDK-1.0.30.0* будет содержать каталог *1.0.30.0* с файлами пакета.
+Предположим, что я запускал эти команды находясь в домашнем каталоге (известном как *~*),
+тогда мы получим символьную ссылку *~/VulkanSDK* на каталог с содержимым пакета (с
+каталогами *source*, *samples*, и т.д.). Ссылка упрощает переключение среды разработки на
+более свежую версию. По ссылке можно получить библиотеки и заголовочные файлы. Чуть позднее
+мы разберемся с тем, как их использовать. А пока что сделайте следующее:
 
 - bash$ cd VulkanSDK/1.0.30.0
 - bash$ ./build_examples.sh
 
-If everything went well the examples were built into **'examples/build'**. To run the examples you must first
-cd into that directory. You can now run './cube' and './vulkaninfo' to make sure Vulkan runs
-on your system and get some useful information on the driver.
+Если всё прошло успешно, то примеры были собраны в *examples/build*. Для их запуска вы должны
+*cd* в этот каталог. А теперь попробуйте запустить *./cube* и *./vulkaninfo* чтобы убедиться,
+что Vulkan запускается на вашей системе, и получить информацию о драйвере.
 
-Hopefully everything is OK so far so we want to create some symbolic links that will make the files
-we need for development easily accessible from our working environment. Change to the root user
-(by executing 'su' and entering the root password) and execute the following:
+Надеюсь что всё прошло успешно, так что мы можем добавить немного символических ссылок, чтобы
+удобнее обращаться к файлам, которые нам требуются при разработке. Зайдите под суперпользователем
+(с помощью вызова *su* и ввода пароля) и запустите команды:
 
 - bash# ln -s /home/&lt;your username&gt;/VulkanSDK/x86_x64/include/vulkan /usr/include
 - base# ln -s /home/&lt;your username&gt;/VulkanSDK/x86_x64/lib/libvulkan.so.1 /usr/lib64
 - base# ln -s /usr/lib64/libvulkan.so.1 /usr/lib64/libvulkan.so
 
-What we did in the above three commands is to create a symbolic link from /usr/include to the
-vulkan header directory. We also created a couple of symbolic links to the shared object files
-against which we are going to link our executables. From now one whenever we download a new version
-of the SDK we just need to change the symbolic link '~/VulkanSDK' to the new location in order
-to keep the entire system up to date. To emphasis: the procedure as the root user must
-only be executed once. When you get a newer version of the SDK you will only need to extract it and
-update the symbolic link from your home directory. You are free to place that link anywhere you want
-but the code I provide will assume it is in the home directory so you will need to fix that.
+С помощью этих трёх команд мы добавили символические ссылки из */usr/include* в каталог
+заголовочных файлов Vulkan. Кроме того, мы добавили ссылки на динамические библиотеки,
+которые будут использоваться при линковке. Теперь, если мы обновили SDK, то нам требуется только
+изменить ссылку *~/VulkanSDK* на местоположение новой версии. Отметим, что вызов команд из под
+рута требуется только один раз. После обновления SDK потребуется изменить ссылку только в
+домашнем каталоге. Вы, конечно, можете дать ссылке любое имя, но код, который идет с
+моими уроками, предполагает, что она находится в домашнем каталоге.
 
 ### Windows
 
