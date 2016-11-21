@@ -112,28 +112,27 @@ Khronos предоставляет запускаемый файл предна�
 Установка под Windows ощутимо проще чем под Linux. Просто скачайте последнюю версию
 [здесь](https://vulkan.lunarg.com/sdk/home#windows), дважды кликните по файлу установщика,
 согласитесь со всем, что вам предложат, выберите директорию установки, и, в общем-то, всё.
-Я бы предложил устанавливать SDK в *c:\VulkanSDK* для обеспечения совместимости с моим проектом
-в Visual Studio. Если вы устанавливает куда-то ещё, то не забудьте обновить в проекте
+Я бы предложил установить SDK в *c:\VulkanSDK* для обеспечения совместимости с моим проектом
+Visual Studio. Если вы устанавливаете куда-то ещё, то не забудьте обновить в проекте
 директории с заголовочными файлами и библиотеками. Детали вы найдете в следующем разделе.
 
 ## Сборка и запуск
 
 ### Linux
 
-My main development environment on Linux is <a href="http://www.netbeans.org/">Netbeans</a>. The source
-code that accompanies all my tutorials contains project files which can be used with the
-C/C++ Netbeans download bundle. If you followed the above system setup procedure then these projects
-should work out of the box for you (and please let me know if there are any problems). If you are using
-a different build system you need to make sure to add the following:
+Под Linux я в основном разрабатываю в [Netbeans](http://www.netbeans.org/). Код, который идет с уроками,
+содержит проекты сборки Netbeans для C/C++. Если вы установили SDK как я написал выше, то эти проекты
+должны работать их коробки (и, пожалуйста, сообщите мне о любых проблемах). Если вы используете
+другую систему сборки, убедитесь, что вы добавили:
 
-- To the compile command: **-I&lt;path to VulkanSDK/1.0.30.0/x86_64/include&gt;**
-- To the link command: **-L&lt;path to VulkanSDK/1.0.30.0/x86_64/lib&gt; -lxcb -lvulkan'**
+- В команду компиляции: **-I&lt;path to VulkanSDK/1.0.30.0/x86_64/include&gt;**
+- В команду линковки: **-L&lt;path to VulkanSDK/1.0.30.0/x86_64/lib&gt; -lxcb -lvulkan'**
 
-Even if you don't use Netbeans I suggest you go into 'ogldev/tutorial50' after you unzip the
-<a href="http://ogldev.org/ogldev-source.zip">tutorial source package</a> and run 'make'. I provide
-the makefiles that Netbeans generates so you can check whether your system is able to build them
-or something is missing. If everything was ok you can now run '**dist/Debug/GNU-Linux-x86/tutorial50**'
-from within '**ogldev/tutorial50**'.
+Даже если вы не используете Netbeans, вы всё ещё можете скомпилировать урок командой *make*. Netbeans
+самостоятельно генерирует Makefile. Этого будет достаточно, чтобы проверить настройку системы. Для этого
+скачайте [исходники](http://ogldev.org/ogldev-source.zip), разархивируйте их, зайдете в каталог
+*ogldev/tutorial50*, а затем запустите команду *make*. Если вы всё сделали правильно, то вы можете
+запустить *dist/Debug/GNU-Linux-x86/tutorial50* из *ogldev/tutorial50*.
 
 ### Windows
 
