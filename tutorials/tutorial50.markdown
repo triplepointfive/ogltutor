@@ -136,28 +136,33 @@ Visual Studio. Если вы устанавливаете куда-то ещё, 
 
 ### Windows
 
-If you installed the SDK under 'c:\VulkanSDK' then the Visual Studio project files I supply
-should work out of the box. If you haven't or you want to setup a Visual Studio project from scratch then
-follow the steps below.
+Если вы установили SDK в *c:\VulkanSDK*, то мои проекты Visual Studio должны
+работать прямо из коробки. Если же нет, или вы хотите создать новый проект
+Visual Studio, то сделайте так:
 
-To update the include directory right click on the project in the solution explorer, go to **'Properties'**
-and then to **'Configuration Properties -&gt; C/C++ -&gt; General'**. Now you must add **'c:\VulkanSDK\&lt;version&gt;\Include'**
-to **'Additional Include Directories'**. See example below:
+Для обновления каталога с заголовочными файлами нажмите на проект в окошке
+*solution explorer*, перейдите в *Properties*, а затем в
+*Configuration Properties -&gt; C/C++ -&gt; General*. Теперь вы должны добавить
+*c:\VulkanSDK\&lt;version&gt;\Include* в *Additional Include Directories*.
+Пример приведен ниже:
 
 <img src="./Tutorial 50 - Introduction To Vulkan_files/include.jpg"><br>
 
-To update the link directory right click on the project in the solution explorer, go to **'Properties'**
-and then to **'Configuration Properties -&gt; Link -&gt; General'**. Now you must add **'c:\VulkanSDK\&lt;version&gt;\Bin32'**
-to **'Additional Library Directories'**. See example below:
+Для обновления каталога с файлами библиотеки нажмите правой кнопкой мыши на проект
+в окошке *solution explorer*, перейдите в *Properties* и затем в
+*Configuration Properties -&gt; Link -&gt; General*. Теперь вы должны добавить
+*c:\VulkanSDK\&lt;version&gt;\Bin32* в поле *Additional Library Directories*.
+Пример приведен ниже:
 
 <img src="./Tutorial 50 - Introduction To Vulkan_files/link.jpg"><br>
 
-While you are still in the linker settings go to **'Input'** (just one below 'General') and add **'vulkan-1.lib'** to
-**'Additional Dependencies"**.
+Пока вы ещё настраиваете линковщик зайдите в *Input* (сразу же под *General*), а
+затем добавьте *vulkan-1.lib* в поле *Additional Dependencies*.
 
-## General Comments
+## Общие комментарии
 
-Before we get going I have a few comments about some of my design choices with regard to Vulkan:
+Прежде чем мы перейдем к коду, я бы хотел отметить некоторые мои решения о
+дизайне приложений с использованием Vulkan.
 
 1. Many Vulkan functions (particularly the ones used to create objects) take a structure as
 one of the parameters. This structure usually serve as a wrapper for most of the parameters
