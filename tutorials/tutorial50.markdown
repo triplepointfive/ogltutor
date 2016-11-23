@@ -42,7 +42,7 @@ OGLDEV, я начну представлять материал по шагам.
 использования. Очень надеюсь, что этот дизайн поможет нам в разработке следующих
 частей этого цикла по Vulkan.
 
-## Подготовка системы
+### **Подготовка системы**
 
 Первое что нам нужно, это проверить, что система поддерживает Vulkan, и
 всё подготовить к разработке. Вы должны проверить, что ваша видеокарта поддерживает
@@ -116,7 +116,7 @@ Khronos предоставляет запускаемый файл предна�
 Visual Studio. Если вы устанавливаете куда-то ещё, то не забудьте обновить в проекте
 директории с заголовочными файлами и библиотеками. Детали вы найдете в следующем разделе.
 
-## Сборка и запуск
+### **Сборка и запуск**
 
 ### Linux
 
@@ -136,7 +136,7 @@ Visual Studio. Если вы устанавливаете куда-то ещё, 
 
 ### Windows
 
-Если вы установили SDK в *c:\VulkanSDK*, то мои проекты Visual Studio должны
+Если вы установили SDK в *c:\\VulkanSDK*, то мои проекты Visual Studio должны
 работать прямо из коробки. Если же нет, или вы хотите создать новый проект
 Visual Studio, то сделайте так:
 
@@ -159,57 +159,62 @@ Visual Studio, то сделайте так:
 Пока вы ещё настраиваете линковщик зайдите в *Input* (сразу же под *General*), а
 затем добавьте *vulkan-1.lib* в поле *Additional Dependencies*.
 
-## Общие комментарии
+### **Общие комментарии**
 
 Прежде чем мы перейдем к коду, я бы хотел отметить некоторые мои решения о
 дизайне приложений с использованием Vulkan.
 
-1. Many Vulkan functions (particularly the ones used to create objects) take a structure as
-one of the parameters. This structure usually serve as a wrapper for most of the parameters
-the function needs and it helps in keeping the number of parameters to the function low. The Vulkan
-architects decided to place a member called **sType** as the first member in all these structures.
-This member is of an enum type and every structure has its own code. This allows the driver to identify
-the type of the structure using only its address. All of these enum code have a **VK_STRUCTURE_TYPE_** prefix.
-For example, the code for the structure used in the creation of the instance is called
-**VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO**.
+1. Многие функции в Vulkan (особенно те, которые создают объекты) принимают на
+вход параметр - структуру. Такая структура используется как обертка над большей
+частью параметров, которые нужны функции. Благодаря этому у функций ощутимо меньше
+входящих параметров. Разработчики Vulkan решили, что первым параметром у таких
+структур будет свойство *sType*. Оно имеет перечислимый тип, и для каждой структуры
+свой код. Это позволяет драйверу определять тип структуры зная только её адрес.
+У каждого кода есть префикс **VK_STRUCTURE_TYPE_**. Например, код структуры
+используемой при создании экземпляра **VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO**.
 
-  Whenever I declare a variable of one of these structure types the first member I update will be sType.
-  To save time I won't comment about it later in the source walkthrough.
+    Каждый раз когда я объявляю переменную с типом одной из этих структур, первое
+    что я делаю, это обновляю значение *sType*. Для экономии бумаги в дальнейшем я
+    не буду это упоминать.
 
-2. Another comment on these Vulkan structures - they contain quite a lot of stuff which we don't need
-in our first few steps. To keep the code as short as possible (as well as the text here...) I always
-initialize the memory of all structures to zero (using the **struct = {}** notation) and I will only set and describe
-the structure members that cannot be zero. I will discuss the stuff that I skipped in future tutorials
-as they become relevant.
+2. Ещё одно важное замечание об этих структурах - у них очень много свойств,
+которые нас пока не волнуют. Что бы код был компактнее (а уроки короче...) я
+всегда буду инициализировать структуры нулями (с помощью нотации **struct = {}**)
+и в явном виде обозначать только те свойства, которые не могут быть нулями.
+Я объясню их в следующих уроках, когда эти свойства будут востребованы.
 
-3. Vulkan functions are either void or they return a **VkResult** which is the error code. The error code
-is an enum where **VK_SUCCESS** is zero and everything else is greater than zero. When it is possible
-I check the return value for errors. If an error occured I print a message to the console (on Windows
-there should be a message box) and exit. Error handling in real world applications tend to make the
-code more complex and I want to keep it as simple as possible.
+3. В Vulkan функции либо являются процедурами, либо возвращают код ошибки в объекте
+**VkResult**. Код ошибки является перечислением, где **VK_SUCCESS** равно 0,
+а все остальные коды ошибок больше 0. По мере возможностей я добавляю проверку на
+ошибки. Если возникла ошибка, то я вывожу сообщение в консоль (а в Window в отдельном
+окошке) и выхожу. Обработка ошибок в реальном приложении слишком усложняет код, а
+моя задача сохранить простоту.
 
-4. Many Vulkan functions (particularly of creation type) can take a pointer to an allocator function.
-These allocators allow you to control the process of allocating memory that the Vulkan functions need.
-I consider this as an advanced topic and will not discuss it. We will pass NULL as the allocators
-so the driver will use its default.
+4. Многие функции Vulkan (особенно те, которые создают объекты) принимают на вход
+функцию выделения памяти. Такой подход позволяет контролировать процесс выделения
+памяти Vulkan. На мой взляд это тема для уже опытных разработчиков, поэтому мы
+не будем замарачиваться с этим и всегда будем передавать NULL. В этом случае
+драйвер будет использовать свою функцию по умолчанию.
 
-5. Vulkan does not guarantee that its functions will be automatically exposed by the implementing library.
-This means that on some platforms you might get a segmentation fault when you call a Vulkan function because
-it turns out to be a NULL. In these cases you have to use **vkGetInstanceProcAddr()** to get the function address
-before it is used (remember that with OpenGL we had GLEW to save us from all this hassle).
-My personal experience with my driver was that only vkCreateDebugReportCallbackEXT() was not available. This function
-is only required for the optional validation layer. Therefore, I decided to take a risk and release the
-tutorial without fetching the addresses for all the functions that I used. If readers will report problems
-on their platforms I will update the code.
+5. Vulkan не гарантирует экспорт своих функций в библиотеке. Это значит, что на
+некоторых платформах вы можете получить *segmentation fault* при вызове функции
+Vulkan так как она оказалась равна NULL. В этом случае вы вынуждены использовать
+**vkGetInstanceProcAddr()** для получения адреса функции перед её использованием
+(вспомнил, что в OpenGL для этой проблемы мы использовали GLEW). В моем случае
+только vkCreateDebugReportCallbackEXT() была не доступна. Эта функция требуется
+только для дополнительной проверочной прослойки. Поэтому, я решил рискнуть и
+для всех функций которые я использую в уроке не получать адресов. Если поступят
+жалобы, то я обновлю код урока.
 
-6. Every serious software has to deal with object deallocation or it will eventually run out of memory.
-In this tutorial I'm keeping things simple and not destroying any of the objects that I allocate.
-They are destroyed anyway when the program shuts down. I will probably revisit this topic in the future
-but for now just remember that almost every &lt;**vkCreate*()** function has a corresponding **vkDestroy*()**
-and you need to be careful if you are destroying stuff while the program is running. You can
-find more information about it <a href="https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/xhtml/vkspec.html#fundamentals-objectmodel-overview">here</a>.
+6. Каждое серьезное приложение обязано позаботиться об освождении память, иначе
+не избежать утечек. В этом уроке я не стал усложнять и не уничтожанию никакие
+объекты. В любом случае они удалятся при завершении программы. В будущем я,
+возможно, ещё вернусь к этой теме, но пока просто запомните, что почти все
+функции вида &lt;**vkCreate*()** имеет в пару **vkDestroy*()**. И будьте
+осторожны при удалении объектов пока программа ещё работает. Больше деталей вы
+найдете по [ссылке](https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/xhtml/vkspec.html#fundamentals-objectmodel-overview).
 
-## Code Structure
+### **Структура проекта**
 
 Here's a short summary of the files that contain the code that we are going to review. The path relates to the
 root of the ogldev software package:
