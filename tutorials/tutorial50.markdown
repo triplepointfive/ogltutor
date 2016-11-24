@@ -216,47 +216,46 @@ Vulkan так как она оказалась равна NULL. В этом сл
 
 ### **Структура проекта**
 
-Here's a short summary of the files that contain the code that we are going to review. The path relates to the
-root of the ogldev software package:
+Далее приведен краткий перечень файлов, которые мы собираемся обозревать.
 
-1. **tutorial50/tutorial50.cpp** - location of the main() function.
+1. **tutorial50/tutorial50.cpp** - здесь определена функция *main()*.
 
-2. **include/ogldev_vulkan.h** - primary header for all of our Vulkan code. This is the only place where
-the Vulkan headers by Khronos are included. You can enable the validation layer here by uncommenting
-**ENABLE_DEBUG_LAYERS**. This file contains a few Vulkan helper functions and macros as well
-as the definition of the **VulkanWindowControl** class.
+2. **include/ogldev_vulkan.h** - основной заголовочный и единственный файл в
+котором загружаются заголовочные файлы Vulkan. Вы можете включить проверочную
+прослойку разкоментив **ENABLE_DEBUG_LAYERS**. Этот файл содержит несколько
+вспомогательных функций и макросов, а так же определение класса **VulkanWindowControl**.
 
-3. **Common/ogldev_vulkan.cpp** - implementation of the functions defined in ogldev_vulkan.h
+3. **Common/ogldev_vulkan.cpp** - реализация функций, определённых в *ogldev_vulkan.h*.
 
-4. include/ogldev_vulkan_core.h** - declaration of the **OgldevVulkanCore** which is the primary class
-that we will develop.
+4. **include/ogldev_vulkan_core.h** - объявление главного класса **OgldevVulkanCore** в
+котором сосредоточена вся суть.
 
-5. **Common/ogldev_vulkan_core.cpp** - implementation of the **OgldevVulkanCore** class.
+5. **Common/ogldev_vulkan_core.cpp** - реализация класса **OgldevVulkanCore**.
 
-6. **include/ogldev_xcb_control.h** - declaration of the **XCBControl** class that creates a window
-surface on Linux.
+6. **include/ogldev_xcb_control.h** - объявление класса **XCBControl**, который
+создает окно в Linux.
 
-7. **Common/ogldev_xcb_control.cpp** - implementation of **XCBControl**.
+7. **Common/ogldev_xcb_control.cpp** - реализация **XCBControl**.
 
-8. **include/ogldev_win32_control.h** - declaration of the **Win32Control** class that creates a window
-surface on Windows.
+8. **include/ogldev_win32_control.h** - объявление класса **Win32Control**, который
+создает окно в Windows.
 
-9. **Common/ogldev_win32_control.cpp** - implementation of **Win32Control**.
+9. **Common/ogldev_win32_control.cpp** - реализация **Win32Control**.
 
-Note that on both Netbeans and Visual Studio the files are divided between the 'tutorial50' and 'Common' projects.
+Как в Netbeans, так и в Visual Studio файлы между проектами *tutorial50* и *Common*.
 
 ## [Прямиком к коду!](https://github.com/triplepointfive/ogldev/tree/master/tutorial50)
 
-I hope that you successfully completed the above procedures and you are now ready to dive into
-the internals of Vulkan itself. As I said, we are going to develop our first demo in several
-steps. The first step will be to setup four important Vulkan objects: the instance, surface,
-physical device and logical device. I'm going to describe this by walking through my software
-design but you are welcomed to throw this away and just follow the Vulkan calls themselves.
+Я надеюсь, что вы справились с первой частью и теперь полностью готовы
+погрузиться в Vulkan. Как я уже говорил, мы собираемся разработать наше первое
+демо приложение в несколько этапов. Первым шагом будет настроить самые основные
+объекты Vulkan: экземпляр, поверхность, физическое и логическое устройства.
+Я буду объяснять следуя моему дизайну приложения, но вы вольны пропустить эту
+часть и изучать только обращения к Vulkan.
 
-The first thing we need to do is to include the Vulkan headers. I've added ogldev_vulkan.h as
-the primary Vulkan include file in my projects. This will be the only place where I will include
-the Vulkan header files and everything else will just include this file. Here's the relevant
-piece of code:
+В самом начале мы включаем заголовки Vulkan. В моем проекте все файлы Vulkan
+включаются только в файле *ogldev_vulkan.h*. Поэтому во всём остальном проекте
+включается только этот файл. Вот соответствующие куски кода:
 
 	  #ifdef _WIN32
     #define VK_USE_PLATFORM_WIN32_KHR
@@ -268,13 +267,16 @@ piece of code:
     #include &lt;vulkan/vk_sdk_platform.h&gt;
     #endif
 
-Note that we define different _PLATFORM_ macros for Windows and Linux. These macros enable
-the extensions that support the windowing systems in each OS. The reason that we include the headers
-like that is that on Linux they are installed in a system directory ( **/usr/include/vulkan** ) whereas
-on Windows they are installed in a standard directory.
+Обратите внимание на то, что мы добавили различные макросы для Windows и Linux.
+Эти макросы включают дополнения для поддержки оконой системы для каждой ОС.
+Причина, по которой включение заголовков отличается кавычками, в том, что в
+Linux эти файлы устанавливаются в системный каталог (**/usr/include/vulkan**),
+а в Windows в стардартный каталог.
 
-Let's start by reviewing the class **OgldevVulkanCore** whose job is to create and maintain
-the core objects (note that I'm using red in order to mark all Vulkan structs, enums, functions, etc):
+Давайте начнем ревью с класса **OgldevVulkanCore**, который отвечает за создание
+и работу с главными объектами.
+
+# (note that I'm using red in order to mark all Vulkan structs, enums, functions, etc):
 
     class OgldevVulkanCore
     {
@@ -304,23 +306,27 @@ the core objects (note that I'm using red in order to mark all Vulkan structs, e
         void SelectPhysicalDevice();
         void CreateLogicalDevice();
 
-        // Vulkan objects
+        // Объекты Vulkan
         <font color="red">VkInstance m_inst;
         VkDevice m_device;
         VkSurfaceKHR m_surface;</font>
         VulkanPhysicalDevices m_physDevices;
 
-        // Internal stuff
+        // Внутрение детали
         std::string m_appName;
         int m_gfxDevIndex;
         int m_gfxQueueFamily;
     };
 
-This class has three pure Vulkan members (m_inst, surface and m_device) as well
-as a vector of Vulkan objects called m_physDevices (see the definition below). In addition, we have
-members to keep the application name, an index to the physical device we will
-be using and an index to the queue family. The class also contains a few getter functions
-and an Init() function that set's everything up. Let's see what it does.
+Помимо вектора объектов Vulkan *m_physDevices* (инициирован будет далее), класс
+включает в себя три свойства Vulkan (*m_inst*, *surface* и *m_device*). Кроме
+того, мы храним название приложения, индекс используемого физического устройства и
+индекс
+
+# and an index to the queue family
+
+. Класс также содержит несколько методов чтения и функцию Init(), которая всё настраивает.
+Давайте разберёмся, что же она делает.
 
     void OgldevVulkanCore::Init(VulkanWindowControl* pWindowControl)
     {
@@ -329,12 +335,12 @@ and an Init() function that set's everything up. Let's see what it does.
 
         CreateInstance();
 
-#ifdef WIN32
+        #ifdef WIN32
         assert(0);
-#else
+        #else
         m_surface = pWindowControl-&gt;CreateSurface(m_inst);
         assert(m_surface);
-#endif
+        #endif
         printf("Surface created\n");
 
         VulkanGetPhysicalDevices(m_inst, m_surface, m_physDevices);
@@ -342,15 +348,15 @@ and an Init() function that set's everything up. Let's see what it does.
         CreateLogicalDevice();
     }
 
-This function takes a pointer to a VulkanWindowControl object. We will review this object
-later. For now it suffices to say that this is an OS specific class whose job is to create
-a window surface where rendering will take place. As in OpenGL, the Vulkan core spec does
-not include windowing. This task is left to extensions and we have windowing extensions for all
-major operating systems. An extension is simply an addition to Vulkan which is not part of the core
-spec. Members of Khronos can publish their own extensions and add them to the
-<a href="https://www.khronos.org/registry/vulkan/">registry</a>. Driver vendors can decide
-which extension they want to implement. The developer can then query for the list of available extensions
-during runtime and proceed accordingly.
+Эта функция принимает на вход объект *VulkanWindowControl*. Мы потом разберёмся с этим
+объектом. Пока что достаточно сказать, что это ОС зависимый класс, задача которого - это
+создание оконной поверхности, на которую будет происходить рендер. Совсем как и в OpenGL,
+ядро Vulkan не содержит работы с окнами. Эта задача отдана расширениям, и у нас есть
+полный набор для всех основных ОС. Участники Khronos могут публиковать свои собственные
+расширения в общем [регистре](https://www.khronos.org/registry/vulkan/). Разработчики
+драйверов сами решают какие из разрешений они хотят реализовывать. А уже пользователи
+Vulkan могут во время работы приложения смотреть в список доступных разрешений и
+решать что с ними делать.
 
 We start by enumerating all these extensions. This is done in the following wrapper function:
 
