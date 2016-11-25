@@ -257,14 +257,14 @@ Vulkan так как она оказалась равна NULL. В этом сл
 включаются только в файле *ogldev_vulkan.h*. Поэтому во всём остальном проекте
 включается только этот файл. Вот соответствующие куски кода:
 
-	  #ifdef _WIN32
+    #ifdef _WIN32
     #define VK_USE_PLATFORM_WIN32_KHR
     #include "vulkan/vulkan.h"
     #include "vulkan/vk_sdk_platform.h"
     #else
     #define VK_USE_PLATFORM_XCB_KHR
-    #include &lt;vulkan/vulkan.h&gt;
-    #include &lt;vulkan/vk_sdk_platform.h&gt;
+    #include <vulkan/vulkan.h>
+    #include <vulkan/vk_sdk_platform.h>
     #endif
 
 Обратите внимание на то, что мы добавили различные макросы для Windows и Linux.
@@ -358,7 +358,8 @@ Linux эти файлы устанавливаются в системный к�
 Vulkan могут во время работы приложения смотреть в список доступных разрешений и
 решать что с ними делать.
 
-We start by enumerating all these extensions. This is done in the following wrapper function:
+Мы начнем с перечисления всех расширений. Происходит это в следующей функции -
+декораторе:
 
     void VulkanEnumExtProps(std::vector<vkextensionproperties>&amp; ExtProps)
     {
@@ -376,20 +377,25 @@ We start by enumerating all these extensions. This is done in the following wrap
         for (uint i = 0 ; i &lt; NumExt ; i++) {
             printf("Instance extension %d - %s\n", i, ExtProps[i].extensionName);
         }
-    }</vkextensionproperties>
+    }
 
-The above function is a wrapper to the Vulkan API <font color="red">vkEnumerateInstanceExtensionProperties()</font> which
-returns the extensions available on the system. The way we use this function is very common in Vulkan.
-The first call returns the number of extensions which we use to resize the extension vector. The second
-call retrieves the extensions themselves. The first parameter can be used to select a specific layer.
-Vulkan is structured in a way that allows vendors to add logic layers that do stuff like validation, extra
-logging, etc. You can decide at runtime which layer you want to enable. For example, while developing your application
-you can enable the validation layer and when distributing it to your users - disable it. Since we are
-interested in all the extensions we use NULL as the layer.
+Функция выше обрамляет вызов **vkEnumerateInstanceExtensionProperties()** к
+Vulkan API, который возвращает доступные в системе расшинения. То, как мы
+используем это функцию, очень распространено в Vulkan. Первый вызов возвращает
+количество расширений. Это число мы используем для задания размера вектора
+расширений. Второй вызов уже возвращает сами расширения. Первый параметр
+позволяет выбрать прослойку. Vulkan устроен таким образом, что производители
+видеокарт могут добавлять логические прослойки для валидации, дополнительная
+отладочная печать и прочее. Во время работы приложения мы вольны выбирать какой
+из слоев включить. Например, во время разработки включить слой с проверками
+данных, а при распространении приложения уже отключать. Так как нам нужны
+все расширения, то мы передаем NULL в качестве слоя.
 
-Once we get the extension list we just print it. If you want to do some additional logic on the extension list you can do it here.
-The reason that we print it is to make sure the extensions we enable in the next function are included.
-Next in the initialization process is the creation of the Vulkan instance:
+После получения списка расширений мы печатаем их. Если вы хотите произвести
+какие-то действия со списком расширений, то эту логику можно добавить сюда.
+Печать списка расширений позволит убедиться в том, что требуемые далее
+расширения включены в этот список. Следующий этап инициализации заключается
+в создании экземпляра Vulkan:
 
     void OgldevVulkanCore::CreateInstance()
     {
@@ -448,25 +454,34 @@ Next in the initialization process is the creation of the Vulkan instance:
         res = my_vkCreateDebugReportCallbackEXT(m_inst, &amp;callbackCreateInfo, NULL, &amp;callback);
         CheckVulkanError("my_vkCreateDebugReportCallbackEXT error %d\n", res);
 #endif
-    }</pfn_vkcreatedebugreportcallbackext>
+    }
 
 
-In order to initialize the Vulkan library we must create an <font color="red">VkInstance</font> object. This object carries all the state of the
-application. The function that creates it is called <font color="red">vkCreateInstance()</font> and it takes most of its parameters in
-a <font color="red">VkInstanceCreateInfo</font> structure. The parameters that we are interested in are the extensions and (optionally) the
-layers we want to enable. The extensions are the generic surface extension and the OS specific surface extension. The
-extensions and layers are identified by their name strings and for some of them the Khronos SDK provides a macro.
-<font color="red">VkInstanceCreateInfo</font> also takes a pointer to a <font color="red">VkApplicationInfo</font> structure.
-This structure describes the application
-and allows the developer to put in the application name and some internal engine version. An important field of
-<font color="red">VkApplicationInfo</font> is apiVersion. This is the Vulkan version that the application is requesting and if the driver
-doesn't support it the call will fail. We are requesting version 1.0 so it should be ok.
+Для инициализации библиотеки Vulkan мы должны создать экземляр - объект
+**VkInstance**. Этот объект хранит состояние приложения. Функция, которая
+создет его, называется **vkCreateInstance()**, и ей требуется большая часть
+свойств структуры **VkInstanceCreateInfo**. Интересующие нас параметры, это
+список расширений и (дополнительно) список слоев, которые мы хотим включить.
+Из расширений это расширение общей поверхности и расширение для ОС зависимой
+поверхности. Слои и расширения определяются через их название - строку, а для
+некоторых из них Khronos SDK предлагает макрос. **VkInstanceCreateInfo** также
+принимает указатель на структуру **VkApplicationInfo**. Эта структура содержит
+свойства приложения, а разработчик может задать название и некоторую
+внутренную версию движка. Свойство VkApplicationInfo, на которое стоит обратить
+внимание, это *apiVersion*. Это задает минимальную версию Vulkan, которая
+требуется приложению. Если в системе установлена версия меньше, то этот
+вызов упадет. Мы запрашиваем версию 1.0, так что всё должно быть в порядке.
 
-Once we get the handle of the instance object we can register a function in the validation layer
-that will print warning and error messages. We must first get a pointer to a function called <font color="red">vkCreateDebugReportCallbackEXT</font>,
-then we populate a <font color="red">VkDebugReportCallbackCreateInfoEXT</font> structure with flags for the stuff we want the driver to
-notify us about and a pointer to our debug function. The actual registration is done by calling the function whose pointer
-we previously acquired. We define the pointer to <font color="red">vkCreateDebugReportCallbackEXT</font> and our debug callback as follows:
+
+После того как в наши руки попадёт экземпляр мы сможем зарегистрировать в
+проверяющим слое функцию, которая будет печатать предупреждения и сообщения об
+ошибках. Для этого получаем указатель на функцию **vkCreateDebugReportCallbackEXT**,
+затем мы заполняем структуру **VkDebugReportCallbackCreateInfoEXT** флагами о
+тех аспектах, о которых драйвер должен нас уведомлять, и указателем на нашу
+функцию отладки. В действительности регистрация происходит при вызове функции,
+указатель которой мы получили ранее. Мы получаем указатель на функцию
+**vkCreateDebugReportCallbackEXT** и наша функция обратного вызова для отладки
+имеет следующий вид:
 
     PFN_vkCreateDebugReportCallbackEXT my_vkCreateDebugReportCallbackEXT = NULL;
 
@@ -481,24 +496,31 @@ we previously acquired. We define the pointer to <font color="red">vkCreateDebug
         void*                       pUserData)
     {
         printf("%s\n", pMessage);
-        return VK_FALSE;    // Since we don't want to fail the original call
+        return VK_FALSE;    // Т.к. мы не хотим чтобы вызывающая функция упала.
     }
 
-The next step is to create a window surface and for that we use the **VulkanWindowControl** object that the Init() function
-got as a pointer parameter. We will review this class later so let's skip it for now (note that we need an instance
-in order to create a surface so this is why we do stuff in this order).
-Once we have an instance and a surface we are ready
-to get all the information we need on the physical devices on your system. A physical device is either a discrete
-or an integrated graphics card on the platform. For example, your system may have a couple of NVIDIA cards in a SLI
-formation and an Intel HD graphics GPU integrated into the CPU. In this case you have three physical devices. The function
-below retrieves all the physical devices and some of their characteristics and populates the **VulkanPhysicalDevices**
-structure. This structure is essentially a database of physical devices and their properties. It is made up of
-several vectors (sometimes vectors of vectors) of various Vulkan objects. In order to access a specific device
-you simply go to one of the members and index into that vector using the physical device index. So to get
-all the information on physical device 2 access m_device[2], m_devProps[2], etc. The reason I structured it
-like that (and not a structure per device with all the info inside it) is because it matches the way the Vulkan
-APIs work. You provide an array of XYZ and get all the XYZ objects for all physical devices. Here's the definition
-of that database structure:
+Далее мы создадим оконную поверхность. Для этого мы воспользуемся объектом
+**VulkanWindowControl**, указатель на который получает функция *Init()*. С этим
+классом мы познакомимся позднее, поэтому не будем на нём сейчас останавливаться
+(обратите внимание на то, что для создания поверхности используется экземпляр;
+поэтому мы и создаём объекты в этом порядке).
+
+После создания экземпляра и поверхности мы готовы к получению информации об
+физических устройствах системы. Под физическим устройством мы понимаем либо
+дискретную, либо интегрированную видеокарту. Например, ваш компьютер может
+иметь несколько видеокарт NVIDIA с технологией SLI и графический GPU Intel HD,
+встроенный в CPU. В этом случае у вас три физических устройства. Функция ниже
+получает все физические устройства и некоторые их характеристики в виде
+структуры **VulkanPhysicalDevices**. Структура, по сути, представляет собой
+базу данных физических устройств и их свойств. Она состоит из нескольких
+векторов (иногда векторов векторов) объектов Vulkan. Для получения доступа к
+конкретному устройству вы должны получить индекс устройства и с ним обращаться
+к вектору. То есть, для получения информации о физическом устройстве с индексом
+2 обращайтесь к *m_device[2]* и *m_devProps[2]*, и так далее. Причина, по
+которой я выбрал такую структуру (а не один объект на устройство), в том, что
+это совпадает с форматом API Vulkan. Вы предоставляете массив XYZ и получаете
+все XYZ объекты для всех физических устройств. Вот определение этой схожей
+с базой данных структуры:
 
     struct VulkanPhysicalDevices {
         std::vector&lt;<font color="red">VkPhysicalDevice</font>&gt; m_devices;
