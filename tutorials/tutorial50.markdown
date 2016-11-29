@@ -321,11 +321,7 @@ Linux эти файлы устанавливаются в системный к�
 Помимо вектора объектов Vulkan *m_physDevices* (инициирован будет далее), класс
 включает в себя три свойства Vulkan (*m_inst*, *surface* и *m_device*). Кроме
 того, мы храним название приложения, индекс используемого физического устройства и
-индекс
-
-# and an index to the queue family
-
-. Класс также содержит несколько методов чтения и функцию Init(), которая всё настраивает.
+индекс набора очередей. Класс также содержит несколько методов чтения и функцию Init(), которая всё настраивает.
 Давайте разберёмся, что же она делает.
 
     void OgldevVulkanCore::Init(VulkanWindowControl* pWindowControl)
@@ -531,8 +527,9 @@ Vulkan API, который возвращает доступные в систе
         std::vector&lt;<font color="red">VkSurfaceCapabilitiesKHR</font>&gt; m_surfaceCaps;
     };
 
-Now let's take a look at the function that populates the database. The first two parameters are the instance and surface.
-The third parameter is where the result will go to. We will review this function step by step.
+Теперь давайте рассмотрим функцию заполнения базы данных. Первых два параметра
+представляют собой экземпляр и поверхность. Третий параметр это то, куда будут
+записаны данные. Мы будем изучать функцию по частям.
 
     void VulkanGetPhysicalDevices(const VkInstance&amp; inst, const VkSurfaceKHR&amp; Surface, VulkanPhysicalDevices&amp; PhysDevices)
     {
@@ -542,8 +539,9 @@ The third parameter is where the result will go to. We will review this function
         CHECK_VULKAN_ERROR("vkEnumeratePhysicalDevices error %d\n", res);
         printf("Num physical devices %d\n", NumDevices);
 
-The first thing we do is get the number of physical devices. Again we see the usage of dual
-call - first to get the number of items and then to get the items themselves.
+В начале мы должны получить число физических устройств. И снова мы видим систему
+из двух вызовов - первый для получения количества элементов, а второй для
+получения уже самих значений.
 
         PhysDevices.m_devices.resize(NumDevices);
         PhysDevices.m_devProps.resize(NumDevices);
@@ -552,25 +550,26 @@ call - first to get the number of items and then to get the items themselves.
         PhysDevices.m_surfaceFormats.resize(NumDevices);
         PhysDevices.m_surfaceCaps.resize(NumDevices);
 
-We can now resize our database so that we will have enough space to retrieve the info on all
-devices.
+Мы можем изменть размер базы данных таким образом, чтобы вмещать все элементы.
 
         res = <font color="red">vkEnumeratePhysicalDevices</font>(inst, &amp;NumDevices, &amp;PhysDevices.m_devices[0]);
         CHECK_VULKAN_ERROR("vkEnumeratePhysicalDevices error %d\n", res);
 
-We do the same call again, this time providing the address of a vector in VkPhysicalDevice as the result.
-Using STL vectors is handly because they function the same way as standard arrays, so the address of the first element is the
-address of the array. From our point of view <font color="red">VkPhysicalDevice</font> is just a handle that represents
-the identity of the physical device. Now we begin a loop over the number of physical devices where
-we will extract more info for one device at a time.
+И ещё раз этот вызов, но уже с адресом вектора *VkPhysicalDevice*. Очень удобно
+использовать векторы из стандартной библиотеки, так как они функционируют как
+обычные массивы - адрес первого элемента и есть адрес самого вектора. С нашей
+точки зрения **VkPhysicalDevice** представляет собой идентификатор физического
+устройства. Давайте теперь составим цикл по числу физических устройств и для
+каждого из них получим больше информации.
 
         for (uint i = 0 ; i &lt; NumDevices ; i++) {
             const VkPhysicalDevice&amp; PhysDev = PhysDevices.m_devices[i];
             <font color="red">vkGetPhysicalDeviceProperties</font>(PhysDev, &amp;PhysDevices.m_devProps[i]);
 
-We start by getting the properties of the current device. m_devProps is a vector of <font color="red">VkPhysicalDeviceProperties</font>.
-This structure contains information about the device such as a name, versions, IDs, etc. We print some of these
-properties in the next couple of printf statements:
+Мы начинаем с получения свойств текущего устройства. *m_devProps* - это вектор
+**VkPhysicalDeviceProperties**. Эта структура содержит такую информацию об
+устройстве, как название, версия, ID и прочее. При помощи следующих вызовов
+*printf* мы выводим на печать некоторые из этих свойств:
 
             printf("Device name: %s\n", PhysDevices.m_devProps[i].deviceName);
             uint32_t apiVer = PhysDevices.m_devProps[i].apiVersion;
@@ -578,25 +577,28 @@ properties in the next couple of printf statements:
                                               VK_VERSION_MINOR(apiVer),
                                               VK_VERSION_PATCH(apiVer));
 
-Next we get the properties of all the queue families that the physical device supports. There are four categories
-of operations that a GPU can perform:
+После этого мы получаем свойства всех наборов очередей которые есть у устройства.
+GPU может выполнять всего четыре вида операций:
 
-1. Graphics - 2D/3D rendering (same as OpenGL).
+1. Графические - 2D/3D рендер (как и OpenGL).
 
-2. Compute - general processing work which is not rendering in nature. This can be scientific calculations
-that need the parallel power of the GPU but not the 3D pipeline.
+2. Вычислять - общий вычислительный процесс, который никак не связан с рендером.
+Используется, например, для параллельных вычислений, без какого-либо отношения
+к 3D.
 
-3. Transfer - copying of buffers and images.
+3. Перемещать - копирование буферов и изображений.
 
-4. Sparse Memory Management - sparse resources are non continguous. This category includes operations to
-process them.
+4. Управление фрагментированной памятью - т.е. которая не смежна. Эти команды
+помогают разобраться с ней.
 
-The work that we send to the device is executed in a queue. A device exposes one or more queue families and
-each family contains one or more queues. Each family supports some combination of the four
-categories above. The queues in each family all support the family functionality. For example, my GPU has two families.
-The first one contains 16 queues that support all the four categories and the other has just one queue that only supports
-transfer. You can take advantage of the specific architecture of the device at runtime in order to tailor the behavior
-of your app in order to increase performance.
+Задачи, которые мы отправляем устройству, выполняются по очереди. Устройство
+предосталяет один или несколько наборов очередей, и каждый из них содержит
+одну и более очередей. У каждого набора своя комбинация из четырёх типов
+приведенных выше. Очереди в каждом наборе имеют общую функциональность.
+Например, мой GPU имеет два набора: первый состоит из 16 очередей и принимает
+все четыре типа команд. А второй только из одной очереди, которая поддерживает
+лишь перемещение. Это полезно для архитектурно-зависимых трюков по улучшению
+производительности приложения.
 
             uint NumQFamily = 0;
 
