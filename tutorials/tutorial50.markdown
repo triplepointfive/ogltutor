@@ -611,18 +611,21 @@ GPU может выполнять всего четыре вида операц�
 
             <font color="red">vkGetPhysicalDeviceQueueFamilyProperties</font>(PhysDev, &amp;NumQFamily, &amp;(PhysDevices.m_qFamilyProps[i][0]));
 
-In the code above we get the number of family properties for the current device, resize m_qFamilyProps and
-m_qSupportsPresent (note that both are vectors of vectors so we must first index into the current device) and after
-that we get a vector of properties and store it in the database.
+В коде выше мы получили число свойств у набора текущего устройства, изменили
+размер *m_qFamilyProps* и *m_qSupportsPresent* (оба являются векторами векторов,
+так что мы обязаны сначала выбрать текущее устройство), а затем мы получили и
+записали в базу вектор свойств.
 
-                    for (uint q = 0 ; q &lt; NumQFamily ; q++) {
+            for (uint q = 0 ; q &lt; NumQFamily ; q++) {
                 res = <font color="red">vkGetPhysicalDeviceSurfaceSupportKHR</font>(PhysDev, q, Surface, &amp;(PhysDevices.m_qSupportsPresent[i][q]));
                 CHECK_VULKAN_ERROR("vkGetPhysicalDeviceSurfaceSupportKHR error %d\n", res);
             }
 
-While we are still on the queue family subject let's query each family and check whether it supports presentation.
-<font color="red">vkGetPhysicalDeviceSurfaceSupportKHR()</font> takes a physical device, a surface and a queue family index and returns
-a boolean value which indicates whether this combination of device and family can present on the specified surface.
+Пока мы ещё говорим про наборы очередей, давайте пройдёмся по каждому набору и
+проверим, поддерживает ли он вывод на экран. **vkGetPhysicalDeviceSurfaceSupportKHR()**
+принимает на вход физическое устройство, поверхность, индекс набора очередей и
+возвращает флаг - может ли такая комбинация из устройства и набора выводить на
+поверхность.
 
             uint NumFormats = 0;
             <font color="red">vkGetPhysicalDeviceSurfaceFormatsKHR</font>(PhysDev, Surface, &amp;NumFormats, NULL);
@@ -638,14 +641,18 @@ a boolean value which indicates whether this combination of device and family ca
                 printf("    Format %d color space %d\n", SurfaceFormat.format , SurfaceFormat.colorSpace);
             }
 
-Next up is the surface format. Each surface can support one or more formats. A format is simply the way data
-is arranged on the surface. In general, a format specifies the channels in each pixel and the type of each channel (float, int, etc).
-For example, VK_FORMAT_R32G32B32_SFLOAT is a surface format with three channels (red, green and blue) of the 32bit floating point type. The format of the surface is critical because
-it determines the way data on the surface is converted or interpreted before various operations (e.g. displaying
-it to the screen). To get the format we need both the physical device and the surface itself because the devices
-may not be compatible in terms of the surface formats that they can work with.
-There can be multiple surface formats available which is why again we have a vector of vectors here.
-We will need the surface format later which is why it is part of the database. Now we query the surface capabilities:
+На очереди формат поверхности. Каждая поверхность поддерживае не менее одного
+формата. Формат просто определяет то, как данных используются поверхностью.
+В целом, формат указывает на каналы каждого пикселя и тип канала
+(float, int, ...). Например, *VK_FORMAT_R32G32B32_SFLOAT* задает три канала
+(красный, зелёный и синий) из 32-х битного типа с плавающей запятой. Формат
+поверхности очень важен так как он определяет то, как данные будут использоваться
+или конвертироваться в различных операциях (например отображение на экран).
+Для получения формата нам нужны как поверхность, так и физическое устройство
+так как они могут получиться несовместимыми. Мы сново используем вектор векторов
+поскольку форматов поверхностей может быть доступно сразу несколько штук.
+Формат нам понадобится позже, поэтмому сейчас мы записываем его в базу данных.
+Теперь давайте получим свойства поверхности:
 
             res = <font color="red">vkGetPhysicalDeviceSurfaceCapabilitiesKHR</font>(PhysDev, Surface, &amp;(PhysDevices.m_surfaceCaps[i]));
             CHECK_VULKAN_ERROR("vkGetPhysicalDeviceSurfaceCapabilitiesKHR error %d\n", res);
@@ -654,14 +661,17 @@ We will need the surface format later which is why it is part of the database. N
         }
     }
 
-The <font color="red">VkSurfaceCapabilitiesKHR</font> structure describes the capabilities of the physical device when working with a specific
-surface. This includes the minimum and maximum images that can be created on the swap chain, the minimum and maximum
-extents (size of the area that can be rendered), supported rotation, etc. There is one such structure for each combination
-of a physical device and surface and we store it in the m_surfaceCaps vector.
+Структура **VkSurfaceCapabilitiesKHR** описывает свойства физического устройства
+в рамках конкретной поверхности. Они включают в себя минимальное и максимальное
+количество изображений, которые могут входить в цепочку изображений,
+минимальный и максимальный размер участка, который может быть отрендерен,
+поддерживаемые повороты и прочее. Для каждой пары физического устройства и
+поверхности у нас по одной структуре, все они хранятся в векторе *m_surfaceCaps*.
 
-We completed getting all the information on the physical devices! (note that some of it is specific to the combination
-of a device and surface). The next step in the Init() function is to select one of the physical devices and
-one of the queues to do the processing. The following function does exactly that:
+Ух, наконец-то мы получили всю информацию о физических устройствах! (Ещё раз,
+некоторые из этих свойств зависят от выбраной поверхности). Следующий шаг в
+функции *Init()* - это выбор одного из физических устройств и одной из очередей
+для начала обработки. Следующая функция занимается как раз этим:
 
     void OgldevVulkanCore::SelectPhysicalDevice()
     {
@@ -698,15 +708,18 @@ one of the queues to do the processing. The following function does exactly that
         }
     }
 
-In a more advanced application you can have multiple queues on multiple devices but we are keeping it very simple.
-The nested loop in this function traverses the list of devices and the list of queue families for each device.
-We are searching for a physical device with a queue family that support graphics functionality as well as being
-able to present on the surface for which the database was initialized. When we find such device and family we
-store their corresponding indices and quit the loop. This device and family pair is going to serve us throughout
-this tutorial. If no such pair is found the application aborts. It means the system doesn't meet the minimum requirements
-to run the code.
+В более сложных приложениях вам могут понадобиться несколько очередей на
+нескольких устройствах, но пока давайте сделаем проще. Вложенный цикл в этой
+функции проходит по списку устройств и списку наборов очередей для каждого
+устройства. Мы ищем устройство и очередь, которые поддерживают графические
+команды и способны вывести графику на ту поверхность, для который была заполнена
+база данных. Когда мы найдем подходящее устройство и набор, мы сохраним их
+индексы и выйдем из цикла. Эта пара из устройства и набора будет использоваться
+на протяжении всего урока. Если подходящей пары не найдено, то приложение
+будет завершено. Это означает, что система не удовлетворяем минимальным
+требованиям для работы приложения.
 
-The last thing we need to do to initialiaze our core object is to create a logical device:
+Всё что нам осталось, это инициализировать ядро и создать логическое устройство:
 
     void OgldevVulkanCore::CreateLogicalDevice()
     {
@@ -735,29 +748,35 @@ The last thing we need to do to initialiaze our core object is to create a logic
         printf("Device created\n");
     }
 
-The Vulkan architecture separates the concept of a physical device which is part of the real system
-and the logical device which is an abstraction on top of it. The logical device is what we use in the application to create most of the objects that
-are below the device level (queues, swap chains, etc). This design choice enables flexibility in
-the management of device resource as well as configuration of device behavior to fit our needs.
-The logical device allows us to expose only parts of the physical device. For example, if the physical
-device supports both graphics and compute we can expose only graphics via the logical device.
+Vulkan разделяет понятия физического устройства как части реальной системы, от
+логического устройства как абстракции над ним. Логическое устройство - это то,
+что используем в приложении для создания большей части объектов зависящих от
+устройства (очереди, цепочки изображений и прочее). Такая архитектура добавляет
+гибкости в управлении устройствами. Логическое устройство позволяет нам давать
+доступ только к отдельным аспектам физического устройства. Например, если
+физическое устройство поддерживает и графику и вычисления, то мы можем дать
+доступ только к графике через логическое устройство.
 
-In order to create the device we need one <font color="red">VkDeviceCreateInfo</font> structure and one or more
-<font color="red">VkDeviceQueueCreateInfo</font>
-structures. <font color="red">VkDeviceCreateInfo</font> is the main point of device definition. In that struct we set a pointer
-to an array of extensions we want to enable. We need to enable the swap chain which is defined as part
-of an extension and not part of the core spec. A swap chain is an array of surface images that can be presented.
-We also need the size of the extension array. The second thing we need is a pointer to an array of <font color="red">VkDeviceQueueCreateInfo</font>
-structs (and the size of that array). For each queue family we want to enable we must have one <font color="red">VkDeviceQueueCreateInfo</font>
-struct which describes it. This struct specifies the index of the queue family (which we got earlier in SelectPhysicalDevice()),
-the number of queues we want to create from that family and for each queue we can specify a different priority.
-In this tutorial we we won't deal with priorities. We have just one queue and we set the priority to 1.0.
+Для создания устройства нам понадобится одна структура **VkDeviceCreateInfo** и
+ещё одна **VkDeviceQueueCreateInfo**. *VkDeviceCreateInfo* главная часть
+определения устройства. В этой структуре мы назначаем указатель на массив
+расширений, которые хотим использовать. Нам нужно включить цепочки изображений
+так как они определены в расширениях, а не в ядре. Цепочка изображений - это
+массив изображений поверхностей, которые могут быть нарисованы. Нам также нужен
+размер массива расширений. Далее нам нужен указатель на массив структур
+**VkDeviceQueueCreateInfo** (и его размер). Для каждого набора очередей, который
+мы хотим использовать, потребуется одна структура **VkDeviceQueueCreateInfo**.
+Эта структура содержит индекс набора очередей (который мы получили ранее в
+*SelectPhysicalDevice()*), число требуемых нам очередей, и для каждой очереди
+мы можем указать приоритет. В этом уроке мы не будем задавать приоритеты, т.к.
+очередь у нас одна и приоритет у неё 1.0.
 
-This completes the initialization process of our **OgldevVulkanCore** class, but to actually call the Init() function
-we need a **VulkanWindowControl** which is a class I created to wrap the management of the window surface. Remember that this
-job is not part of the core Vulkan spec and since every operating system needs entirely different code here I found that it
-makes sense to separate all window management to a different class and implement OS specific versions in the derivatives of this class.
-This class is actually an interface and it is defined as follows:
+На этом завершается инитиализация класса **OgldevVulkanCore**, но для вызова
+метода *Init()* нам нужен **VulkanWindowControl** - класс, который я добавил
+для декорации управления оконной поверхности. Вспомним, что эта часть не относится
+к ядру Vulkan, и так как для каждой ОС требуется свой код, то я решил разделить
+на классы всю работу с окнами. Сам класс является интерфейсом и определён
+следующим образом:
 
     class VulkanWindowControl
     {
