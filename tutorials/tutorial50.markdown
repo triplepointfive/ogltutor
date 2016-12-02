@@ -792,16 +792,18 @@ Vulkan разделяет понятия физического устройст
         virtual <font color="red">VkSurfaceKHR</font> CreateSurface(<font color="red">VkInstance</font>&amp; inst) = 0;
     };
 
-As you can see, this class is very simple. It doesn't have any members. Its constructor and destructor are protected
-so you can't create an instance of this class directly. You can only create an instance of a derived class. There are
-two public methods. One to initialize the object and one to create a Vulkan surface. So for every OS we are free to
-do OS specific stuff but we have to return a <font color="red">VkSurfaceKHR</font> which is a handle to the window surface. Note that CreateSurface()
-takes an <font color="red">VkInstance</font> reference as a parameter which means we can init this class before we create our **VulkanCoreObject** but
-we have to initialize the **VulkanCoreObject** before we call CreateSurface(). We will review this again when we get to the main() function
-so don't worry about it.
+Как вы можете заметить, этот класс крайне прост. У него нет никаких свойств.
+Так как его конструктор и деструктор имеют модификатор доступа *protected*,
+то нельзя создать экземпляры этого класса напрямую. Есть два публичных
+метода. Один для инициализации объекта, и второй для создания поверхности Vulkan.
+Таким образом для каждой ОС мы вольны в своих действиях, главное - это вернуть
+объект **VkSurfaceKHR**. Таким образом, мы можем инициализировать этот класс перед
+созданием **VulkanCoreObject**, но нам требуется инициализировать
+**VulkanCoreObject** до вызова *CreateSurface()*. Не волнуйтесь, мы к этому ещё
+вернемся при разборе функции *main()*.
 
-The concrete classes which implements **VulkanWindowControl** are **XCBControl** on Linux and **Win32Control** on Windows. We will review Linux first
-and then Windows:
+Реализаций класса *VulkanWindowControl* всего две: *XCBControl* для Linux и
+*Win32Control* для Windows. Сначала мы рассмотрим версию для Linux.
 
     class XCBControl : public VulkanWindowControl
     {
@@ -820,16 +822,17 @@ and then Windows:
         xcb_window_t m_xcbWindow;
     };
 
-XWindow is the most common windowing system
-on Unix and Linux. It works in a client/server model. The server manages the screen, keyboard and mouse. The client is an application
-that wants to display something on the server. It connects to the server via the X11 protocol and sends it requests
-to create a window, control the mouse/keyboard, etc. The two most common implementations of the X11 protocol is
-Xlib and XCB and Vulkan provides extensions to use both.
-<a href="https://en.wikipedia.org/wiki/XCB">XCB</a> is more modern so this is what we will use on Linux. **XCBControl**
-implements the **VulkanWindowControl** class using XCB calls.
-Remember that the target of this object is to create
-an OS specific window and connect it to a Vulkan surface so that Vulkan will be able to render to it. Let's start
-by creating the window.
+Самая популярная оконная система на Linux - это, конечно же, XWindow. Она
+работает в клиент - серверной архитектуре. Сервер управляет экраном, клавиатурой
+и мышью. Клиентами являются приложения, которые хотят что-то вывести на экран.
+Они подключаются к серверу по протоколу X11 и отправляют запросы на создание
+окна, управление клавиатурой / мышью и прочее. Самыми часто встречаемыми
+реализациями протокола X11 являются Xlib и XCB, и они обе поддерживаются Vulkan.
+[XCB](https://en.wikipedia.org/wiki/XCB) более современная, поэтому мы будем
+использовать её под Linux. **XCBControl** реализует класс **VulkanWindowControl**
+используя вызовы XCB. Напомню, что целью всего этого является создание окна ОС
+и подсоединение его к поверхности Vulkan. В результате Vulkan должен быть
+способен рендерить в это окно. Давайте начнем с создания окна:
 
     void XCBControl::Init(uint Width, uint Height)
     {
@@ -844,17 +847,20 @@ by creating the window.
 
         printf("XCB connection opened\n");
 
-The first thing we need to do is to connect to the XWindow server. You are probably running on a GUI environment
-so the server is already running in the background. xcb_connect() opens a connection to that server. It takes
-two parameters - the name of the server and a pointer to a preferred screen number (which will be populated by the
-XCB library). XWindow is very flexible. For example,
-it allows you to run the server on one machine and the client on another. You can also run multiple instances of the
-same server on the same machine. To connect remotely you need to specify the name or IP as well as a display number in
-some specific string format and provide it in the first parameter. To run the application locally it is enough to use NULL
-for both parameters.
+Превое что нам потребуется сделать - это подключиться к серверу XWindow. Я
+уверен что вы используете графический режим, поэтому сервер уже запущен в
+фоне. *xcb_connect()* открывает подключение к серверу. Она принимает два
+параметра: название сервера и указатель на желаемый номер экрана (его для
+нас заполнит библиотека XCB). XWindow очень гибок в настройке. Например, он
+позволяет запустить сервер на одной машине, а клиента на другой. А можно
+запустить сразу несколько серверов на одной машине. Для подключения к удаленному
+серверу потребуется его IP и номер экрана в сцепиальном формате строки. А для
+запуска локально достаточно передать *NULL* в оба параметра.
 
-xcb_connect() returns a connection pointer which we store in the class. It always returns something so we have to
-check for errors using xcb_connectionn_has_error() in the manner that we see above.
+Мы сохраняем в классе указатель на подключение, которое возвращает
+*xcb_connect()*. Функция всегда что-то возвращает, поэтому мы обязательно
+проверяем наличие ошибок с помощью функции *xcb_connectionn_has_error()* как
+показано выше.
 
         const xcb_setup_t *pSetup = xcb_get_setup(m_pXCBConn);
 
@@ -1028,11 +1034,11 @@ CreateSurface() is also very similar to its Linux counterpart. The surfaceCreate
     int main(int argc, char** argv)
     {
         VulkanWindowControl* pWindowControl = NULL;
-#ifdef WIN32
+    #ifdef WIN32
         pWindowControl = new Win32Control(pAppName);
-#else
+    #else
         pWindowControl = new XCBControl();
-#endif
+    #endif
         pWindowControl-&gt;Init(WINDOW_WIDTH, WINDOW_HEIGHT);
 
         OgldevVulkanCore core("tutorial 50");
