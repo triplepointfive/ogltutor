@@ -870,47 +870,55 @@ Vulkan разделяет понятия физического устройст
 
         printf("XCB screen %p\n", m_pXCBScreen);
 
-A XWindow server can control multiple monitors and potentially run multiple screens on each monitor. A screen is where
-applications are eventually executed. It is defined by a width and height, a color depth, etc. We want to get a handle to
-the current screen and there are two steps that we need to do. The first one is to use the xcb_get_setup() function to
-get access to the xcb_setup_t structure of the connection. This struct contains a lot of info about the server. One
-of the things it includes is a list of screens. To access this list we setup an iterator using the xcb_setup_roots_iterator()
-function. On a more robust piece of code what you will now see is a loop that traverses the list of screens, searching
-for the one the applications wants. In our case it is enough to extract the first screen. The screen can be retrieved from
-the 'data' member of the iterator.
+Сервер XWindow может управлять несколькими мониторами и запускать несколько
+экранов на каждом из них. Как раз на экране и запускаются приложения. Он имеет
+ширину, высоту, грубину цвета и прочие характеристики. Мы хотим получить доступ
+к текущему экрану, для чего нам потребуются два действия. Первое - это
+использовать функцию *xcb_get_setup()* для доступа к структуре *xcb_setup_t*
+с данными о соединении. В ней содержится большое количество информации о
+сервере. Среди прочего там есть список экранов. Для доступа к этому списку мы
+создаем итератор с помощью функции *xcb_setup_roots_iterator()*. В сложных
+приложениях тут должен быть код, который пробегает по списку экранов в поиске
+подходящего для приложения. А мы просто возьмём первый в списке. Экран можно
+получить следующим образом:
 
         m_xcbWindow = xcb_generate_id(m_pXCBConn);
 
-We are now ready to create the actual window. The first step to do that is to generate a <i>XID</i> for it. The XID is an unsigned
-integer identifier of many XWindow resources. When the client connects to a server it allocates a range of XIDs for it from a global
-range in the server. When the client wants to create some resource on the server it starts by locally allocating an XID from the
-range it was given. The following function calls can use that XID to identify the resource to be created. This is somewhat unique
-in the approach where the server doesn't say "here's your new resource and its identifer is XYZ". Instead, the client says "hey server -
-I want to create a resource and here's the identifier for it". xcb_generate_id() generates the XID for the window and we store it in
-the member variable m_xcbWindow.
+Теперь мы готовы к созданию окна. Первым шагом мы генерируем *XID* - беззнаковое
+целое число, идентификатор всех ресурсов XWindow. Когда клиент подсоединяется к
+серверу, последний выделяет подмножество XID для этого клиента. Когда клиент
+хочет создать некоторый объект на сервере, он выделяет себе XID из разрешенного
+ему промежутка. Последующие вызовы функций могут использовать полученный XID.
+Это довольно новый подход. Обычно сервер говорит "эй, вот тебе новый объект и
+его номер XYZ". А здесь клиент говорит "слушай, сервер, я хочу создать новый
+объект и вот его номер". *xcb_generate_id()* генерирует XID для окна, а мы
+сохраняем его в свойство *m_xcbWindow*.
 
-        xcb_create_window( m_pXCBConn,             // the connection to the XWindow server
-                       XCB_COPY_FROM_PARENT,                     // color depth - copy from parent window
-                       m_xcbWindow,                              // XID of the new window
-                       m_pXCBScreen-&gt;root,                       // parent window of the new window
-                       0,                                        // X coordinate
-                       0,                                        // Y coordinate
-                       Width,                                    // window width
-                       Height,                                   // window height
-                       0,                                        // border width
-                       XCB_WINDOW_CLASS_INPUT_OUTPUT,            // window class - couldn't find any documentation on it
-                       m_pXCBScreen-&gt;root_visual,                // the visual describes the color mapping
-                       0,
-                       0);
+        xcb_create_window(m_pXCBConn,             // the connection to the XWindow server
+          XCB_COPY_FROM_PARENT,                   // color depth - copy from parent window
+          m_xcbWindow,                            // XID of the new window
+          m_pXCBScreen->root,                     // parent window of the new window
+          0,                                      // X coordinate
+          0,                                      // Y coordinate
+          Width,                                  // window width
+          Height,                                 // window height
+          0,                                      // border width
+          XCB_WINDOW_CLASS_INPUT_OUTPUT,          // window class - couldn't find any documentation on it
+          m_pXCBScreen->root_visual,              // the visual describes the color mapping
+          0,
+          0);
 
-xcb_create_window() does the window creation and takes no less than 13 parameters. I have some comments on the parameters
-above and most of them are self explanatory. I won't go deeper than that. You can google for more info.
+Функция *xcb_create_window()*, которая создает окно, принимает, не много не
+мало, 13 параметров. Я добавил немного комментариев к ним, большая часть из
+них очевидны. Больше этого я не буду объяснять. Поищите информацию в интернете,
+если оно вам надо.
 
         xcb_map_window(m_pXCBConn, m_xcbWindow);
         xcb_flush (m_pXCBConn);
     }
 
-In order to make the window visible we have to map it and flush the connection which is exactly what the above calls do.
+Чтобы сделать окно видимым мы должны его отобразить и заставить сервер вывести
+буфер на экран. Вот этим два вызова выше и занимаются.
 
     VkSurfaceKHR XCBControl::CreateSurface(VkInstance&amp; inst)
     {
@@ -927,12 +935,13 @@ In order to make the window visible we have to map it and flush the connection w
         return surface;
     }
 
-The last function from the **XCBControl** class which we want to review is CreateSurface(). This is basically
-a wrapper around the Vulkan function from the XCB extension <font color="red">vkCreateXcbSurfaceKHR()</font>. We populate the
-<font color="red">VkXcbSurfaceCreateInfoKHR</font> struct with the XWindow server connection pointer and the window which we created earlier.
-In return we get a generic handle to a Vulkan surface which we return back to the caller.
+Последняя функция из класса **XCBControl**, на которую мы обратим внимание, - это
+*CreateSurface()*. По сути это декоратор функции Vulkan *vkCreateXcbSurfaceKHR()*.
+Мы заполняем структуру **VkXcbSurfaceCreateInfoKHR** указателем на соединение
+с сервером XWindow и созданным ранее окном. В ответ мы получим поверхность Vulkan,
+которую сразу же передаем назад вызвавшей функции.
 
-Now let's review the corresponding class for Windows:
+Давайте теперь рассмотрим аналогичный класс для Windows:
 
     class Win32Control : public VulkanWindowControl
     {
@@ -952,8 +961,10 @@ Now let's review the corresponding class for Windows:
         std::wstring m_appName;
     };
 
-As you can see, the interface is very similar for both operating systems. In fact, Init() and CreateSurface() are identical because they
-are virtual functions. We also have private members to store two Windows specific handles - HINSTANE and HWND.
+Как вы видите, интерфейс для обеих ОС очень похож. По факту, *Init()* и
+*CreateSurface()* идентичны так как они виртуальные функции. Мы также
+добавили приватные свойства для записи специфических для Windows данных -
+*HINSTANE* и *HWND*.
 
     Win32Control::Win32Control(const char* pAppName)
     {
@@ -964,9 +975,11 @@ are virtual functions. We also have private members to store two Windows specifi
         m_appName = **std::wstring(s.begin(), s.end())**;
     }
 
-Above you can see the constructor for the **Win32Control** class and I'm only showing it here so that you can see the way
-that the app name which is provided as an array of char is transformed into a std::wstring. We do this for the CreateWindowEx() function
-below that needs a window name parameter with the LPCTSTR type. The standard wstring class helps us with that.
+Выше показан конструктор класса **Win32Control**, который я привожу только для
+того, что бы вы знали как преобразовывается название окна из массива букв в
+*std::wstring*. Мы делаем это для функции *CreateWindowEx()*, которой название
+окна требуется в виде типа *LPCTSTR*. Стандартный класс *wstring* нам в этом
+пригодится.
 
     LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
@@ -1008,11 +1021,12 @@ below that needs a window name parameter with the LPCTSTR type. The standard wst
         ShowWindow(m_hwnd, SW_SHOW);
     }
 
-The code above is straightforward window creation stuff which I got from MSDN so I won't go too deeply into
-it. We have to register the window class using RegisterClassEx(). This class will be associated with the WindowProc()
-function that serve as the event handler for our window. Right now we are just calling the default handler of the system
-but on the next tutorial we will add more details to it. The window is then created using CreateWindowEx() and finally displayed using
-ShowWindow().
+Код выше, который создает окно, я нашел на MSDN, поэтому я не буду сильно
+вдаваться в детали. Мы регистрируем окно через *RegisterClassEx()*. Окно будет
+иметь связь с функцией *WindowProc()* - обработчиком событий. Прямо сейчас мы
+используем стандартный обработчик, но в следующих уроках мы добавим больше
+деталей. Окно создается функцией *CreateWindowEx()* и, наконец, отображается
+через *ShowWindow()*.
 
     VkSurfaceKHR Win32Control::CreateSurface(VkInstance&amp; inst)
     {
@@ -1029,7 +1043,9 @@ ShowWindow().
         return surface;
     }
 
-CreateSurface() is also very similar to its Linux counterpart. The surfaceCreateInfo param just takes the instance instead of the XCB connection (and ofcourse - the window handles are of different types).
+*CreateSurface()* тоже очень похожа на аналог для Linux. Параметр
+*surfaceCreateInfo* здесь представляет собой экземпляр (и, конечно же,
+обработчики windows имеют другие типы).
 
     int main(int argc, char** argv)
     {
@@ -1047,14 +1063,16 @@ CreateSurface() is also very similar to its Linux counterpart. The surfaceCreate
         return 0;
     }
 
-At last, we have reached the glue code in the form of the main() function. If you are interested, you may start
-here and create the building blocks step by step so that you can check the return values of each Vulkan
-function call one at a time. What happens in this functionn has already been generally discussed. We allocate
-a derivative of the **VulkanWindowControl** class (be it Linux or Windows). We initialize it (thus creating the OS
-specific window) and then create and init the **OgldevVulkanCore** object. We now have a Vulkan surface connected
-to an OS window, a Vulkan instance and device and a database with all the physical devices in the system.
+Наконец мы подошли к связыванию всего кода в функции *main()*. Если есть желание,
+то вы можете начать отсюда и постепенно добавлять блоки кода, проверяя какие
+значения будет для них возвращать Vulkan. Всё в этой функции уже было подробно
+рассмотрено. Мы выделяем память для реализации класса **VulkanWindowControl**
+(для Linux или Windows), а затем создает и инициализируем объект
+**OgldevVulkanCore**. Теперь у нас есть связанная с окном ОС поверхность Vulkan,
+экземпляр Vulkan, устройство и база данных со всеми физическими устройствами.
 
-I hope you will find this tutorial useful. The T-shirt that should go along with it says "I've written tons of Vulkan code
-and all I got was this lousy window". Indeed, we have accomplished a lot but we didn't get any rendering in return. But don't
-despair. You now have a basic structure with a few of the core Vulkan objects. On the next tutorials we will build on this further
-so stay tuned.
+Надеюсь что вам этот урок пригодился. Кстати, вместе с ним полагается футболка
+с надписью "Я написал тону кода на Vulkan, а получил пустое окно". Действительно,
+мы проделали большой путь, а ничего так и не отрендерели. Но не отчаивайтесь.
+У нас есть базовая структура с несколькими объектами ядра Vulkan. В следующем
+уроке мы продолжим работать над ним, так что не переключайтесь.
