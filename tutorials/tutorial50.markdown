@@ -242,7 +242,7 @@ Vulkan так как она оказалась равна NULL. В этом сл
 
 9. **Common/ogldev_win32_control.cpp** - реализация **Win32Control**.
 
-Как в Netbeans, так и в Visual Studio файлы между проектами *tutorial50* и *Common*.
+Как в Netbeans, так и в Visual Studio файлы разделены между проектами *tutorial50* и *Common*.
 
 ## [Прямиком к коду!](https://github.com/triplepointfive/ogldev/tree/master/tutorial50)
 
@@ -431,10 +431,10 @@ Vulkan API, который возвращает доступные в систе
         CHECK_VULKAN_ERROR("vkCreateInstance %d\n", res);
 
     #ifdef ENABLE_DEBUG_LAYERS
-        // Get the address to the vkCreateDebugReportCallbackEXT function
+        // Получаем адрес функции vkCreateDebugReportCallbackEXT
         my_vkCreateDebugReportCallbackEXT = reinterpret_cast<pfn_vkcreatedebugreportcallbackext>(vkGetInstanceProcAddr(m_inst, "vkCreateDebugReportCallbackEXT"));
 
-        // Register the debug callback
+        // Регистрируем функцию отладки
         VkDebugReportCallbackCreateInfoEXT callbackCreateInfo;
         callbackCreateInfo.sType       = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
         callbackCreateInfo.pNext       = NULL;
@@ -892,17 +892,17 @@ Vulkan разделяет понятия физического устройст
 объект и вот его номер". *xcb_generate_id()* генерирует XID для окна, а мы
 сохраняем его в свойство *m_xcbWindow*.
 
-        xcb_create_window(m_pXCBConn,             // the connection to the XWindow server
-          XCB_COPY_FROM_PARENT,                   // color depth - copy from parent window
-          m_xcbWindow,                            // XID of the new window
-          m_pXCBScreen->root,                     // parent window of the new window
-          0,                                      // X coordinate
-          0,                                      // Y coordinate
-          Width,                                  // window width
-          Height,                                 // window height
-          0,                                      // border width
-          XCB_WINDOW_CLASS_INPUT_OUTPUT,          // window class - couldn't find any documentation on it
-          m_pXCBScreen->root_visual,              // the visual describes the color mapping
+        xcb_create_window(m_pXCBConn,             // соединение с сервером XWindow
+          XCB_COPY_FROM_PARENT,                   // глубина цвета
+          m_xcbWindow,                            // XID нового окна
+          m_pXCBScreen->root,                     // родительское окно
+          0,                                      // координата X
+          0,                                      // координата Y
+          Width,                                  // ширина окна
+          Height,                                 // высота окна
+          0,                                      // ширина границы
+          XCB_WINDOW_CLASS_INPUT_OUTPUT,          // класс окна, не смог найти документации
+          m_pXCBScreen->root_visual,              // определяет отображения цвета
           0,
           0);
 
@@ -1000,10 +1000,10 @@ Vulkan разделяет понятия физического устройст
         }
 
         m_hwnd = CreateWindowEx(0,
-                                L"ogldev",                        // class name
+                                L"ogldev",                        // название
                                 m_appName.c_str(),
-                                WS_OVERLAPPEDWINDOW | WS_VISIBLE, // window style
-                                100, 100,                         // window start
+                                WS_OVERLAPPEDWINDOW | WS_VISIBLE, // стиль окна
+                                100, 100,                         // начальное положение
                                 Width,
                                 Height,
                                 NULL,
