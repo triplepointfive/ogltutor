@@ -1,0 +1,14 @@
+.large-12.columns.preview
+  p
+    | Исходные коды для всех уроков можно получить по ссылке:
+    a< href="https://github.com/triplepointfive/ogldev" Git репозиторий
+
+.list
+  - blog.articles.sort_by { |article| article.data[:number].to_i }.each do |article|
+    = link_to article.url do
+      .row
+        .small-2.large-2.columns.preview
+          img src="/images/logo/#{ article.data[:number] }.png" alt=""
+        .small-10.large-10.columns
+          p= article.title
+    hr

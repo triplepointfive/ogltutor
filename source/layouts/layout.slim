@@ -1,0 +1,55 @@
+doctype 5
+html
+  head
+    meta content="IE=edge" http-equiv="X-UA-Compatible"
+    meta charset="utf-8"
+    meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"
+    meta name="keywords" content=""
+    meta name="description" content=""
+
+    title= page_title
+
+    link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css"
+
+    script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"
+
+    = stylesheet_link_tag :site, media: :all, type: "text/css"
+    = javascript_include_tag :shCore
+    = javascript_include_tag :shBrushCpp
+    = javascript_include_tag :all
+
+    javascript:
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-35259428-1', 'auto');
+      ga('send', 'pageview');
+
+  body
+    .row.header
+      .large-12.columns
+          .nav-bar.right
+            ul class="button-group"
+              li
+                a href="/" class="button nav-left" Содержание
+              li
+                a href="/instr.html" class="button" Инструкции
+              li
+                a href="/cont.html" class="button nav-right" Контакты
+          h1
+            small Уроки по OpenGL с сайта OGLDev
+          hr
+
+    .row
+      .large-12.columns
+        = yield
+    footer.row
+      .large-12.columns.text-right
+        hr
+        | Шедевр, созданный с помощью
+        a< href="http://jaspervdj.be/hakyll" Hakyll
+        br
+        small
+          a href="https://github.com/triplepointfive/ogltutor" Исходный код
