@@ -28,7 +28,7 @@ OGLDEV, я начну представлять материал по шагам.
 Двигаясь по коду мы будем поочередно изучать ключевые компоненты Vulkan, поэтому
 сейчас я просто хочу представить общую диаграмму:
 
-<img src="./Tutorial 50 - Introduction To Vulkan_files/vulkan.jpg" <="" img="">
+![](/images/50/vulkan.jpg)
 
 Эта диаграмма ни в коем случае не претендует на полноту. Она содержит только
 основные компоненты, которые будут использоваться в большинстве приложений. Связи
@@ -146,7 +146,7 @@ Visual Studio, то сделайте так:
 *c:\VulkanSDK\&lt;version&gt;\Include* в *Additional Include Directories*.
 Пример приведен ниже:
 
-<img src="./Tutorial 50 - Introduction To Vulkan_files/include.jpg"><br>
+![](/images/50/include.jpg)
 
 Для обновления каталога с файлами библиотеки нажмите правой кнопкой мыши на проект
 в окошке *solution explorer*, перейдите в *Properties* и затем в
@@ -154,7 +154,7 @@ Visual Studio, то сделайте так:
 *c:\VulkanSDK\&lt;version&gt;\Bin32* в поле *Additional Library Directories*.
 Пример приведен ниже:
 
-<img src="./Tutorial 50 - Introduction To Vulkan_files/link.jpg"><br>
+![](/images/50/link.jpg)
 
 Пока вы ещё настраиваете линковщик зайдите в *Input* (сразу же под *General*), а
 затем добавьте *vulkan-1.lib* в поле *Additional Dependencies*.
