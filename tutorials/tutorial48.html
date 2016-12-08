@@ -1,10 +1,10 @@
-<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 48 - Пользовательский интерфейс с Ant Tweak Bar</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 48 - Пользовательский интерфейс с Ant Tweak Bar</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="../stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="../javascripts/shCore.js"></script><script src="../javascripts/shBrushCpp.js"></script><script src="../javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
         m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-35259428-1', 'auto');
-ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial48/tutorial48.html">Урок 48 - Пользовательский интерфейс с Ant Tweak Bar</a></h2><p>В этом уроке мы на время собираемся покинуть 3D и сконцентрировать наше внимание
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a href="../" class="button nav-left">Содержание</a></li><li><a href="../instr.html" class="button">Инструкции</a></li><li><a href="../cont.html" class="button nav-right">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial48/tutorial48.html">Урок 48 - Пользовательский интерфейс с Ant Tweak Bar</a></h2><p>В этом уроке мы на время собираемся покинуть 3D и сконцентрировать наше внимание
 на добавлении чего-то полезного и практичного для наших программ. Мы научимся создавать
 пользовательский интерфейс, который поможет в настройке различных значений.
 Библиотека, которую мы собираемся использовать, называется <em>Ant Tweak Bar</em> (или ATB),
@@ -204,7 +204,7 @@ while( ... )
 <p>Всё что было выше необходимо только для того, что бы иметь работоспособный ATB в вашем приложении.
 Сейчас ATB должен выглядеть как-то так:</p>
 
-<p><img src="/images/48/atb1.jpg" alt="" /></p>
+<p><img src="../images/48/atb1.jpg" alt="" /></p>
 
 <p>Начиная с этого момента нам нужно добавлять виджеты и связывать их с нашим приложением,
 что бы мы могли настраивать параметры в нашем коде.</p>
@@ -236,7 +236,7 @@ TwAddVarRW(bar, "Mesh", MeshTwType, &amp;m_currentMesh, NULL);
 
 <p>В результате должно получиться что-то в стиле:</p>
 
-<p><img src="/images/48/atb2.jpg" alt="" /></p>
+<p><img src="../images/48/atb2.jpg" alt="" /></p>
 
 <p>Мы можем добавить разделитель, используя следующую строку:</p>
 
@@ -246,7 +246,7 @@ TwAddSeparator(bar, "", NULL);
 
 <p>Теперь мы имеем:</p>
 
-<p><img src="/images/48/atb3.jpg" alt="" /></p>
+<p><img src="../images/48/atb3.jpg" alt="" /></p>
 
 <p>Что же, давайте попробуем привязать нашу камеру таким образом, что бы всегда
 видеть её положение и направление. К этому моменту вы должно быть уже печатали
@@ -295,7 +295,7 @@ ATB принимают строку с настройками в качеств�
 
 <p>Вот как выглядит интерфейс с добавленной камерой:</p>
 
-<p><img src="/images/48/atb4.jpg" alt="" /></p>
+<p><img src="../images/48/atb4.jpg" alt="" /></p>
 
 <p>Наверняка вы проводите немало времени, играясь с положением мешей в пространстве. Давайте
 добавим что-нибудь в интерфейс что бы упростить эту задачу. Идея состоит в использовании
@@ -323,7 +323,7 @@ ATB принимают строку с настройками в качеств�
 
 <p>Теперь интерфейс выглядит следующим образом:</p>
 
-<p><img src="/images/48/atb5.jpg" alt="" /></p>
+<p><img src="../images/48/atb5.jpg" alt="" /></p>
 
 <p>Теперь давайте добавим флажок, который будет включать и отключать автоматическое вращение
 меша вокруг оси Y. Для начала добавим кнопку:</p>
@@ -346,7 +346,7 @@ void TW_CALL AutoRotateCB(void *p)
 
 <p>Теперь интерфейс выглядит так:</p>
 
-<p><img src="/images/48/atb6.jpg" alt="" /></p>
+<p><img src="../images/48/atb6.jpg" alt="" /></p>
 
 <p>Другой полезным виджетом будет управление скоростью вращения (когда автоматическое вращение включено).
 Этот виджет предоставляет несколько способов задавать его значение:</p>
@@ -363,7 +363,7 @@ void TW_CALL AutoRotateCB(void *p)
 использовать горячие клавиши, нажимать на символы '+' или '-' справа или использовать рычаг для
 изменения значения (показывается при щелчке на кружек). Вот как выглядит интерфейс с этим виджетом:</p>
 
-<p><img src="/images/48/atb7.jpg" alt="" /></p>
+<p><img src="../images/48/atb7.jpg" alt="" /></p>
 
 <p>В каждом уроке присутствует как минимум один источник света, поэтому было бы здорово добавить немного кода,
 что бы была возможность немного поиграться с параметрами света. Поэтому я добавил следующие методы
@@ -414,7 +414,7 @@ void SpotLight::AddToATB(TwBar *bar)
 AddToATB() является виртуальной функцией, поэтому для каждого класса вызывается своя реализация.
 Вот пример интерфейса для направленного источника:</p>
 
-<p><img src="/images/48/atb8.jpg" alt="" /></p>
+<p><img src="../images/48/atb8.jpg" alt="" /></p>
 
 <p>Последнее что я хочу продемонстрировать - это способность получать и устанавливать различные переменные,
 управляющие поведением интерфейса. Вот, например, установка обновления переменной раз в 0.1 секунды:</p>

@@ -1,14 +1,14 @@
-<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 15 - Управление камерой - часть 2</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 15 - Управление камерой - часть 2</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="../stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="../javascripts/shCore.js"></script><script src="../javascripts/shBrushCpp.js"></script><script src="../javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
         m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-35259428-1', 'auto');
-ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial15/tutorial15.html">Урок 15 - Управление камерой - часть 2</a></h2><p>В этом уроке мы завершим реализацию камеры добавив управление направлением обзора. Есть несколько различных степеней свободы, которые связаны с разработкой камеры. Мы собираемся дать тот же тип управления, что и используется в шутерах (или других играх от первого лица). Это значит, что у нас будет возможность поворачивать камеру на 360 градусов (вокруг положительной части оси Y), что соответствует повороту головы влево или вправо, а полный круг завершается поворотом всего тела. К тому же мы добавим возможность наклонять камеру вверх и вниз для лучшего обзора. Мы будем не состоянии повернуть камеру вверх больше чем на 90 градусов, что бы увидеть события за спиной потребуется совершить вращение вдоль Y. Такие степени свободы не подойдут для симулятора полетов, но в данной серии уроков это нас не волнует. В любом случае мы будем иметь камеру, которой удобно исследовать наш 3D мир, который мы будем расширять в ближайших уроках.</p>
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a href="../" class="button nav-left">Содержание</a></li><li><a href="../instr.html" class="button">Инструкции</a></li><li><a href="../cont.html" class="button nav-right">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial15/tutorial15.html">Урок 15 - Управление камерой - часть 2</a></h2><p>В этом уроке мы завершим реализацию камеры добавив управление направлением обзора. Есть несколько различных степеней свободы, которые связаны с разработкой камеры. Мы собираемся дать тот же тип управления, что и используется в шутерах (или других играх от первого лица). Это значит, что у нас будет возможность поворачивать камеру на 360 градусов (вокруг положительной части оси Y), что соответствует повороту головы влево или вправо, а полный круг завершается поворотом всего тела. К тому же мы добавим возможность наклонять камеру вверх и вниз для лучшего обзора. Мы будем не состоянии повернуть камеру вверх больше чем на 90 градусов, что бы увидеть события за спиной потребуется совершить вращение вдоль Y. Такие степени свободы не подойдут для симулятора полетов, но в данной серии уроков это нас не волнует. В любом случае мы будем иметь камеру, которой удобно исследовать наш 3D мир, который мы будем расширять в ближайших уроках.</p>
 
 <p>Следующее противовоздушное оружие второй мировой войны продемонстрирует нам тип камеры, которую мы собираемся разработать:</p>
 
-<p><img src="/images/t15_aa_gun.jpg" alt="" /></p>
+<p><img src="../images/t15_aa_gun.jpg" alt="" /></p>
 
 <p>У пушки 2 управляющих оси:</p>
 
@@ -25,31 +25,31 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 
 <p>К счастью, у нас есть простое математическое решение для этой проблемы - кватернионы. Кватернионы были открыты в 1843 году Гамильтоном, ирландским математиком, и они основаны на комплексных числах. Кватернион 'Q' определяется как:</p>
 
-<p><img src="/images/t15_quaternion.png" alt="" /></p>
+<p><img src="../images/t15_quaternion.png" alt="" /></p>
 
 <p>Где i, j и k комплексные числа, и для них справедливо равенство:</p>
 
-<p><img src="/images/t15_quaternion1.png" alt="" /></p>
+<p><img src="../images/t15_quaternion1.png" alt="" /></p>
 
 <p>На практике мы указываем кватернион как 4-вектор (x, y, z, w). Сопряжение кватерниону 'Q' выглядит так:</p>
 
-<p><img src="/images/t15_conjugate.png" alt="" /></p>
+<p><img src="../images/t15_conjugate.png" alt="" /></p>
 
 <p>Нормирование кватерниона аналогично такой же операции для вектора. Я собираюсь объяснить шаги, необходимые для вращения вектора вокруг произвольного вектора, используя кватернионы. Более подробная математическая основа может быть найдена в сети.</p>
 
 <p>В целом функция для подсчета кватерниона 'W', который представляет повернутый вектор 'V' на угол 'a', такова:</p>
 
-<p><img src="/images/t15_rotation.png" alt="" /></p>
+<p><img src="../images/t15_rotation.png" alt="" /></p>
 
 <p>Где Q - это кватернион вращения, определенный так:</p>
 
-<p><img src="/images/t15_rotationq.png" alt="" /></p>
+<p><img src="../images/t15_rotationq.png" alt="" /></p>
 
 <p>После подсчета 'W' повернутый вектор выглядит довольно просто (W.x,W.y,W.z). Важно заметить, что первое действие в подсчете 'W' это умножение 'Q' на 'V', что является умножением кватерниона на вектор, и результат это кватернион, и после нам требуется умножение кватерниона на кватернион (результат Q*V умножается на кватернион, обратный 'Q'). Эти виды умножения не одинаковые. Файл math_3d.cpp содержит представления этих операции.</p>
 
 <p>Мы должны регулярно обновлять значения горизонтального и вертикального углов в случае, если пользователь передвинул мышь внутри экрана, и нам нужно решить как инициализировать это движение. Логично было бы изменять их согласно углу, который мы получаем от камеры. Давайте начнем с горизонтального угла. Посмотрим на диаграмму, на которой изображена плоскость XZ с видом сверху:</p>
 
-<p><img src="/images/t15_h_angle.png" alt="" /></p>
+<p><img src="../images/t15_h_angle.png" alt="" /></p>
 
 <p>Наш вектор (x,z), и мы хотим найти способ получить горизонтальный угол, представленный альфой (координата Y участвует только в вертикальном углу). Так как длина радиуса окружности равна 1, то очень легко заметить, что синус альфы - это z. Согласно этому, нахождение арксинуса z и будет наш угол альфа. Все готово? - еще нет. Так как z в промежутке [-1,1], то результат арксинуса в пределах от -90 градусов до 90 градусов. Но горизонтальный угол должен меняться по всей окружности, то есть 360 градусов. К тому же, наш кватернион не поворачивает по часовой стрелке. Это значит, что когда мы вращаем на 90 градусов кватернионом, то мы попадем в точку с z равным -1, а это противоположная точка. ИМХО, самый простой путь получить значение арксинуса используя положительное значение Z, и комбинируя результат с указанным кватернионом круга, в котором расположен вектор. Для примера, когда вектор направления (0,1) мы вычисляем арксинус 1, который равен 90, и вычитаем 360. Итого 270. Арксинус от [0,1] принимает значения от 0 до 90 градусов. Комбинируя это с указанным кватернионом для круга получим итоговое значение горизонтального угла.</p>
 

@@ -1,10 +1,10 @@
-<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 37 - Deferred Shading - Часть 3</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 37 - Deferred Shading - Часть 3</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="../stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="../javascripts/shCore.js"></script><script src="../javascripts/shBrushCpp.js"></script><script src="../javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
         m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-35259428-1', 'auto');
-ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html">Урок 37 - Deferred Shading - Часть 3</a></h2><p>Может показаться, что наша реализация технологии deferred shading верна, но если пригледеться, то мы можем заметить ряд недостатков, перечисленных в конце прошлого урока. Во-первых, из-за обрезания задних сторон свет пропадает при входе камеры в область действия источника света. Вторая проблема связанна с ограничениями области действия света. Дело в том, что так как мы выбираем пиксели, для которых производить расчеты с помощью сферы вокруг источника света, а сфера проецирется в пространство экрана до растеризатора, то каждый пиксель покрытый сферой в пространстве экрана будет использоваться в вычислениях, даже если он очень далеко (и, скорее всего, недостежим для источника света).</p>
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a href="../" class="button nav-left">Содержание</a></li><li><a href="../instr.html" class="button">Инструкции</a></li><li><a href="../cont.html" class="button nav-right">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html">Урок 37 - Deferred Shading - Часть 3</a></h2><p>Может показаться, что наша реализация технологии deferred shading верна, но если пригледеться, то мы можем заметить ряд недостатков, перечисленных в конце прошлого урока. Во-первых, из-за обрезания задних сторон свет пропадает при входе камеры в область действия источника света. Вторая проблема связанна с ограничениями области действия света. Дело в том, что так как мы выбираем пиксели, для которых производить расчеты с помощью сферы вокруг источника света, а сфера проецирется в пространство экрана до растеризатора, то каждый пиксель покрытый сферой в пространстве экрана будет использоваться в вычислениях, даже если он очень далеко (и, скорее всего, недостежим для источника света).</p>
 
 <p>В этой ситуации нам поможет возможность OpenGL под названием <em>Stencil Buffer (буфер шаблона или буфер трафарета)</em>. Stencil Buffer взаимодействует бок о бок с буферами цвета и глубины и обменивается из разрешениями (для каждого пикселя в буфере цвета найдется пиксель в буфере трафарета). Тип пикселя в буфере шаблона задается целым числом и обычно размера 1 байт. Stencil Buffer выполняет ту же задачу, что и трафарет из бумаги в реальном мире. Трафарет обычно используется для печати букв или других элементов путем их вырезания в бумаге. В OpenGL буфер шаблона используется для ограничения пикселей, для которых будет вызван фрагментный шейдер.</p>
 
@@ -40,7 +40,7 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 
 <p>В этом, в 2 словах, и состоит тест трафарета. И так, чем это нам поможет с нашими проблемами? Для начала воспользуемся способностью увеличивать и уменьшать значение трафарета в зависимости от теста глубины для лицевой и обратной сторон. Посмотрим на изображение:</p>
 
-<p><img src="/images/t37_light_volume.jpg" alt="" /></p>
+<p><img src="../images/t37_light_volume.jpg" alt="" /></p>
 
 <p>На изображении 3 объекта: A, B и C и желтая сфера, в центре которой источник света. Сфера проецируется на виртуальный экран и согласно предыдущему уроку нам требуется рендерить свет для каждого растеризованного пикселя. Легко заметить, что из всей красной линии (на самом деле это прямоугольник, мы смотрим сверху) вызываться фрагментный шейдер будет только для небольной части, поскольку только объект B внутри источника света. И А и С вне сферы, поэтому G буфер не содержет никаких данных, так объекты не на этом пути.</p>
 
@@ -60,7 +60,7 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 
 <p>Давайте рассмотрим получаемый эффект на схеме ниже:</p>
 
-<p><img src="/images/t37_light_volume1.jpg" alt="" /></p>
+<p><img src="../images/t37_light_volume1.jpg" alt="" /></p>
 
 <p>На изображении исходит 3 вектора из камеры на экран, все пересекают сферу и один из объектов. Каждый вектор представляет все пиксели, покрытые объектом. Так как геометрия уже рендерилась и буфер глубины заполнен, то мы можем проверить результат теста глубины когда вектор прошел через передний и задний пиксели сферы и обновить значения буфера трафарета как полагается. Обратная сторона увеличивает значение в трафарете, но это аннулируется передним пикселем, который уменьшает значение. Для объекта С оба пикселя выиграли тест глубины и остаются без изменения. Теперь рассмотрим объект B, для него 1 пиксель увеличил значение, а другой проиграл тест глубины а значит не изменился. Итого, значение увеличилось на 1.</p>
 
@@ -68,7 +68,7 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 
 <p>Давайте еще раз взглянем для большего числа источников света:</p>
 
-<p><img src="/images/t37_light_volume2.jpg" alt="" /></p>
+<p><img src="../images/t37_light_volume2.jpg" alt="" /></p>
 
 <p>Как вы видите, логика все та же (случай, когда камера внутри источника света - домашнее задание).</p>
 

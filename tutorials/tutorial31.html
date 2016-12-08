@@ -1,10 +1,10 @@
-<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 31 - Тесселяция PN треугольников</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 31 - Тесселяция PN треугольников</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="../stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="../javascripts/shCore.js"></script><script src="../javascripts/shBrushCpp.js"></script><script src="../javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
         m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-35259428-1', 'auto');
-ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial31/tutorial31.html">Урок 31 - Тесселяция PN треугольников</a></h2><p>В <a href="/tutorials/tutorial30.html">предыдущем уроке</a> мы познакомились с Тесселяцией в OpenGL 4.x (этот урок сильно полагается на материал предыдущего, поэтому убедитесь, что вы знакомы с ним). Мы включили все соответствующие этапы и изучили, как делится наш меш, и сместили вершины, созданные процессом тесселяции для того, что бы преобразовать пустую гладкую поверхность в сложный рельеф камня. Использование конвейера тесселяции было достаточно простым, однако. Оценка в TES была просто интерполированием вершин оригинального треугольника через барецентрические координаты, генерируемые PG. Так как результат интерполяции был в плоскости исходного треугольника, мы использовали смещение для того, что бы создать неровности на поверхности.</p>
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a href="../" class="button nav-left">Содержание</a></li><li><a href="../instr.html" class="button">Инструкции</a></li><li><a href="../cont.html" class="button nav-right">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial31/tutorial31.html">Урок 31 - Тесселяция PN треугольников</a></h2><p>В <a href="tutorial30.html">предыдущем уроке</a> мы познакомились с Тесселяцией в OpenGL 4.x (этот урок сильно полагается на материал предыдущего, поэтому убедитесь, что вы знакомы с ним). Мы включили все соответствующие этапы и изучили, как делится наш меш, и сместили вершины, созданные процессом тесселяции для того, что бы преобразовать пустую гладкую поверхность в сложный рельеф камня. Использование конвейера тесселяции было достаточно простым, однако. Оценка в TES была просто интерполированием вершин оригинального треугольника через барецентрические координаты, генерируемые PG. Так как результат интерполяции был в плоскости исходного треугольника, мы использовали смещение для того, что бы создать неровности на поверхности.</p>
 
 <p>В Этом уроке мы изучим более сложный метод Тесселяции, известный как <em>PN (Point-Normal) Triangles (Точки-Нормали треугольников)</em>. Этот метод был темой <a href="http://alex.vlachos.com/graphics/CurvedPNTriangles.pdf">работы 2001 Vlachos et al</a>, и был представлен на презентации GDC2011, где его назвали <a href="http://www.nvidia.com/content/PDF/GDC2011/John_McDonald.pdf">"Tessellation On Any Budget" (Тесселяция любого бюджета)</a> John McDonald. Идея, показанная этими работами, в замещении каждого треугольника в исходном меше геометрической поверхностью, известной как <em><a href="http://ru.wikipedia.org/wiki/Поверхность_Безье">Поверхность Безье</a></em> для смягчения низко полигональных моделей.</p>
 
@@ -14,11 +14,11 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 
 <p>Мы собираемся использовать частный случай поверхности Безье, называемый <em>Треугольник Безье (Bezier Triangle)</em>, который имеет следующую формулу:</p>
 
-<p><img src="/images/t31_bezier_tri.jpg" alt="" /></p>
+<p><img src="../images/t31_bezier_tri.jpg" alt="" /></p>
 
 <p>Давайте пройдем по ней шаг за шагом. 'u/v/w' - барецентрические координаты (т.е. всегда справедливо выражение 'u + v + w = 1'). Десять 'B<sub>xyz</sub>' - CPs. Мы собираемся немного отклониться от классического определения Треугольника Безье и разместить CPs вот так:</p>
 
-<p><img src="/images/t31_control_points.jpg" alt="" /></p>
+<p><img src="../images/t31_control_points.jpg" alt="" /></p>
 
 <p>Как вы можете заметить, общая форма CPs напоминает немного пухлые поверхности поверх треугольника. Оценивая большое количество барецентрических координат в полиноме выше мы можем получить приблизительную поверхность в 3D пространстве.</p>
 
@@ -32,7 +32,7 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
   <li>Каждая средняя точка проецируется на плоскость, созданную ближайшей вершиной и ее нормалью:</li>
 </ol>
 
-<p><img src="/images/t31_cp_projection.jpg" alt="" /></p>
+<p><img src="../images/t31_cp_projection.jpg" alt="" /></p>
 
 <p>Изображение выше показывает треугольник сбоку. Каждая из 2-х крайних точек имеет свою нормаль (зеленая) из исходного меша. Комбинация точек и нормалей создает плоскость. Мы берем 2 точки посередине, которые нашли ранее, и проецируем их на плоскость ближайшей вершины (пунктирные линии).</p>
 
@@ -188,7 +188,7 @@ out patch OutputPatch oPatch;
 
 <p>Эта функция используется в CalcPositions() для проецирования точек посередине на плоскость, определенную ближайшей вершиной и ее нормалью. Идея в том, что произведя скалярное произведение между нормалью и вектором 'v' из вершины до точки, которую мы хотим проецировать, мы получим длину проекции 'v' на нормали (она должна быть единичной длины). Это будет расстояние между точкой и ближайшей точкой на плоскости (то есть ее проекция). Мы умножаем длину на нормаль и вычитаем ее из точки для того, что бы получить проекцию. Следующее изображение иллюстрирует эти вычисления:</p>
 
-<p><img src="/images/t31_cp_projection2.jpg" alt="" /></p>
+<p><img src="../images/t31_cp_projection2.jpg" alt="" /></p>
 
 <p>P<sub>1</sub> и P<sub>2</sub> расположены на различных половинах пространства, создаваемых плоскостью. Когда мы проецируем v<sub>1</sub> на зеленую нормаль, то мы получаем длину d<sub>1</sub>. Умножаем эту длину на нормаль для получения самого d<sub>1</sub>. Теперь вычитаем ее из P<sub>1</sub> для получения ее проекции на плоскости. Когда мы проецируем v<sub>2</sub> на зеленую нормаль, мы получаем длину d<sub>2</sub>, но это отрицательное число. Умножаем ее на нормаль для получения самого d<sub>2</sub> (отрицательная длина означает обратный вектор). Теперь вычитаем ее из P<sub>2</sub> для получения ее проекции на плоскости. Вывод: этот способ всегда работает правильно, не зависимо от того, с какой стороны плоскости наша точка.</p>
 

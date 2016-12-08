@@ -1,32 +1,32 @@
-<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 47 - Карты теней с направленным источником света</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 47 - Карты теней с направленным источником света</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="../stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="../javascripts/shCore.js"></script><script src="../javascripts/shBrushCpp.js"></script><script src="../javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
         m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-35259428-1', 'auto');
-ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial47/tutorial47.html">Урок 47 - Карты теней с направленным источником света</a></h2><p>Авторские права: некоторые изображения взяты с <a href="http://www.clipartpanda.com">Clipart Panda</a> и <a href="http://www.cliparthut.com">ClipArtHut</a>.</p>
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a href="../" class="button nav-left">Содержание</a></li><li><a href="../instr.html" class="button">Инструкции</a></li><li><a href="../cont.html" class="button nav-right">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial47/tutorial47.html">Урок 47 - Карты теней с направленным источником света</a></h2><p>Авторские права: некоторые изображения взяты с <a href="http://www.clipartpanda.com">Clipart Panda</a> и <a href="http://www.cliparthut.com">ClipArtHut</a>.</p>
 
-<p>Алгоритм карты теней, который был рассмотрен в <a href="/tutorials/tutorial23.html">уроке 23</a> и <a href="/tutorials/tutorial24.html">уроке 24</a>, использовал прожектор в качестве источника света.
+<p>Алгоритм карты теней, который был рассмотрен в <a href="tutorial23.html">уроке 23</a> и <a href="tutorial24.html">уроке 24</a>, использовал прожектор в качестве источника света.
 Сам алгоритм основан на идее рендера на карту теней из позиции источника света. Прожектор используется потому, что его поведение очень схоже со стандартной
 камерой - тоже имеет направление и позицию, а освещаемая область увеличивается при удалении от источника:</p>
 
-<p><img src="/images/47/spotlight.jpg" alt="" /></p>
+<p><img src="../images/47/spotlight.jpg" alt="" /></p>
 
 <p>Тот факт, что прожектор имеет форму усеченного конуса упрощает нам жизнь - мы можем использовать ту же самую матрицу проецирования перспективы, что и для
-камеры. Довольно сложно было реализовать <a href="/tutorials/tutorial43.html">Карты теней с точечным источником света</a>, но там мы справились с помощью рендера в кубическую
+камеры. Довольно сложно было реализовать <a href="tutorial43.html">Карты теней с точечным источником света</a>, но там мы справились с помощью рендера в кубическую
 текстуру. Хотя проекцию всё ещё требовалось проецировать.</p>
 
 <p>Теперь давайте подумаем о направленном свете. Отличается он тем, что у него нет позиции, но есть направление. Обычно он используется для имитации солнца,
 которое благодаря своим размерам, испускает почти параллельные лучи:</p>
 
-<p><img src="/images/47/dirlight.jpg" alt="" /></p>
+<p><img src="../images/47/dirlight.jpg" alt="" /></p>
 
 <p>В этом случае проекция перспективы не применима. Приветствуем ортогональную проекцию. Идея в том, что лучи не исходят из одной точки (камеры), а остаются
 параллельными. При этом теряется 3D эффект.</p>
 
 <p>На следующем изображении слева мы видим куб с использованием проекции перспективы, а справа куб с ортогональной проекцией:</p>
 
-<p><img src="/images/47/boxes.jpg" alt="" /></p>
+<p><img src="../images/47/boxes.jpg" alt="" /></p>
 
 <p>Куб слева похож на настоящий, выглядит как и дожен и создает ощущение глубины. В тоже время, куб справа не похож на настоящий, поскольку передняя и задняя
 грани одинаковы. Да, мы знаем, что из размеры одинаковы, но когда мы смотрим на них, то ожидаем, что передняя грань будет немного больше. Итак, как же
@@ -34,7 +34,7 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 куб (вершины которого имеют координаты от [-1,-1,-1] до [1,1,1]). После отображения координаты XY используются для нахождения координат текстуры (в нашем
 случае карты теней) и Z значения. Ортогональная проекция принимает обычный параллелепипед и отображает его на нормированный куб:</p>
 
-<p><img src="/images/47/ortho.jpg" alt="" /></p>
+<p><img src="../images/47/ortho.jpg" alt="" /></p>
 
 <p>Теперь представьте лучи направленного света выходящими из передней грани куба и идущими параллельно до задней стенки. Если мы произведем отображение
 между параллелепипедом и нормированным кубом (вспомним, что мы называем это NDC пространством), то остальная часть построения карты теней не изменится.</p>
@@ -43,26 +43,26 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 разместим параллелепипед симметрично осям. Мы можем так сделать потому, что проецирование происходит после мировых преобразований, где мы вращаем и смещаем
 мир таким образом, что бы свет находился в начале координат и был направлен вдоль оси Z. Общий вид уравнения для отображения отрезка (a,b) в (c,d):</p>
 
-<p><img src="/images/47/calc1.jpg" alt="" /></p>
+<p><img src="../images/47/calc1.jpg" alt="" /></p>
 
 <p>Где a&lt;=X&lt;=b. Произведем отображение на оси X. Произведем отображение по оси X. Подставим отрезки (-r,r) и (-1,1) в уравнении выше и получим (<em>r</em> означает
 "right" на оси X):</p>
 
-<p><img src="/images/47/calc2.jpg" alt="" /></p>
+<p><img src="../images/47/calc2.jpg" alt="" /></p>
 
 <p>Аналогично для отображения по оси Y из (-t,t) в (-1,1):</p>
 
-<p><img src="/images/47/calc3.jpg" alt="" /></p>
+<p><img src="../images/47/calc3.jpg" alt="" /></p>
 
 <p>В случае оси Z нам нужно отобразить (n,f) (где <em>n</em> это ближняя плоскость, а <em>f</em> дальняя) на (-1,1):</p>
 
-<p><img src="/images/47/calc4.jpg" alt="" /></p>
+<p><img src="../images/47/calc4.jpg" alt="" /></p>
 
 <p>Теперь используя три уравнения отображения составим матрицу, для того что бы красиво их обернуть:</p>
 
-<p><img src="/images/47/calc5.jpg" alt="" /></p>
+<p><img src="../images/47/calc5.jpg" alt="" /></p>
 
-<p>Сравните эту матрицу с той, которую мы создали для проецирования перспективы в <a href="/tutorials/tutorial12.html">уроке 12</a>. Важное отличие в том, что элемент [3,2]
+<p>Сравните эту матрицу с той, которую мы создали для проецирования перспективы в <a href="tutorial12.html">уроке 12</a>. Важное отличие в том, что элемент [3,2]
 (отсчет с нуля) равен 0, а не 1. Для деления перспективы было необходимо скопировать Z в позицию W. Это позволяло GPU выполнять разделение перспективы
 автоматически, в момент, когда всё делится на W (и это невозможно отключить). В случае ортогональной проекции W будет равно 1, эффективно отменяя эту
 операцию.</p>
@@ -74,13 +74,13 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 можем "упустить" объект и ничего не отрендерить. Рассмотрим пример. На сцене ниже я задал ширину и высоту 20, а ближнюю и дальнюю -10 и 100
 соответственно:</p>
 
-<p><img src="/images/47/high_res.jpg" alt="" /></p>
+<p><img src="../images/47/high_res.jpg" alt="" /></p>
 
 <p>Проблема в том, что объекты находятся на расстоянии 30 друг от друга; проекция была не достаточно широкой для того, что бы захватить всю сцену (вспомним,
 что направление света ортогонально обзору, поэтому объекты разбросаны на широком поле относительно света). Теперь, давайте увеличим ширину и высоту до 200
 (ближнюю и дальнюю оставим без изменений):</p>
 
-<p><img src="/images/47/low_res.jpg" alt="" /></p>
+<p><img src="../images/47/low_res.jpg" alt="" /></p>
 
 <p>Теперь все объекты имеют тень. Хотя, у нас появилась новая проблема. Тени уже не выглядят так хорошо, как когда только один объект имел тень. Эта проблема
 называется <em>Растеризация перспективы (Perspective Aliasing)</em>, и причина тому то, что многие пиксели в пространстве камеры (когда рендер идет из положения
@@ -91,7 +91,7 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 <h2 id="httpsgithubcomtriplepointfiveogldevtreemastertutorial47"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial47">Прямиком к коду!</a></h2>
 
 <p>Главное отличие между картой теней с направленным и точечным источником заключается в выборе проекции. Поэтому я пройдусь только по необходимым изменениям.
-Прежде чем продолжить, убедитесь, что хорошо знакомы с <a href="/tutorials/tutorial23.html">уроком 23</a> и <a href="/tutorials/tutorial24.html">уроком 24</a>, так как большая часть кода остается без
+Прежде чем продолжить, убедитесь, что хорошо знакомы с <a href="tutorial23.html">уроком 23</a> и <a href="tutorial24.html">уроком 24</a>, так как большая часть кода остается без
 изменений. Если у вас есть рабочая версия теней для точечного света, то потребуется внести лишь немного изменений.</p>
 
 <blockquote>

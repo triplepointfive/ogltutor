@@ -1,19 +1,19 @@
-<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 06 - Перемещение</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 06 - Перемещение</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="../stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="../javascripts/shCore.js"></script><script src="../javascripts/shBrushCpp.js"></script><script src="../javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
         m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-35259428-1', 'auto');
-ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial06/tutorial06.html">Урок 06 - Перемещение</a></h2><p>В этом уроке мы начнем изучать различные преобразования для трехмерных объектов и их отображения на экран, создавая при этом иллюзию глубины сцены. Основной способ - это представление всех трансформаций в виде матриц, перемножая их одну за другой и затем умножая координаты вершин на итоговый результат. Каждый урок будет затрагивать по одному виду преобразований.</p>
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a href="../" class="button nav-left">Содержание</a></li><li><a href="../instr.html" class="button">Инструкции</a></li><li><a href="../cont.html" class="button nav-right">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial06/tutorial06.html">Урок 06 - Перемещение</a></h2><p>В этом уроке мы начнем изучать различные преобразования для трехмерных объектов и их отображения на экран, создавая при этом иллюзию глубины сцены. Основной способ - это представление всех трансформаций в виде матриц, перемножая их одну за другой и затем умножая координаты вершин на итоговый результат. Каждый урок будет затрагивать по одному виду преобразований.</p>
 
 <p>Сейчас мы будем рассматривать изменение координат, несущее за собой движение объекта вдоль вектора любой длины и направления. Скажем, что мы хотим передвинуть треугольник в левом изображении в такую же позицию, как и у треугольника справа:</p>
 
-<p><img src="/images/t6_translation.png" alt="" /></p>
+<p><img src="../images/t6_translation.png" alt="" /></p>
 
 <p>Один из способов это сделать - это создать вектор смещения (в нашем случае - 1,1) в виде uniform-переменной в шейдере и просто добавить его для каждой обрабатываемой вершины. Но это нарушает метод поочередного умножения группы матриц для получения единой комплексной трансформации. Кроме того, позже вы узнаете, что перемещение обычно не первая операция, поэтому вам придется умножать координаты на матрицу, задающую преобразование до перемещения, затем совершить смещение и затем умножить на матрицу для трансформаций, следующих за смещением. Это очень не удобно. Лучше найти матрицу, задающую перемещение и участвующую в перемножении всех матриц. Но вы можете подобрать матрицу, после умножения на которую нижняя левая точка (0,0) перешла бы в точку (1,1)? По правде говоря это не возможно, если использовать двухмерную матрицу (и даже с трехмерной для точки (0,0,0)). Итого имеем: нам нужна матрица M, которая имея точку P(x,y,z) и вектор V(v1,v2,v3) даст нам M * P=P1(x + v1, y + v2, z + v3). Проще говоря, это значит что матрица M перемещает точку P в позицию P+V. В P1 мы видим, что каждая координата это сумма соответствующих координат P и V. Левая сторона каждой суммы обеспечивается единичной матрицей:
 I * P = P(x,y,z). Похоже на то, что для начала мы берем единичную матрицу и теперь изучим, чего же нам не хватает в правой стороне каждой суммы координат (…+V1, …+V2, …+V3). Давайте посмотрим на немного улучшенную единичную матрицу:</p>
 
-<p><img src="/images/t6_equation1.png" alt="" /></p>
+<p><img src="../images/t6_equation1.png" alt="" /></p>
 
 <p>Из этих подсчетов можно сделать 2 вывода:</p>
 
@@ -24,11 +24,11 @@ I * P = P(x,y,z). Похоже на то, что для начала мы бер
 
 <p>Мы же хотим найти матрицу, которая даст следующий результат в правой части:</p>
 
-<p><img src="/images/t6_equation2.png" alt="" /></p>
+<p><img src="../images/t6_equation2.png" alt="" /></p>
 
 <p>Нам нужно найти способ добавить v1-v3 как мы видим выше, а a-f равны 0. Итоговый результат - это наш вектор движения. Похоже на то, что нам необходимо добавить 4-й столбец в матрицу, но в этом случае нельзя будет производить наши подсчеты. Мы не можем умножать матрицу 3x4  на вектор 3x1. Правило гласит, что можно умножать матрицы, только если их размерности NxM и MxN. Тогда мы добавим 4-й элемент в вектор. Лучше взять его равным 1, тогда мы сможем поместить v1-v3 на четвертом столбце матрицы и они останутся без изменений в итоге, потому, что они будут умножены на 1. Но нашу матрицу по прежнему нельзя использовать для умножения, но если добавить 4-ю строку, матрица станет 4x4 и её уже можно умножать на наш вектор. Наконец, наше преобразование:</p>
 
-<p><img src="/images/t6_equation3.png" alt="" /></p>
+<p><img src="../images/t6_equation3.png" alt="" /></p>
 
 <p>Теперь даже если x,y и z будут равны 0, мы все равно сможем их переместить в любую точку.</p>
 

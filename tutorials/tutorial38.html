@@ -1,17 +1,17 @@
-<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 38 - Скелетная анимация с Assimp</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 38 - Скелетная анимация с Assimp</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="../stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="../javascripts/shCore.js"></script><script src="../javascripts/shBrushCpp.js"></script><script src="../javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
         m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-35259428-1', 'auto');
-ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial38/tutorial38.html">Урок 38 - Скелетная анимация с Assimp</a></h2><p>Итак, вот это. То, о чем миллионы моих читателей (ну хорошо, хорошо, я немного приувеличиваю ;-)) давно уже просят. <em>Скелетная анимация (Skeletal animation)</em>, известная так же как <em>Скининг (Skinning)</em>, с библиотекой Assimp.</p>
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a href="../" class="button nav-left">Содержание</a></li><li><a href="../instr.html" class="button">Инструкции</a></li><li><a href="../cont.html" class="button nav-right">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial38/tutorial38.html">Урок 38 - Скелетная анимация с Assimp</a></h2><p>Итак, вот это. То, о чем миллионы моих читателей (ну хорошо, хорошо, я немного приувеличиваю ;-)) давно уже просят. <em>Скелетная анимация (Skeletal animation)</em>, известная так же как <em>Скининг (Skinning)</em>, с библиотекой Assimp.</p>
 
 <p>Скелетная анимация состоит из 2 частей. Первую выполняет 3d артист, а вторую вы, программист (или скорее движек, который вы пишите). Первая часть создается в ПО для моделирования и называется <em>Риггинг (Rigging)</em>. В этом этапе моделер создает скелет из костей внутри меша. Меш в данном случае служит кожей объекта (будь это человек, монстр или кто-то еще), а кости будут использоваться для движения меша таким образом, что бы происходила имитация движения в реальном мире. Для этого каждая вершина привязывается к одной или более костей. Когда вершина присоединена устанавливается вес, который задает силу влияния кости на вершину. Хорошей практикой является установка суммарного веса для вершины равным 1. Например, если вершина расположена между 2 костями, то вероятно мы захотим
 разделить вес по 0.5 между костьми, потому, что мы ожидаем одинакового воздействия на вершину. Хотя, если вершина полностью во влиянии 1 кости, то вес будет равен 1 (что означает полный контроль над движением вершины).</p>
 
 <p>Вот пример скелета, созданного в blender:</p>
 
-<p><img src="/images/t38_rigging.jpg" alt="" /></p>
+<p><img src="../images/t38_rigging.jpg" alt="" /></p>
 
 <p>То, что мы видем выше - важная часть анимации. Артист риггит скелет и определяет ключевые кадры для каждого типа анимации ("ходьба", "бег", "смерть" и т.д.). Ключевые кадры хранят преобразования всех костей в важных позициях по ходу анимации. Графический движек интерполирует между позициями в кадрах и создает плавное движение между ними.</p>
 
@@ -21,7 +21,7 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 
 <p>Для начала увеличим вершинный буфер с информацией о костях для каждой вершины. Нам доступно несколько опций, но мы сделаем "в лоб". Для каждой вершины мы собираемся добавить массив слотов, где каждый слот - id кости и ее вес. Для упрощения мы будем использовать только 4 слота, тем самым ограничив число костей на вершину. Если вы хотите использовать больше, то можете увеличить размер массива, но для модели из Doom 3, приложенной к этому уроку, 4-х костей достаточно. Теперь обновленная струстура вершины имеет вид:</p>
 
-<p><img src="/images/t38_vertex.jpg" alt="" /></p>
+<p><img src="../images/t38_vertex.jpg" alt="" /></p>
 
 <p>Id костей являются индексами в массиве преобразований для костей. Эти преобразования будут применены на позицию и нормаль до матрицы WVP (т.е. они преобразовывают вершину из "пространства костей" в локальное пространство). Вес будет использован для комбинации преобразований нескольких костей в единое преобрзование и итоговый вес обязан быть равным 1 (ответственность несет ПО для моделирования). Обычно мы будем интерполировать между ключевыми кадрами анимации и обновлять массив преобразований костей каждый кадр.</p>
 
@@ -31,7 +31,7 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 
 <p>Давайте начнем с информации о костях на уровне вершин. Вот соответсвующая часть структуры данных Assimp:</p>
 
-<p><img src="/images/t38_assimp1.jpg" alt="" /></p>
+<p><img src="../images/t38_assimp1.jpg" alt="" /></p>
 
 <p>Как вы, наверное, помните из урока по Assimp, всё содержится в объекте класса aiScene (который создается при импорте файла меша). aiScene хранит массив объектов aiMesh. aiMesh - часть модели, в которой находятся данные вершин, такие как позиция, нормаль, координаты текстуры и прочее. Теперь мы видим, что aiMesh также содержит массив объектов aiBone. Не удивительно, что там хранятся данные об одной кости в скелете меша. Каждая кость имеет имя, по которому ее можно найти в иерархии костей, массив веса вершин и матрицу смещения 4x4. Причина, по которой нам нужна эта матрица - вершины заданы в локальном пространстве. Это значит, что даже без поддержки скелетной анимации наш код может загрузить и рендерить модель. Но преобразования костей в иерархии задаются в пространтсве костей (и для каждой кости свое пространство, вот почему нам требуется перемножать преобразования). Итого, задача матрицы смещения в перемещении вершин из локального пространства в пространство конкретной кости.</p>
 
@@ -39,7 +39,7 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 
 <p>После того, как мы собрали информацию о костях на уровне вершин нам требуется обработать преобразования иерархии костей для создания итогового преобразования, которое будет загружено в шейдер. Следующее изображение покажет подходящую структуру данных:</p>
 
-<p><img src="/images/t38_assimp2.jpg" alt="" /></p>
+<p><img src="../images/t38_assimp2.jpg" alt="" /></p>
 
 <p>Мы снова начинаем с aiScene. Объект aiScene хранит указатель на объект класса aiNode, который является корнем иерархии (или дерева). Каждый лист в дереве имеет указатель на родителя и массив указателей на потомков. Это позволяет нам удобно переходить по дереву вверх и вниз. Кроме того, лист хранит матрицу преобразований, которое переводит из пространства листа в пространство родителя. И наконец, у листа может быть или не быть имени. Если лист соответсвует кости, то их имена должны совпадать. Но временами лист не имеет имени (это значит, что нет подходящей кости) и его задача в помощи моделеру разбить модель и добавить на пути промежуточные преобразования.</p>
 
