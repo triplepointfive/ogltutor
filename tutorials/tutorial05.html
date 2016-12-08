@@ -1,50 +1,92 @@
-<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 05 - Uniform переменные</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <title>Уроки по OpenGL с сайта OGLDev - Урок 05 - Uniform переменные</title>
+    <meta name="keywords" content />
+    <meta name="description" content />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/shCore.js"></script>
+    <script type="text/javascript" src="../js/shBrushCpp.js"></script>
+    <script type="text/javascript" src="../js/highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../css/foundation.css" />
+    <link rel="stylesheet" type="text/css" href="../css/normalize.css" />
+    <link type="text/css" rel="stylesheet" href="../css/shCoreDefault.css" />
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-ga('create', 'UA-35259428-1', 'auto');
-ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial05/tutorial05.html">Урок 05 - Uniform переменные</a></h2><p>В этом уроке мы познакомимся с новым типом переменных в шейдерах - uniform-переменные. Разница между атрибутом и uniform-переменной в том, что атрибут хранит данные, указанные вершиной, поэтому они получают новые значения из вершинного буфера, в то время как для каждого вызова шейдера значение uniform-переменной остаётся постоянным с момента вызова отрисовки. Это значит, что вам необходимо указать значение, прежде чем вызвать функцию отрисовки, и вы получите одинаковое значение для каждого вызова вершинного шейдера. Uniform-переменные полезны для хранения данных таких как параметры света (позиция источника света, его направление и т.д.), трансформации матриц, указатели на объект текстуры и так далее.</p>
+        ga('create', 'UA-35259428-1', 'auto');
+        ga('send', 'pageview');
 
-<p>В этом уроке мы наконец-то получим хоть какое-то движение на экране. Для этого мы используем комбинацию uniform-переменной, значение которой мы будем изменять каждый кадр, и ленивую функцию, которую нам предлагает GLUT. Смысл в том, в что GLUT не вызывает нашу функцию рендера регулярно, а только по необходимости. GLUT вызывает функцию рендера только после получения событий, таких как сворачивание окна или если окно перекрыто другим окном. Если же мы не получили изменений в плане окна после запуска приложения, то функция рендера будет вызвана лишь раз. Вы можете проверить это сами, добавив вызов printf в свою функцию рендера. Вы увидите вывод лишь раз и ещё каждый раз во время сворачивания/разворачивания окна. Использование функции обратного вызова для рендера из прошлых уроков теперь не подойдет, так как нам нужно менять значение переменной. Для этого мы используем ленивую функцию обратного вызова. Ленивая функция вызывается GLUT'ом даже если никаких событий не произошло. Вы можете использовать другую функцию для этого вызова, в ней, например, будут производиться подсчеты, такие как повременные обновления или даже вызывать в ней функцию рендера. В этом уроке мы будем обновлять значение переменной внутри функции рендера.</p>
+    </script>
+</head>
 
-<h2 id="httpsgithubcomtriplepointfiveogldevtreemastertutorial05"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial05">Прямиком к коду!</a></h2>
+<body>
+    <div class="row header">
+        <div class="large-12 columns">
+            <div class="nav-bar right">
+                <ul class="button-group">
+                    <li><a href="../" class="button nav-left">Содержание</a></li>
+                    <li><a href="../instr.html" class="button">Инструкции</a></li>
+                    <li><a href="../cont.html" class="button nav-right">Контакты</a></li>
+                </ul>
+            </div>
+            <h1><small>Уроки по OpenGL с сайта OGLDev</small></h1>
+            <hr>
+        </div>
+    </div>
 
-<pre><code>glutIdleFunc(RenderSceneCB);
-</code></pre>
-
+    <div class="row">
+        <div class="large-12 columns">
+            <div class="tutorial">
+    <h2>
+        <a href="http://ogldev.atspace.co.uk/www/tutorial05/tutorial05.html">Урок 05 - Uniform переменные</a>
+    </h2>
+    <p>В этом уроке мы познакомимся с новым типом переменных в шейдерах - uniform-переменные. Разница между атрибутом и uniform-переменной в том, что атрибут хранит данные, указанные вершиной, поэтому они получают новые значения из вершинного буфера, в то время как для каждого вызова шейдера значение uniform-переменной остаётся постоянным с момента вызова отрисовки. Это значит, что вам необходимо указать значение, прежде чем вызвать функцию отрисовки, и вы получите одинаковое значение для каждого вызова вершинного шейдера. Uniform-переменные полезны для хранения данных таких как параметры света (позиция источника света, его направление и т.д.), трансформации матриц, указатели на объект текстуры и так далее.</p>
+<p>В этом уроке мы наконец-то получим хоть какое-то движение на экране. Для этого мы используем комбинацию uniform-переменной, значение которой мы будем изменять каждый кадр, и ленивую функцию, которую нам предлагает GLUT. Смысл в том, в что GLUT не вызывает нашу функцию рендера регулярно, а только по необходимости. GLUT вызывает функцию рендера только после получения событий, таких как сворачивание окна или если окно перекрыто другим окном. Если же мы не получили изменений в плане окна после запуска приложения, то функция рендера будет вызвана лишь раз. Вы можете проверить это сами, добавив вызов printf в свою функцию рендера. Вы увидите вывод лишь раз и ещё каждый раз во время сворачивания/разворачивания окна. Использование функции обратного вызова для рендера из прошлых уроков теперь не подойдет, так как нам нужно менять значение переменной. Для этого мы используем ленивую функцию обратного вызова. Ленивая функция вызывается GLUT’ом даже если никаких событий не произошло. Вы можете использовать другую функцию для этого вызова, в ней, например, будут производиться подсчеты, такие как повременные обновления или даже вызывать в ней функцию рендера. В этом уроке мы будем обновлять значение переменной внутри функции рендера.</p>
+<h2 id="прямиком-к-коду"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial05">Прямиком к коду!</a></h2>
+<pre><code>glutIdleFunc(RenderSceneCB);</code></pre>
 <p>Здесь мы указываем функцию рендера в качестве ленивой. Заметьте, что если вы хотите использовать ленивую функцию, то необходимо добавить в конце функции рендера вызов glutPostRedisplay(). Иначе ленивая функция будет вызываться вновь и вновь, а вот функция рендера - нет. glutPostRedisplay() показывает, что текущее окно должно быть отрисованно заново и в течении главного цикла GLUT функция рендера будет вызвана.</p>
-
-<pre><code>gScaleLocation = glGetUniformLocation(ShaderProgram, "gScale");
-assert(gScaleLocation != 0xFFFFFFFF);
-</code></pre>
-
+<pre><code>gScaleLocation = glGetUniformLocation(ShaderProgram, &quot;gScale&quot;);
+assert(gScaleLocation != 0xFFFFFFFF);</code></pre>
 <p>После линковки программы мы запрашиваем позицию uniform-переменной в программном объекте. Это ещё один пример, когда среда приложения C/C++ должна быть сопоставлена со средой шейдера. У вас нет прямого доступа к содержимому шейдера и нельзя напрямую обновлять его переменные. Во время компиляции шейдера, компилятор GLSL запоминает индексы каждой uniform-переменной. Во внутреннем представлении шейдеров внутри компилятора доступ к переменной осуществляется через индекс. Индекс можно получить с помощью функции glGetUniformLocation. Вы вызываете эту функцию с указателям на объект программы и именем переменной. Функция возвращает индекс или -1 в случае ошибки. Очень важна проверка на ошибки (как мы и сделали ниже), иначе обновления переменной не попадут в шейдер. Есть 2 основные причины ошибки у этой функции. Вы написали с ошибкой имя переменной или она была убрана компилятором с целью оптимизации. Если компилятор не обнаружит использования переменной, он без раздумий выбросит её. В этом случае glGetUniformLocation не даст результата.</p>
-
 <pre><code>static float Scale = 0.0f;
 Scale += 0.001f;
-glUniform1f(gScaleLocation, sinf(Scale));
-</code></pre>
-
-<p>Мы используем статическую переменную типа float, которую мы будем по-немного увеличивать каждый вызов функции рендера (вы возможно захотите изменить значения с 0.001 если программа работает слишком быстро или медленно). Реальное же значение, передаваемое в шейдер - это синус от <em>'Scale'</em> переменной. Это создаёт красивый цикл между -1.0 и 1.0. Заметьте, что sinf() принимает параметр в радианах, не в градусах, хотя нам сейчас это не важно, нам просто нужны волны, генерируемые синусом. Результат sinf() передается в шейдер используя glUniform1f. OpenGL обеспечивает множество видов этой функции вида glUniform{1234}{if}. Вы можете использовать их для загрузки значений в 1D, 2D, 3D или 4D (основывается на числе, которое указывает <em>'glUniform'</em>) векторов целочисленного или float-типов (это 'i' или 'f' окончания). Так же есть функция, которая принимает адрес вектора как параметр, а так же специальные версии для матриц. Первый параметр функции - это индекс позиции, который мы получили используя glGetUniformLocation().</p>
-
+glUniform1f(gScaleLocation, sinf(Scale));</code></pre>
+<p>Мы используем статическую переменную типа float, которую мы будем по-немного увеличивать каждый вызов функции рендера (вы возможно захотите изменить значения с 0.001 если программа работает слишком быстро или медленно). Реальное же значение, передаваемое в шейдер - это синус от <em>‘Scale’</em> переменной. Это создаёт красивый цикл между -1.0 и 1.0. Заметьте, что sinf() принимает параметр в радианах, не в градусах, хотя нам сейчас это не важно, нам просто нужны волны, генерируемые синусом. Результат sinf() передается в шейдер используя glUniform1f. OpenGL обеспечивает множество видов этой функции вида glUniform{1234}{if}. Вы можете использовать их для загрузки значений в 1D, 2D, 3D или 4D (основывается на числе, которое указывает <em>‘glUniform’</em>) векторов целочисленного или float-типов (это ‘i’ или ‘f’ окончания). Так же есть функция, которая принимает адрес вектора как параметр, а так же специальные версии для матриц. Первый параметр функции - это индекс позиции, который мы получили используя glGetUniformLocation().</p>
 <p>Теперь посмотрим на изменения, сделанные в вершинном шейдере (фрагментный остался без изменений).</p>
-
-<pre><code>uniform float gScale;
-</code></pre>
-
+<pre><code>uniform float gScale;</code></pre>
 <p>Здесь мы объявляем uniform-переменную в шейдере.</p>
-
-<pre><code>gl_Position = vec4(gScale * Position.x, gScale * Position.y, Position.z, 1.0);
-</code></pre>
-
+<pre><code>gl_Position = vec4(gScale * Position.x, gScale * Position.y, Position.z, 1.0);</code></pre>
 <p>Мы умножаем координаты позиции X и Y на число, получаемое из приложения каждый кадр. Можете объяснить почему верхний угол треугольника половину цикла направлен вниз?</p>
-</div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
 
-/* * * DON'T EDIT BELOW THIS LINE * * */
-(function() {
-  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><noscript><Please>enable JavaScript to view the</Please><a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com"><comments>powered by</comments><span class="logo-disqus">Disqus</span></a></div></div><footer class="row"><div class="large-12 columns text-right"><hr />Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a><br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small></div></footer></body></html>
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </div>
+    </div>
+    <footer class="row">
+        <div class="large-12 columns text-right">
+            <hr>
+            Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            <br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small>
+        </div>
+    </footer>
+</body>
+</html>

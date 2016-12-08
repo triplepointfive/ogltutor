@@ -1,31 +1,67 @@
-<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 41 - Размытие (Motion Blur)</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <title>Уроки по OpenGL с сайта OGLDev - Урок 41 - Размытие (Motion Blur)</title>
+    <meta name="keywords" content />
+    <meta name="description" content />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/shCore.js"></script>
+    <script type="text/javascript" src="../js/shBrushCpp.js"></script>
+    <script type="text/javascript" src="../js/highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../css/foundation.css" />
+    <link rel="stylesheet" type="text/css" href="../css/normalize.css" />
+    <link type="text/css" rel="stylesheet" href="../css/shCoreDefault.css" />
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-ga('create', 'UA-35259428-1', 'auto');
-ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial41/tutorial41.html">Урок 41 - Размытие (Motion Blur)</a></h2><p>Размытие (Motion Blur) - очень популярная техника для быстрых 3D игр, чья идея добавить размытия движущимся объектам. Это повышает чувства реализма у игрока. Размытие может быть выполнено несколькими способами. Возможна камера для размытия, которая основывается на движении камеры, а возможно размытие, основанное на объекте. В этом уроке мы рассмотрим одну из реализаций.</p>
+        ga('create', 'UA-35259428-1', 'auto');
+        ga('send', 'pageview');
 
+    </script>
+</head>
+
+<body>
+    <div class="row header">
+        <div class="large-12 columns">
+            <div class="nav-bar right">
+                <ul class="button-group">
+                    <li><a href="../" class="button nav-left">Содержание</a></li>
+                    <li><a href="../instr.html" class="button">Инструкции</a></li>
+                    <li><a href="../cont.html" class="button nav-right">Контакты</a></li>
+                </ul>
+            </div>
+            <h1><small>Уроки по OpenGL с сайта OGLDev</small></h1>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-12 columns">
+            <div class="tutorial">
+    <h2>
+        <a href="http://ogldev.atspace.co.uk/www/tutorial41/tutorial41.html">Урок 41 - Размытие (Motion Blur)</a>
+    </h2>
+    <p>Размытие (Motion Blur) - очень популярная техника для быстрых 3D игр, чья идея добавить размытия движущимся объектам. Это повышает чувства реализма у игрока. Размытие может быть выполнено несколькими способами. Возможна камера для размытия, которая основывается на движении камеры, а возможно размытие, основанное на объекте. В этом уроке мы рассмотрим одну из реализаций.</p>
 <p>Идея размытия в том, что мы можем вычислить вектор движения (Motion Vector) для каждого рендуемуего пикселя между 2 кадрами. Взяв среднее значение вдоль этого вектора из текущего буфера цвета мы получим пиксели, которые представляют движение соответствующих объектов. Вот и все. Давайте углубимся в детали. Далее приведено краткое описание требуемых шагов, после которых мы перейдем к самому коду.</p>
-
-<ol>
-  <li>Метод разделен на 2 этапа - проход рендера, а за ним - проход размытия.</li>
-  <li>В проходе рендера мы рендерим в 2 буфера - обычный буфер цвета и буфер вектора движения. Буфер цвета хранит исходное изображение как если бы и не было размытия. Вектор движения представляет собой вектор для каждого пикселя, по сути его перемещение по экрану между текущим и предыдущим кадрами.</li>
-  <li>Вектор движения вычисляется как применение матрицы WVP предыдущего кадра к VS. Мы преобразуем позицию из локального пространства для каждой вершины используя текущую WVP и предыдущую для передачи обоих результатов в FS. Мы получим интерполированные позиции в пространстве клиппера в FS и преобразуем в NDC поделив их на соответствующую координату W. На этом завершится их проецирование на экран, теперь можно вычесть предыдущую позицию из текущей и получить вектор движения. Вектор будет записан в текстуру.</li>
-  <li>Проход размытия реализован через рендер прямоугольника на весь экран. Мы берем вектор движения для каждого пикселя в FS и затем получаем цвета из буфера цвета вдоль этого вектора (начиная из текущего пикселя).</li>
-  <li>Вычисляем сумму для каждой выборки, назначая наибольший вес для текущего пикселя и наименьший для самого отдаленного (в этом уроке именно такая реализация, но существуют и другие).</li>
-  <li>Это среднее значение результатов выборки вдоль вектора движения и создает эффект размытия. Очевидно, пиксели, которые не изменили позицию между кадрами, будут выглядить как и раньше, то, чего мы и хотим.</li>
+<ol style="list-style-type: decimal">
+<li>Метод разделен на 2 этапа - проход рендера, а за ним - проход размытия.</li>
+<li>В проходе рендера мы рендерим в 2 буфера - обычный буфер цвета и буфер вектора движения. Буфер цвета хранит исходное изображение как если бы и не было размытия. Вектор движения представляет собой вектор для каждого пикселя, по сути его перемещение по экрану между текущим и предыдущим кадрами.</li>
+<li>Вектор движения вычисляется как применение матрицы WVP предыдущего кадра к VS. Мы преобразуем позицию из локального пространства для каждой вершины используя текущую WVP и предыдущую для передачи обоих результатов в FS. Мы получим интерполированные позиции в пространстве клиппера в FS и преобразуем в NDC поделив их на соответствующую координату W. На этом завершится их проецирование на экран, теперь можно вычесть предыдущую позицию из текущей и получить вектор движения. Вектор будет записан в текстуру.</li>
+<li>Проход размытия реализован через рендер прямоугольника на весь экран. Мы берем вектор движения для каждого пикселя в FS и затем получаем цвета из буфера цвета вдоль этого вектора (начиная из текущего пикселя).</li>
+<li>Вычисляем сумму для каждой выборки, назначая наибольший вес для текущего пикселя и наименьший для самого отдаленного (в этом уроке именно такая реализация, но существуют и другие).</li>
+<li>Это среднее значение результатов выборки вдоль вектора движения и создает эффект размытия. Очевидно, пиксели, которые не изменили позицию между кадрами, будут выглядить как и раньше, то, чего мы и хотим.</li>
 </ol>
-
-<p>В основе этого урока лежит склетная анимация (#38). Мы рассмотрим изменения и покажем, что нужно добавить для
-получения размытия.</p>
-
-<h2 id="httpsgithubcomtriplepointfiveogldevtreemastertutorial41"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial41">Прямиком к коду!</a></h2>
-
+<p>В основе этого урока лежит склетная анимация (#38). Мы рассмотрим изменения и покажем, что нужно добавить для получения размытия.</p>
+<h2 id="прямиком-к-коду"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial41">Прямиком к коду!</a></h2>
 <blockquote>
-  <p>tutorial41.cpp:175</p>
+<p>tutorial41.cpp:175</p>
 </blockquote>
-
 <pre><code>virtual void RenderSceneCB()
 {
     CalcFPS();
@@ -39,15 +75,11 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
     RenderFPS();
 
     glutSwapBuffers();
-}
-</code></pre>
-
+}</code></pre>
 <p>Это главная функция рендера, она крайне проста. У нас имеется проход рендера для всех объектов сцены и проход постобработки для размытия.</p>
-
 <blockquote>
-  <p>tutorial41.cpp:190</p>
+<p>tutorial41.cpp:190</p>
 </blockquote>
-
 <pre><code>void RenderPass()
 {
         m_intermediateBuffer.BindForWriting();
@@ -83,17 +115,12 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
     m_mesh.Render();
 
         m_prevTransforms = Transforms;
-}
-</code></pre>
-
+}</code></pre>
 <p>Это наш проход рендера. Он почти такой же, как и в уроке Скелетной Анимации. Промежуточный буфер (intermediate) - простой класс, который хранит буферы цвета, глубины и вектора движения в едином буфере кадра. Мы уже сталкивались с этим в уроках по deferred rendering (#35-#37), поэтому на нем останавливаться не будем. За подробностями в исходный код. Идея в рендере в FBO, а не прямо на экран. В проходе размытия мы будем считывать из промежуточного буфера.</p>
-
-<p>Кроме этого, мы можете увидить. что мы добавили свойство класса в класс 'Tutorial41', которое хранит вектор преобразований костей из предыдущего кадра. Мы поставляем его в метод скининга с текущими преобразованиями костей. Мы увидим, как он используется в коде GLSL.</p>
-
+<p>Кроме этого, мы можете увидить. что мы добавили свойство класса в класс ‘Tutorial41’, которое хранит вектор преобразований костей из предыдущего кадра. Мы поставляем его в метод скининга с текущими преобразованиями костей. Мы увидим, как он используется в коде GLSL.</p>
 <blockquote>
-  <p>tutorial41.cpp:227</p>
+<p>tutorial41.cpp:227</p>
 </blockquote>
-
 <pre><code>void MotionBlurPass()
 {
     m_intermediateBuffer.BindForReading();
@@ -103,15 +130,11 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
     m_pMotionBlurTech-&gt;Enable();
 
     m_quad.Render();
-}
-</code></pre>
-
+}</code></pre>
 <p>В проходе размытия мы привязываем промежуточный буфер для чтения (т.е. рендер будет происходить на экран) и рендерим прямоугольник на весь экран. Каждый пиксель экрана будет обработан 1 раз и в этот момент и будет вычислен эффект размытия.</p>
-
 <blockquote>
-  <p>skinning.glsl</p>
+<p>skinning.glsl</p>
 </blockquote>
-
 <pre><code>struct VSInput
 {
     vec3  Position;
@@ -161,15 +184,11 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     VSout.ClipSpacePos = ClipSpacePos;
     vec4 PrevPosL      = PrevBoneTransform * vec4(VSin.Position, 1.0);
     VSout.PrevClipSpacePos = gWVP * PrevPosL;
-}
-</code></pre>
-
+}</code></pre>
 <p>Выше мы видим изменения в VS в алгоритме скиннинга. Мы добавили uniform-массив с преобразованиями костей из предыдущего кадра, он будет использован для нахождения позиции текущей вершины в пространстве клиппера в предыдущем кадре. Эта позиция, так же, как и позиция текущей вершины в пространстве клиппера в текущем кадре, будет передана в FS.</p>
-
 <blockquote>
-  <p>skinning.glsl:165</p>
+<p>skinning.glsl:165</p>
 </blockquote>
-
 <pre><code>struct FSOutput
 {
     vec3 Color;
@@ -198,17 +217,12 @@ shader FSmain(in VSOutput FSin, out FSOutput FSOut)
     vec3 NDCPos = (FSin.ClipSpacePos / FSin.ClipSpacePos.w).xyz;
     vec3 PrevNDCPos = (FSin.PrevClipSpacePos / FSin.PrevClipSpacePos.w).xyz;
     FSOut.MotionVector = (NDCPos - PrevNDCPos).xy;
-}
-</code></pre>
-
+}</code></pre>
 <p>FS техники скиннинга обновлен так, что теперь он выдает 2 вектора в 2 отдельных буфера (буферы цвета и вектора движения). Цвет вычисляется как обычно. Для вычисления вектора движения мы проецируем позиции в пространстве клиппера текущего и предыдущего кадров через деление перспективы и вычитаем один из другого.</p>
-
-<p>Заметим, что вектор позиции - всего 2D вектор. Это из-за того, что он 'живет' только на экране. Соответствующий буфер размытия создан с типом GL_RG для соответствия.</p>
-
+<p>Заметим, что вектор позиции - всего 2D вектор. Это из-за того, что он ‘живет’ только на экране. Соответствующий буфер размытия создан с типом GL_RG для соответствия.</p>
 <blockquote>
-  <p>motion_blur.glsl</p>
+<p>motion_blur.glsl</p>
 </blockquote>
-
 <pre><code>struct VSInput
 {
     vec3  Position;
@@ -225,15 +239,11 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
 {
     gl_Position    = vec4(VSin.Position, 1.0);
     VSout.TexCoord = VSin.TexCoord;
-}
-</code></pre>
-
+}</code></pre>
 <p>Это VS техники размытия. Мы просто передаем позицию и координаты текстуы каждой вершины полноэкранного прямоугольника.</p>
-
 <blockquote>
-  <p>motion_blur.glsl:19</p>
+<p>motion_blur.glsl:19</p>
 </blockquote>
-
 <pre><code>uniform sampler2D gColorTexture;
 uniform sampler2D gMotionTexture;
 
@@ -254,22 +264,37 @@ shader FSmain(in VSOutput FSin, out vec4 FragColor)
       Color += texture(gColorTexture, TexCoord) * 0.1;
 
       FragColor = Color;
-}
-</code></pre>
-
+}</code></pre>
 <p>Вот здесь все веселье размытия. Мы берем вектор движения из текущего пикселя и используем его для выборки 4-х текселей из буфера цвета. Цвет текущего пикселя взят из исходной позиции и получает наибольший вес (0.4). Далее мы движемся вдоль координат текстуры противоположно направлению вектора движения и выбираем еще 3 текселя. Далее мы комбинируем их уменьшая и уменьшая вес при удалении.</p>
-
 <p>Как вы могли заметить, я разделил исходный вектор движения на 2. Вам возможно потребуется небольшой тюнинг, в том числе в настройке веса для получения наилучшего результата. Развлекайтесь.</p>
-
 <p>Пример возможного результата:</p>
+<div class="figure">
+<img src="../images/t41_tutorial41.jpg" alt />
 
-<p><img src="/images/t41_tutorial41.jpg" alt="" /></p>
-</div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
 
-/* * * DON'T EDIT BELOW THIS LINE * * */
-(function() {
-  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><noscript><Please>enable JavaScript to view the</Please><a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com"><comments>powered by</comments><span class="logo-disqus">Disqus</span></a></div></div><footer class="row"><div class="large-12 columns text-right"><hr />Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a><br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small></div></footer></body></html>
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        </div>
+    </div>
+    <footer class="row">
+        <div class="large-12 columns text-right">
+            <hr>
+            Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            <br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small>
+        </div>
+    </footer>
+</body>
+</html>
