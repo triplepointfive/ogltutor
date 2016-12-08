@@ -32,12 +32,9 @@ html
       .large-12.columns
           .nav-bar.right
             ul class="button-group"
-              li
-                a href="/" class="button nav-left" Содержание
-              li
-                a href="/instr.html" class="button" Инструкции
-              li
-                a href="/cont.html" class="button nav-right" Контакты
+              li= link_to "Содержание", "/index.html", class: "button nav-left"
+              li= link_to "Инструкции", "/instr.html", class: "button"
+              li= link_to "Контакты", "/cont.html", class: "button nav-right"
           h1
             small Уроки по OpenGL с сайта OGLDev
           hr
