@@ -37,9 +37,11 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 <p>Мы используем интерполяционный цвет в качестве цвета пикселя без каких-либо изменений и на этом завершаем этот урок.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "09";
 
 var disqus_config = function () {
-  this.page.identifier = "09";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 09 - Интерполяция";
 };
 

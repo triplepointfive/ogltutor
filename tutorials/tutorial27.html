@@ -241,9 +241,11 @@ void main()
 <p>FS крайне прост - большая часть его работы - взять сэмпл из текстуры через координаты текстуры, генерированные GS. Добавилась новая часть - встроенная функция 'discard', используемая для того, что бы выбросить пиксель целиком в некоторых ситуациях. Изображение из Doom, которое включено в этот урок, показывает монстра на черном фоне. Используя эту текстуру как есть, сделает некоторые части billboard непрозрачными, что будет выглядеть нелепо. Для избежания этого мы отбрасываем черный цвет. Это позволит нам оставить только пиксели, которые составляют само изображение монстра. Попробуйте отключить 'discard' и посмотрите на разницу.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "27";
 
 var disqus_config = function () {
-  this.page.identifier = "27";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 27 - Billboarding и Геометрический шейдер";
 };
 

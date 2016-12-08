@@ -351,9 +351,11 @@ static void InitCallbacks()
 <p>Этот урок запрашивает у приложения отслеживать клики мыши. Функция glutMouseFunc() занимается этим. Для нее добавилась дополнительная функция обратного вызова в интерфейс ICallbacks (который наследует класс главного приложения). Вы можеье использовать перечисления такие как GLUT_LEFT_BUTTON, GLUT_MIDDLE_BUTTON и GLUT_RIGHT_BUTTON для обработки нажатой кнопки (первый аргумент MouseCB()). Параметр 'State' сообщает была ли клавиша нажата (GLUT_DOWN) или отпущена (GLUT_UP).</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "29";
 
 var disqus_config = function () {
-  this.page.identifier = "29";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 29 - 3D Выбор";
 };
 

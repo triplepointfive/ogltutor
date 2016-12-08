@@ -41,9 +41,11 @@ glUniform1f(gScaleLocation, sinf(Scale));
 <p>Мы умножаем координаты позиции X и Y на число, получаемое из приложения каждый кадр. Можете объяснить почему верхний угол треугольника половину цикла направлен вниз?</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "05";
 
 var disqus_config = function () {
-  this.page.identifier = "05";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 05 - Uniform переменные";
 };
 

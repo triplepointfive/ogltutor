@@ -482,9 +482,11 @@ uniform float gSecondaryShellLifetime;
 <p>Класс RandomTexture очень удобен для обеспечения случайных данных в шейдере. Это 1D текстура с внутреннем параметром GL_RGB и вещевтсвенным типом данных. Это значит, что каждый элемент - вектор из 3 вещевтсвенных чисел. Заметим, что мы указываем мод GL_REPEAT. Это позволит нам использовать любые координаты текстуры для доступа к ней. Если координата текстуры больше 1.0, то она просто перенесется в начало, поэтому мы всегда будем получать коректные значения. В этой серии уроков модуль текстуры 3 будет определен для случайной текстуры. Вы можете увидеть установку модулей текстуры в заголовке engine_common.h.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "28";
 
 var disqus_config = function () {
-  this.page.identifier = "28";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 28 - Система частиц и Transform Feedback";
 };
 

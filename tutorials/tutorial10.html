@@ -65,9 +65,11 @@ glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 <p>Мы используем glDrawElements вместо glDrawArrays. Первый параметр - это тип примитивов (так же, как и у glDrawArrays). Второй параметр указывает какое количество индексов в индексном буфере будет использоваться. Следующий параметр - тип переменных в буфере индексов. GPU обязан знать размер каждого индекса, иначе он не сможет получить индексы из буфера. Возможные варианты: GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT. Если индексы малы, то вы захотите выбрать наименьший тип для экономии памяти и наоборот, в случае больших индексов требуются большие типы. Последний параметр передает GPU смещение в байтах от начала буфера индексов до до позиции первого индекса для обработки. Это полезно, когда один буфер индексов содержит индексы многих объектов. Указывая смещение и количество индексов возможно показать GPU какой объект рендерить. Мы хотим начать с начала, поэтому указываем 0. Заметим, что тип последнего параметра GLvoid*, поэтому если мы указываем что-либо отличное от 0, то необходимо преобразовать в этот тип.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "10";
 
 var disqus_config = function () {
-  this.page.identifier = "10";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 10 - Индексированная отрисовка";
 };
 

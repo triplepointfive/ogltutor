@@ -232,9 +232,11 @@ struct DirectionalLight
 <p>Для завершения демо, которое мы видели на привью, мы должны указать интенсивность рассеивания и направление света. Это сделано в конструкторе класса Main. Интенсивность рассеивания равна 0 и направление слева направо. Фоновая интенсивность была уменьшена до 0, для усиления эффекта рассеянного света. Вы можете изменить параметры через кнопки 'z' и 'x' для управления интенсивностью рассеивания (аналогично 'a' и 's' из предыдущего урока для фоновой интенсивности).</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "18";
 
 var disqus_config = function () {
-  this.page.identifier = "18";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 18 - Рассеянное освещение";
 };
 

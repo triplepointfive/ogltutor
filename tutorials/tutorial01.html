@@ -48,9 +48,11 @@ glutSwapBuffers();
 <p>Всё что мы делаем в нашей функции рендера - это очистка буфера кадра (используя цвет, заданный выше, попробуйте изменить его). Вторая функция просит GLUT поменять фоновый буфер и буфер кадра местами. В следующем вызове рендер будет происходить в текущий буфер кадра, а фоновый буфер будет отображается.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "01";
 
 var disqus_config = function () {
-  this.page.identifier = "01";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 01 - Создание окна";
 };
 

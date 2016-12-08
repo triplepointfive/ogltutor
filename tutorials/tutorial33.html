@@ -248,9 +248,11 @@ m_pMesh-&gt;Render(NUM_INSTANCES, WVPMatrics, WorldMatrices);
 <p>Если вы компилируете и запустите демо к этому уроку, то заметите счетчик FPS (кадры в секунду) в нижнем левом углу окна. OpenGL не имеет стандартных библиотек для рендера текста, поэтому разные люди используют различные методы. Я недавно открыл <a href="http://code.google.com/p/freetype-gl/">freetype-gl</a> от Nicolas Rougier, и мне она понравилась. Код находится под свободной лицензией BSD. Я немного изменил исходный код, что бы было проще ее использовать, и включил его как часть демо, поэтому ничего устанавливать не требуется. Если вам интересно, как она используется, обратите внимание на 'FontRenderer' в main.cpp.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "33";
 
 var disqus_config = function () {
-  this.page.identifier = "33";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 33 - Дублирующий рендер (Instanced Rendering)";
 };
 

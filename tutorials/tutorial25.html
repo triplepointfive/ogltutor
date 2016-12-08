@@ -247,9 +247,11 @@ private:
 <p>Полезным для производительности советом будет всегда рендерить скайбокс в последнюю очередь (после всех остальных моделей). Причина в том, что мы знаем, что он всегда будет позади других объектов сцены. Некоторые GPUs (графические процессоры) имеют механизм для оптимизации, заключающийся в том, что фрагментный шейдер не будет вызван, если пиксель проигрывает тест глубины. Это очень полезно в ситуации с скайбоксом, поскольку фрагментный шейдер будет вызван только для оставшихся фоновых пикселей, которые не покрыты другими моделями. Но для этого необходим заполненный буфер глубины, который мы получаем после рендера других моделей.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "25";
 
 var disqus_config = function () {
-  this.page.identifier = "25";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 25 - Скайбокс";
 };
 

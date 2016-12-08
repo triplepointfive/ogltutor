@@ -269,9 +269,11 @@ float u = gl_TessCoord.x;
 <p>Это содержание TES с выделенными изменениями. Нормаль и координаты текстуры интерполируются так же, как и раньше. Для того, что бы вычислить позицию в мировом пространстве, мы включаем барецентрические координаты в выражения для треугольника Безье из раздела теории. Встроенная функция <em>pow()</em> используется для вычисления числа в заданной степени. Мы преобразовываем мировые координаты в пространство клипа, а дальше все как обычно.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "31";
 
 var disqus_config = function () {
-  this.page.identifier = "31";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 31 - Тесселяция PN треугольников";
 };
 

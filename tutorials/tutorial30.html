@@ -285,9 +285,11 @@ vec3 interpolate3D(vec3 v0, vec3 v1, vec3 v2)
 <p>Демо в этом уроке показывает как тесселировать прямоугольную поверхность и смещать вершины вдоль камней на текстуре цвета. Вы можете использовать '+' и '-' на клавиатуре для обновления коэффициента смещения и через него управлять уровнем перемещения. Вы так же можете переключиться в режим каркаса (wireframe) через 'z' и увидеть, как текущие треугольники создаются процессом Тесселяции. Интересно так же наблюдать с различных дистанций в режиме каркаса и видеть, как уровень Тесселяции изменяется в зависимости от расстояния. Вот почему нам требуется TCS.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "30";
 
 var disqus_config = function () {
-  this.page.identifier = "30";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 30 - Основы Тесселяции";
 };
 

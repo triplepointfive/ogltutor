@@ -299,9 +299,11 @@ static void PassiveMouseCB(int x, int y)
 <p>Где-то в функции рендера мы должны вызвать камеру. Это дает ей шанс для действий, если мышь не двигалась, но находится около границы экрана.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "15";
 
 var disqus_config = function () {
-  this.page.identifier = "15";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 15 - Управление камерой - часть 2";
 };
 

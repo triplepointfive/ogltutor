@@ -19,9 +19,11 @@ World.m[3][0]=0.0f;        World.m[3][1]=0.0f;        World.m[3][2]=0.0f;       
 <p>Единственное отличие от предыдущего урока - это изменение матрицы согласно описанию выше. Как вы можете заметить, мы умножаем все три координаты на числа, меняющиеся от -1 к 1 и назад. В полуинтервале (0,1] треугольник переходит от очень маленького размера до своего исходного, а в случае нулей на диагонали матрицы исчезает совсем. Между [-1,0) он ведет себя так же, но выглядит отраженным относительно горизонтальной прямой, проходящей через середину окна. Это происходит из-за того, что значения по диагонали меняют знак на отрицательный.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "08";
 
 var disqus_config = function () {
-  this.page.identifier = "08";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 08 - Преобразования масштаба";
 };
 

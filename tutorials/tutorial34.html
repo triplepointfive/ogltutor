@@ -232,9 +232,11 @@ shader FSmain(in foo f)
 <p>Код этого урока был изменен для работы с GLFX. Поскольку изменения незначительны, я не буду показывать их. Лучше посмотрите на исходники классов Technique и LightingTechnique. Кроме того, шейдеры, который используются в 'lighting_technique.cpp', были перемещены в файл эффекта, названный 'lighting.glsl' в папке 'shaders'. Этот файл содержат те же шейдеры; вы уже знакомы с ними. Они были слегка изменены согласно правилам выше.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "34";
 
 var disqus_config = function () {
-  this.page.identifier = "34";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 34 - GLFX - An OpenGL Effect Library";
 };
 

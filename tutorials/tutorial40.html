@@ -425,9 +425,11 @@ void EmitQuad(vec3 StartVertex, vec3 EndVertex)
 <p>Последнее, но тем не менее важное замечание - мы включаем сжатие глубины (depth clamp). Это значит, что хотя дальнее основание продлено до бесконечности, результат не будет обрезан, а останется на плоскости клиппера. Без этого мы потеряем основание.</p>
 </div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
 var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "40";
 
 var disqus_config = function () {
-  this.page.identifier = "40";
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
   this.page.title = "Урок 40 - Теневой объем (Stencil Shadow Volume)";
 };
 
