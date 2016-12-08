@@ -1,78 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-    <title>Уроки по OpenGL с сайта OGLDev - Урок 39 - Обнаружение силуэта</title>
-    <meta name="keywords" content />
-    <meta name="description" content />
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script type="text/javascript" src="../js/shCore.js"></script>
-    <script type="text/javascript" src="../js/shBrushCpp.js"></script>
-    <script type="text/javascript" src="../js/highlight.js"></script>
-    <link rel="stylesheet" type="text/css" href="../css/style.css" />
-    <link rel="stylesheet" type="text/css" href="../css/foundation.css" />
-    <link rel="stylesheet" type="text/css" href="../css/normalize.css" />
-    <link type="text/css" rel="stylesheet" href="../css/shCoreDefault.css" />
-    <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 39 - Обнаружение силуэта</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-        ga('create', 'UA-35259428-1', 'auto');
-        ga('send', 'pageview');
+ga('create', 'UA-35259428-1', 'auto');
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial39/tutorial39.html">Урок 39 - Обнаружение силуэта</a></h2><p>Сегодня мы будем рассуждать о том, как найти силуэт объекта. Поясню, я говорю об силуэте 3D объекта, который получается при падении света в произвольном направлении. При перемещении источника света силуэт соответственно будет меняться. В этом принципиальное отличие от обнаружения силуэта в пространстве изображения, которое заключается в нахождении границы объекта на 2D изображении (и не зависит от позиции источника света). Хотя тема обнаружения силуэта интересна сама по себе, для меня это первый шаг в реализации техники <em>Теневой объём (Stencil Shadow Volume)</em>. Это техника рендера теней, которая особенно полезна при работе с точечными источниками. Ее мы изучим в следующем уроке (можете сразу перейти в него).</p>
 
-    </script>
-</head>
-
-<body>
-    <div class="row header">
-        <div class="large-12 columns">
-            <div class="nav-bar right">
-                <ul class="button-group">
-                    <li><a href="../" class="button nav-left">Содержание</a></li>
-                    <li><a href="../instr.html" class="button">Инструкции</a></li>
-                    <li><a href="../cont.html" class="button nav-right">Контакты</a></li>
-                </ul>
-            </div>
-            <h1><small>Уроки по OpenGL с сайта OGLDev</small></h1>
-            <hr>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="large-12 columns">
-            <div class="tutorial">
-    <h2>
-        <a href="http://ogldev.atspace.co.uk/www/tutorial39/tutorial39.html">Урок 39 - Обнаружение силуэта</a>
-    </h2>
-    <p>Сегодня мы будем рассуждать о том, как найти силуэт объекта. Поясню, я говорю об силуэте 3D объекта, который получается при падении света в произвольном направлении. При перемещении источника света силуэт соответственно будет меняться. В этом принципиальное отличие от обнаружения силуэта в пространстве изображения, которое заключается в нахождении границы объекта на 2D изображении (и не зависит от позиции источника света). Хотя тема обнаружения силуэта интересна сама по себе, для меня это первый шаг в реализации техники <em>Теневой объём (Stencil Shadow Volume)</em>. Это техника рендера теней, которая особенно полезна при работе с точечными источниками. Ее мы изучим в следующем уроке (можете сразу перейти в него).</p>
 <p>Следующее изображение иллюстрирует силуэт, который мы хотим найти:</p>
-<div class="figure">
-<img src="../images/t39_silhouette1.jpg" alt />
 
-</div>
+<p><img src="/images/t39_silhouette1.jpg" alt="" /></p>
+
 <p>На изображении выше силуэтом является эллипс, окруженный лучами света.</p>
+
 <p>Давайте обсудим реализацию. Модель обычно состоит из треульников, поэтому и силуэт должен состоять из сторон треугольника. Так как мы определим, какая грань часть силуэта, а какая нет? Секрет основывается на модели рассеянного света. Для этой модель сила света зависит от скалярного произведения между нормалью треугольника и вектором света. Если сторона треугольника повернута от источника света, то результат будет меньше либо равен 0. В этом случае свет целиком не попадает на треугольник. Для того, что бы определить является ли сторона треугольника частью силуэта или нет необходимо найти смежный треугольник с общим ребром и вычислить скалярное произведение между направлением света и нормалью и самого треугольника и соседнего к нему. Тогда ребро будет считаться принадлежащим силуэту, если один треугольник в области действия света, а другой - нет.</p>
+
 <p>Следующее изображение показывает для простоты 2D объект:</p>
-<div class="figure">
-<img src="../images/t39_silhouette2.jpg" alt />
 
-</div>
-<p>Красная стрелка представляет луч света, который падает на 3 ребра (в 3D пространстве это будут треугольники), чьи нормали 1, 2, 3 (скалярное произведение этих нормалей и вектора, обратного к вектору света, очевидно больше 0). А грани, чьи нормали 4, 5 и 6 повернуты от треугольника (для них то же скалярное произведение будет меньше либо равно 0). 2 голубых круга отмечают силуэт объекта, причина в том, что грань 1 попадает под действие света, а 6 нет. А точка между ними и есть силлуэт. Аналогично и для других точек силлуэта. Стороны (или точки в нашем случае), у которых освещены обе стороны не являются частью силлуэта (между 1 и 2 и между 2 и 3).</p>
+<p><img src="/images/t39_silhouette2.jpg" alt="" /></p>
+
+<p>Красная стрелка представляет луч света, который падает на 3 ребра (в 3D пространстве это будут треугольники), чьи нормали 1, 2, 3 (скалярное произведение этих нормалей и вектора, обратного к вектору света, очевидно больше 0). А грани, чьи нормали 4, 5 и 6 повернуты от треугольника (для них то же скалярное произведение будет меньше либо равно 0). 2 голубых круга отмечают силуэт объекта,
+причина в том, что грань 1 попадает под действие света, а 6 нет. А точка между ними и есть силлуэт. Аналогично и для других точек силлуэта. Стороны (или точки в нашем случае), у которых освещены обе стороны не являются частью силлуэта (между 1 и 2 и между 2 и 3).</p>
+
 <p>Как вы видите, алгоритм для нахождения силлуэта крайне прост. Хотя, он требует от нас знание всех 3 соседей каждого треугольника. Это известно под названием <em>Смежность (Adjacencies)</em> треугольника. К сожалению, Assimp автоматически не находит смежности для нас, поэтому нам придется самим реализовать этот алгоритм. Во 2 части мы рассмотрим простой алгоритм, который реализует то, что нам требуется.</p>
-<p>Где бы нам разместить разместить в коде этот алгоритм? помните, что нам требуется скалярное произведение между вектором света и нормалью к треугольнику, а так же нормали для 3 смежных треугольников. Для этого нам требуется все данные примитива. Нет, VS не достаточно. Похоже, что GS больше подходит, так как он позволяет получить доступ ко всем вершинам примитива. А что со смежностью? к счастью для нас разработчики OpenGL уже предоставляют топологию под названием “треугольник со смежностью”. Если в буфере вершин будет информация о смежности, то она корректно загрузится, а GS будет получать по 6 вершин на треугольник вместо 3. 3 дополнительные вершины принадлежат смежным треугольникам и не связанны с текущим. Следующее изображение прояснит ситуацию:</p>
-<div class="figure">
-<img src="../images/t39_adjacencies.jpg" alt />
 
-</div>
+<p>Где бы нам разместить разместить в коде этот алгоритм? помните, что нам требуется скалярное произведение между вектором света и нормалью к треугольнику, а так же нормали для 3 смежных треугольников. Для этого нам требуется все данные примитива. Нет, VS не достаточно. Похоже, что GS больше подходит, так как он позволяет получить доступ ко всем вершинам примитива. А что со смежностью? к счастью для нас разработчики OpenGL уже предоставляют топологию под названием "треугольник со смежностью". Если в буфере вершин будет информация о смежности, то она корректно загрузится, а GS будет получать по 6 вершин на треугольник вместо 3. 3 дополнительные вершины принадлежат смежным треугольникам и не связанны с текущим. Следующее изображение прояснит ситуацию:</p>
+
+<p><img src="/images/t39_adjacencies.jpg" alt="" /></p>
+
 <p>Красные вершины на изображении выше принадлежат исходному треугольнику, а голубые смежным (пока что проигнорируйте грани e1-e6, они относятся к разделу с кодом). Когда в буфере вершин информация в формате выше, то VS будет вызван для каждой вершины (смежной и не смежной), а GS (если существует) вызывается для группы из 6 вершин, в числе которых вершины треугоника и смежные вершины. Когда мы используем GS, то выходная топология ложится на плечи разработчика, а если GS отсутствует, то растеризатор готов к такой схеме и попросту проигнорирует смежные вершины (а обработает вершины треугольника).</p>
+
 <p>Заметим, что смежные вершины в вершинном буфере имеют тот же формат и аттрибуты, что и обычные вершины. Все, что делает их смежными, это их взаимное положение внутри группы из 6 вершин. В модели некоторые треугольники, имеющие общую вершину никак больше не связаны, а некоторые смежные. В таком случае индексная отрисовка становится еще привликательнее, так как экономит место в буфере вершин.</p>
-<h2 id="прямиком-к-коду"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial39">Прямиком к коду!</a></h2>
+
+<h2 id="httpsgithubcomtriplepointfiveogldevtreemastertutorial39"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial39">Прямиком к коду!</a></h2>
+
 <blockquote>
-<p>mesh.cpp:200</p>
+  <p>mesh.cpp:200</p>
 </blockquote>
+
 <pre><code>void Mesh::FindAdjacencies(const aiMesh* paiMesh, vector&lt;unsigned int&gt;&amp; Indices)
 {
     for (uint i = 0 ; i &lt; paiMesh-&gt;mNumFaces ; i++) {
@@ -105,11 +69,15 @@
         m_indexMap[e1].AddNeigbor(i);
         m_indexMap[e2].AddNeigbor(i);
         m_indexMap[e3].AddNeigbor(i);
-    }</code></pre>
+    }
+</code></pre>
+
 <p>Большая часть алгоритма для смежностей находится в функции выше а так же в нескольких дополнительных структурах. Алгоритм состоит из 2 этапов. В первом мы задаем отображение между каждой гранью и 2 треугольниками, которые ее разделяют. Это происходит в цикле for выше. В первой половине этого цикла мы создаем связь между координатами позиции вершины и первым индексом вершины, которая ссылается на него. Причина, по которой различные индексы могут соответствовать вершинам с одинаковыми координатами в том, что какие-то другие аттрибуты заставили Assimp разделить одну вершину на 2, например, одна и таже вершина может иметь различные координаты текстуры для двух соседних треугольников. Это усложняет наш алгоритм смежности, нам лучше иметь одну вершину один раз. Хотя мы и создали связь между позицией и первым индексом, в дальнейшем мы будем исользовать только индексы.</p>
+
 <blockquote>
-<p>mesh.cpp:216</p>
+  <p>mesh.cpp:216</p>
 </blockquote>
+
 <pre><code>    for (uint i = 0 ; i &lt; paiMesh-&gt;mNumFaces ; i++) {
         const Face&amp; face = m_uniqueFaces[i];
 
@@ -128,12 +96,17 @@
             Indices.push_back(OppositeIndex);
         }
     }
-}</code></pre>
+}
+</code></pre>
+
 <p>Во второй части мы заполняем вектор индексов набором из 6 вершин, что соответствует топологии треугольника со смежностью, как было указано ранее. Отображение, которое мы задали ранее, сейчас нам пригодится, поскольку для каждой стороны треугольника легко найти соседний треугольник, который разделяет теже вершины, а затем и вершину напротив этой стороны. 2 последние строки кода цикла чередуют содержимое буфера индексов для текущего треугольника и вершин для смежного треугольника, который расположен напротив текущего.</p>
+
 <p>Так же добавлены мелкие изменения в классе Mesh. Я предлагаю вам сравнить их с версией из предыдущего урока и убедиться, что ничего не пропущено. Главное изменение - мы используем топологию GL_TRIANGLES_ADJACENCY вместо GL_TRIANGLES в вызове glDrawElementsBaseVertex(). Если забыть об этом, то GL передаст испорченные данные в GS.</p>
+
 <blockquote>
-<p>silhouette.glsl</p>
+  <p>silhouette.glsl</p>
 </blockquote>
+
 <pre><code>struct VSInput
 {
     vec3  Position;
@@ -154,8 +127,11 @@ shader VSmain(in VSInput VSin:0, out VSOutput VSout)
     vec4 PosL      = vec4(VSin.Position, 1.0);
     gl_Position    = gWVP * PosL;
     VSout.WorldPos = (gWorld * PosL).xyz;
-}</code></pre>
+}
+</code></pre>
+
 <p>В демо мы собираемся обнаружить силуэт объекта и отметить его красной линией. Объект будет нарисован с помощью forward rendering, а для силуэта будет использоваться отдельный шейдер. Код выше соответствует VS. Ничего особенного. Мы только преобразовываем позицию в пространство клиппера с помощью матрицы WVP и даем GS вершины в мировом простарнстве (поскольку алгоритму силуэта именно такие и нужны).</p>
+
 <pre><code>void EmitLine(int StartIndex, int EndIndex)
 {
     gl_Position = gl_in[StartIndex].gl_Position;
@@ -203,11 +179,15 @@ shader GSmain(in VSOutput GSin[])
             EmitLine(4, 0);
         }
     }
-}</code></pre>
+}
+</code></pre>
+
 <p>Вся логика силуэта внутри GS. Когда используется топология треугольника со смежностями GS получает 6 вершин. Мы начинаем с вычисления нескольких граней, которые помогут нам найти нормаль как текущего треугольника, так и 3 смежных. Посмотрите на изображение выше, что бы понять где находятся грани e1-e6. Затем мы проверяем, освещена ли грань треугольника с помощью скалярного произведения между ее нормалью и вектором света (который направлен вдоль света). Если результат скалярного произведения положительный, то ответ да (мы используем небольшое отклонение в связи с особенностями чисел с плавающей точкой). Если треугольник не освещен, то с ним закончили, но если на него падает свет, мы вычисляем аналогичное скалярное произведение между вектором света и каждым из смежных треугольников. Если смежный треугольник не освещен, то мы вызываем функцию EmitLine(), которая, очевидно, выпускает общую сторону между треугольником (на который падает свет) и его соседом (на который нет). FS просто задает цвет грани красным.</p>
+
 <blockquote>
-<p>tutorial39.cpp:175</p>
+  <p>tutorial39.cpp:175</p>
 </blockquote>
+
 <pre><code>void RenderScene()
 {
     // Рендерим объект как-есть
@@ -219,7 +199,7 @@ shader GSmain(in VSOutput GSin[])
     p.WorldPos(m_boxPos);
     m_LightingTech.SetWorldMatrix(p.GetWorldTrans());
     m_LightingTech.SetWVP(p.GetWVPTrans());
-    
+
         m_mesh.Render();
 
     // Рендерим его силуэт
@@ -232,32 +212,18 @@ shader GSmain(in VSOutput GSin[])
     glLineWidth(5.0f);
 
         m_mesh.Render();
-}</code></pre>
-<p>А вот как мы используем технику силуэта. Один объект рендерится дважды. Первый с обычным шейдером света. А затем с шейдером силуэта. Обратите внимание, как функция glLightWidth() делает силуэт толще, а следовательно заметнее.</p>
-<p>Если вы будете использовать код выше как-есть, то вы можете заметить небольшие искажения вокруг линий силуэта. Причина в том, что второй рендер генерирует линии с приблизительно той же глубиной, как и исходное ребро меша. У этого феномена есть название <em>Z fighting</em>, так как пиксели из силуэта и исходного меша перекрывают друг друга непоследовательно (снова из-за величин с плавающей точкой). Что бы избежать этого мы используем функцию glDepthFunc(GL_LEQUAL), которая слегка расслабляет тест глубины. Это значит, что 2 пиксель перекроет предыдущий при равной глубине, у последнего всегда преимущество.</p>
-</div>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-    var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+}
+</code></pre>
 
-    /* * * DON'T EDIT BELOW THIS LINE * * */
-    (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-        </div>
-    </div>
-    <footer class="row">
-        <div class="large-12 columns text-right">
-            <hr>
-            Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a>
-            <br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small>
-        </div>
-    </footer>
-</body>
-</html>
+<p>А вот как мы используем технику силуэта. Один объект рендерится дважды. Первый с обычным шейдером света. А затем с шейдером силуэта. Обратите внимание, как функция glLightWidth() делает силуэт толще, а следовательно заметнее.</p>
+
+<p>Если вы будете использовать код выше как-есть, то вы можете заметить небольшие искажения вокруг линий силуэта. Причина в том, что второй рендер генерирует линии с приблизительно той же глубиной, как и исходное ребро меша. У этого феномена есть название <em>Z fighting</em>, так как пиксели из силуэта и исходного меша перекрывают друг друга непоследовательно (снова из-за величин с плавающей точкой). Что бы избежать этого мы используем функцию glDepthFunc(GL_LEQUAL), которая слегка расслабляет тест глубины. Это значит, что 2 пиксель перекроет предыдущий при равной глубине, у последнего всегда преимущество.</p>
+</div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+
+/* * * DON'T EDIT BELOW THIS LINE * * */
+(function() {
+  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><noscript><Please>enable JavaScript to view the</Please><a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com"><comments>powered by</comments><span class="logo-disqus">Disqus</span></a></div></div><footer class="row"><div class="large-12 columns text-right"><hr />Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a><br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small></div></footer></body></html>

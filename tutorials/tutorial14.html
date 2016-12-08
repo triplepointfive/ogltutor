@@ -1,60 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-    <title>Уроки по OpenGL с сайта OGLDev - Урок 14 - Управление камерой - часть 1</title>
-    <meta name="keywords" content />
-    <meta name="description" content />
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script type="text/javascript" src="../js/shCore.js"></script>
-    <script type="text/javascript" src="../js/shBrushCpp.js"></script>
-    <script type="text/javascript" src="../js/highlight.js"></script>
-    <link rel="stylesheet" type="text/css" href="../css/style.css" />
-    <link rel="stylesheet" type="text/css" href="../css/foundation.css" />
-    <link rel="stylesheet" type="text/css" href="../css/normalize.css" />
-    <link type="text/css" rel="stylesheet" href="../css/shCoreDefault.css" />
-    <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 14 - Управление камерой - часть 1</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-        ga('create', 'UA-35259428-1', 'auto');
-        ga('send', 'pageview');
+ga('create', 'UA-35259428-1', 'auto');
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial14/tutorial14.html">Урок 14 - Управление камерой - часть 1</a></h2><p>В предыдущем уроке мы разобрались как установить камеру в любую точку 3D пространства. Следующий этап - это дать возможность пользователю управлять ей. Управление будет свободным - пользователь может двигать ее во всех направлениях. Управление камерой будет осуществляться 2 устройствами ввода: клавиатурой мы будем изменять позицию, а мышью направление обзора. Это очень похоже на то, что предлагают шутеры от первого лица. Этот урок сфокусируется на клавиатуре, а следующий - на мышке.</p>
 
-    </script>
-</head>
-
-<body>
-    <div class="row header">
-        <div class="large-12 columns">
-            <div class="nav-bar right">
-                <ul class="button-group">
-                    <li><a href="../" class="button nav-left">Содержание</a></li>
-                    <li><a href="../instr.html" class="button">Инструкции</a></li>
-                    <li><a href="../cont.html" class="button nav-right">Контакты</a></li>
-                </ul>
-            </div>
-            <h1><small>Уроки по OpenGL с сайта OGLDev</small></h1>
-            <hr>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="large-12 columns">
-            <div class="tutorial">
-    <h2>
-        <a href="http://ogldev.atspace.co.uk/www/tutorial14/tutorial14.html">Урок 14 - Управление камерой - часть 1</a>
-    </h2>
-    <p>В предыдущем уроке мы разобрались как установить камеру в любую точку 3D пространства. Следующий этап - это дать возможность пользователю управлять ей. Управление будет свободным - пользователь может двигать ее во всех направлениях. Управление камерой будет осуществляться 2 устройствами ввода: клавиатурой мы будем изменять позицию, а мышью направление обзора. Это очень похоже на то, что предлагают шутеры от первого лица. Этот урок сфокусируется на клавиатуре, а следующий - на мышке.</p>
 <p>Мы добавим поддержку 4 клавиш в привычном виде. Вспомним, что наша камера определяется ее позицией, вектором направления и верхним вектором. Когда мы используем клавиатуру меняется только позиция. Мы не можем наклонить или повернуть камеру, а значит, что векторы вверх и направления останутся не низменными.</p>
-<p>Для использования клавиатуры нам потребуется другой API GLUT’a: <em>glutSpecialFunc()</em>. Эта функция записывает нашу для вызова, если будет нажата “специальная” клавиша. В группу специальных клавиш входят: F{1..12}, стрелки и PAGE-UP / PAGE-DOWN / HOME / END / INSERT. Если вам нужны обычные кнопки (символы и цифры) используйте glutKeyboardFunc().</p>
-<h2 id="прямиком-к-коду"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial14">Прямиком к коду!</a></h2>
+
+<p>Для использования клавиатуры нам потребуется другой API GLUT'a: <em>glutSpecialFunc()</em>. Эта функция записывает нашу для вызова, если будет нажата "специальная" клавиша. В группу специальных клавиш входят: F{1..12}, стрелки и PAGE-UP / PAGE-DOWN / HOME / END / INSERT. Если вам нужны обычные кнопки (символы и цифры) используйте glutKeyboardFunc().</p>
+
+<h2 id="httpsgithubcomtriplepointfiveogldevtreemastertutorial14"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial14">Прямиком к коду!</a></h2>
+
 <p>Функционал камеры инкапсулирован в классе камеры. Этот класс хранит параметры камеры и может их изменять основываясь на событиях движения, которые он получит. Атрибуты камеры будут перехвачены классом конвейера, а тот уже и создаст матрицу преобразований из них.</p>
+
 <blockquote>
-<p>Camera.h</p>
+  <p>Camera.h</p>
 </blockquote>
+
 <pre><code>class Camera
 {
 public:
@@ -69,11 +32,15 @@ private:
     Vector3f m_pos;
     Vector3f m_target;
     Vector3f m_up;
-};</code></pre>
-<p>Это объявление класса камеры. Он хранит 3 свойства, которые характеризуют камеру - позиция, направление и верхний вектор. Так же добавлены 2 конструктора. По умолчанию просто располагает камеру в начале координат, направляет ее в сторону уменьшения Z, а верхний вектор устремляет в “небо” (0,1,0). Но есть возможность создать камеру с указанием значений атрибутов. OnKeyboard() доставляет события клавиатуры в класс. Он возвращает значение типа bool, который указывает, воспринято ли камерой событие. Если клавиша подходит (одна из указывающих направление), возвращаемое значение - true. Если нет - false. Таким способом можно создать цепь клиентов, которые будут получать события и останавливаться, когда один из них воспользуется этим событием.</p>
+};
+</code></pre>
+
+<p>Это объявление класса камеры. Он хранит 3 свойства, которые характеризуют камеру - позиция, направление и верхний вектор. Так же добавлены 2 конструктора. По умолчанию просто располагает камеру в начале координат, направляет ее в сторону уменьшения Z, а верхний вектор устремляет в "небо" (0,1,0). Но есть возможность создать камеру с указанием значений атрибутов. OnKeyboard() доставляет события клавиатуры в класс. Он возвращает значение типа bool, который указывает, воспринято ли камерой событие. Если клавиша подходит (одна из указывающих направление), возвращаемое значение -  true. Если нет - false. Таким способом можно создать цепь клиентов, которые будут получать события и останавливаться, когда один из них воспользуется этим событием.</p>
+
 <blockquote>
-<p>Camera.cpp:42</p>
+  <p>Camera.cpp:42</p>
 </blockquote>
+
 <pre><code>bool Camera::OnKeyboard(int Key)
 {
     bool Ret = false;
@@ -102,14 +69,21 @@ private:
             } break;
     }
     return Ret;
-}</code></pre>
-<p>Эта функция двигает камеру согласно событиям клавиатуры. GLUT определил несколько макросов, обозначающих клавиши направления и этот оператор выбора основывается на них. К сожалению, тип этих макросов просто ‘int’, а не enum.</p>
-<p>Движение вперед и назад проще. Так как это движение вдоль вектора направления, нам нужно только прибавить или вычесть вектор направления из вектора позиции. Вектор направления остается без изменений. Заметим, что прежде чем прибавлять / вычитать вектор направления, мы умножаем его на константу названую ‘StepSize’ (размер шага). Мы делаем это для всех направлений. Размер шага позволяет удобно изменять скорость (мы можем внести этот параметр в класс). Для удобства мы можем представить размер шага в виде единицы длины векторов (т.к. мы должны быть уверены, что вектор направления и верхний вектор являются векторами единичной длины).</p>
+}
+</code></pre>
+
+<p>Эта функция двигает камеру согласно событиям клавиатуры. GLUT определил несколько макросов, обозначающих клавиши направления и этот оператор выбора основывается на них. К сожалению, тип этих макросов просто 'int', а не enum.</p>
+
+<p>Движение вперед и назад проще. Так как это движение вдоль вектора направления, нам нужно только прибавить или вычесть вектор направления из вектора позиции. Вектор направления остается без изменений. Заметим, что прежде чем прибавлять / вычитать вектор направления, мы умножаем его на константу названую 'StepSize' (размер шага). Мы делаем это для всех направлений. Размер шага позволяет удобно изменять скорость (мы можем внести этот параметр в класс). Для удобства мы можем представить размер шага в виде единицы длины векторов (т.к. мы должны быть уверены, что вектор направления и верхний вектор являются векторами единичной длины).</p>
+
 <p>Перемещение в бок немного сложнее. Оно вдоль вектора, перпендикулярного плоскости, которую образуют вектор направления и вектор вверх. Плоскость делит трехмерное пространство на 2 части и у нас 2 вектора, перпендикулярных этой плоскости, и они противоположно направлены. Один мы можем назвать левым, а другой правым. Они получаются векторным произведением вектора направления и вектора вверх. В зависимости от порядка векторов, получаются соответственно левый или правый вектора. После получения нужного вектора, мы нормируем его и увеличиваем на размер шага и, наконец, прибавляем к вектору позиции (что совершит перемещение влево или вправо). И снова вектора вверх и направления остались без изменений.</p>
-<p>Заметим, что в этой функции были использованы несколько новых операторов, такие как ‘+=’ и ‘-=’, которые были добавлены в класс Vector3f.</p>
+
+<p>Заметим, что в этой функции были использованы несколько новых операторов, такие как '+=' и '-=', которые были добавлены в класс Vector3f.</p>
+
 <blockquote>
-<p>main.cpp:96</p>
+  <p>main.cpp:96</p>
 </blockquote>
+
 <pre><code>static void SpecialKeyboardCB(int Key, int x, int y){
     GameCamera.OnKeyboard(Key);
 }
@@ -117,36 +91,25 @@ static void InitializeGlutCallbacks(){
     glutDisplayFunc(RenderSceneCB);
     glutIdleFunc(RenderSceneCB);
     glutSpecialFunc(SpecialKeyboardCB);
-}</code></pre>
-<p>Здесь мы регистрируем новую функцию обратного вызова для получения специальных событий клавиатуры. Функция отправляет клавишу и позицию курсора в момент нажатия кнопки. Мы игнорируем координаты курсора и отправляем событие в нашу камеру, которая уже объявлена как глобальная переменная.</p>
-<blockquote>
-<p>main.cpp:78</p>
-</blockquote>
-<pre><code>p.SetCamera(GameCamera.GetPos(), GameCamera.GetTarget(), GameCamera.GetUp());</code></pre>
-<p>Ранее мы передавали в класс конвейера жестко заданные вектора, характеризующие поведение камеры. Теперь эти атрибуты камеры посылаются из класса камеры.</p>
-</div>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-    var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+}
+</code></pre>
 
-    /* * * DON'T EDIT BELOW THIS LINE * * */
-    (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-        </div>
-    </div>
-    <footer class="row">
-        <div class="large-12 columns text-right">
-            <hr>
-            Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a>
-            <br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small>
-        </div>
-    </footer>
-</body>
-</html>
+<p>Здесь мы регистрируем новую функцию обратного вызова для получения специальных событий клавиатуры. Функция отправляет клавишу и позицию курсора в момент нажатия кнопки. Мы игнорируем координаты курсора и отправляем событие в нашу камеру, которая уже объявлена как глобальная переменная.</p>
+
+<blockquote>
+  <p>main.cpp:78</p>
+</blockquote>
+
+<pre><code>p.SetCamera(GameCamera.GetPos(), GameCamera.GetTarget(), GameCamera.GetUp());
+</code></pre>
+
+<p>Ранее мы передавали в класс конвейера жестко заданные вектора, характеризующие поведение камеры. Теперь эти атрибуты камеры посылаются из класса камеры.</p>
+</div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+
+/* * * DON'T EDIT BELOW THIS LINE * * */
+(function() {
+  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><noscript><Please>enable JavaScript to view the</Please><a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com"><comments>powered by</comments><span class="logo-disqus">Disqus</span></a></div></div><footer class="row"><div class="large-12 columns text-right"><hr />Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a><br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small></div></footer></body></html>

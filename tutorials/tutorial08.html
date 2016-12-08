@@ -1,83 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-    <title>Уроки по OpenGL с сайта OGLDev - Урок 08 - Преобразования масштаба</title>
-    <meta name="keywords" content />
-    <meta name="description" content />
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script type="text/javascript" src="../js/shCore.js"></script>
-    <script type="text/javascript" src="../js/shBrushCpp.js"></script>
-    <script type="text/javascript" src="../js/highlight.js"></script>
-    <link rel="stylesheet" type="text/css" href="../css/style.css" />
-    <link rel="stylesheet" type="text/css" href="../css/foundation.css" />
-    <link rel="stylesheet" type="text/css" href="../css/normalize.css" />
-    <link type="text/css" rel="stylesheet" href="../css/shCoreDefault.css" />
-    <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 08 - Преобразования масштаба</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="/stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="/javascripts/shCore.js"></script><script src="/javascripts/shBrushCpp.js"></script><script src="/javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-        ga('create', 'UA-35259428-1', 'auto');
-        ga('send', 'pageview');
+ga('create', 'UA-35259428-1', 'auto');
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a class="button nav-left" href="/">Содержание</a></li><li><a class="button" href="/instr.html">Инструкции</a></li><li><a class="button nav-right" href="/cont.html">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial08/tutorial08.html">Урок 08 - Преобразования масштаба</a></h2><p>Изменить масштаб очень просто. Цель этого преобразования увеличить или уменьшить размеры объекта. Это может пригодиться, если требуется добавить разнообразия, используя одну модель (например, большие и маленькие деревья, использующие одну и ту же модель) или если требуется сопоставить размеры модели с ее аналогом из реального мира. В данных случаях скорее всего потребуется одинаковое масштабирование во всех направлениях. Хотя, бывают случаи, когда требуется изменить размер только для одной оси, например, что бы модель стала "толще" или "тоньше".</p>
 
-    </script>
-</head>
+<p>Давайте же вычислим матрицу преобразований. Мы начнём с единичной матрицы и вспомним, что умножение ее на вектор возвратит исходный вектор без изменений, потому что каждая компонента вектора будет умножаться на '1'. Заметим, что ни один компонент не влияет на другие. Иначе говоря, изменив значение с '1' на любое другое, мы заставим объект увеличиваться, если число будет больше 1 и уменьшаться, если меньше.</p>
 
-<body>
-    <div class="row header">
-        <div class="large-12 columns">
-            <div class="nav-bar right">
-                <ul class="button-group">
-                    <li><a href="../" class="button nav-left">Содержание</a></li>
-                    <li><a href="../instr.html" class="button">Инструкции</a></li>
-                    <li><a href="../cont.html" class="button nav-right">Контакты</a></li>
-                </ul>
-            </div>
-            <h1><small>Уроки по OpenGL с сайта OGLDev</small></h1>
-            <hr>
-        </div>
-    </div>
+<h2 id="httpsgithubcomtriplepointfiveogldevtreemastertutorial08"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial08">Прямиком к коду!</a></h2>
 
-    <div class="row">
-        <div class="large-12 columns">
-            <div class="tutorial">
-    <h2>
-        <a href="http://ogldev.atspace.co.uk/www/tutorial08/tutorial08.html">Урок 08 - Преобразования масштаба</a>
-    </h2>
-    <p>Изменить масштаб очень просто. Цель этого преобразования увеличить или уменьшить размеры объекта. Это может пригодиться, если требуется добавить разнообразия, используя одну модель (например, большие и маленькие деревья, использующие одну и ту же модель) или если требуется сопоставить размеры модели с ее аналогом из реального мира. В данных случаях скорее всего потребуется одинаковое масштабирование во всех направлениях. Хотя, бывают случаи, когда требуется изменить размер только для одной оси, например, что бы модель стала “толще” или “тоньше”.</p>
-<p>Давайте же вычислим матрицу преобразований. Мы начнём с единичной матрицы и вспомним, что умножение ее на вектор возвратит исходный вектор без изменений, потому что каждая компонента вектора будет умножаться на ‘1’. Заметим, что ни один компонент не влияет на другие. Иначе говоря, изменив значение с ‘1’ на любое другое, мы заставим объект увеличиваться, если число будет больше 1 и уменьшаться, если меньше.</p>
-<h2 id="прямиком-к-коду"><a href="https://github.com/triplepointfive/ogldev/tree/master/tutorial08">Прямиком к коду!</a></h2>
 <pre><code>World.m[0][0]=sinf(Scale); World.m[0][1]=0.0f;        World.m[0][2]=0.0f;        World.m[0][3]=0.0f;
 World.m[1][0]=0.0f;        World.m[1][1]=cosf(Scale); World.m[1][2]=0.0f;        World.m[1][3]=0.0f;
 World.m[2][0]=0.0f;        World.m[2][1]=0.0f;        World.m[2][2]=sinf(Scale); World.m[2][3]=0.0f;
-World.m[3][0]=0.0f;        World.m[3][1]=0.0f;        World.m[3][2]=0.0f;        World.m[3][3]=1.0f;</code></pre>
-<p>Единственное отличие от предыдущего урока - это изменение матрицы согласно описанию выше. Как вы можете заметить, мы умножаем все три координаты на числа, меняющиеся от -1 к 1 и назад. В полуинтервале (0,1] треугольник переходит от очень маленького размера до своего исходного, а в случае нулей на диагонали матрицы исчезает совсем. Между [-1,0) он ведет себя так же, но выглядит отраженным относительно горизонтальной прямой, проходящей через середину окна. Это происходит из-за того, что значения по диагонали меняют знак на отрицательный.</p>
-</div>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-    var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+World.m[3][0]=0.0f;        World.m[3][1]=0.0f;        World.m[3][2]=0.0f;        World.m[3][3]=1.0f;
+</code></pre>
 
-    /* * * DON'T EDIT BELOW THIS LINE * * */
-    (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-        </div>
-    </div>
-    <footer class="row">
-        <div class="large-12 columns text-right">
-            <hr>
-            Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a>
-            <br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small>
-        </div>
-    </footer>
-</body>
-</html>
+<p>Единственное отличие от предыдущего урока - это изменение матрицы согласно описанию выше. Как вы можете заметить, мы умножаем все три координаты на числа, меняющиеся от -1 к 1 и назад. В полуинтервале (0,1] треугольник переходит от очень маленького размера до своего исходного, а в случае нулей на диагонали матрицы исчезает совсем. Между [-1,0) он ведет себя так же, но выглядит отраженным относительно горизонтальной прямой, проходящей через середину окна. Это происходит из-за того, что значения по диагонали меняют знак на отрицательный.</p>
+</div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+
+/* * * DON'T EDIT BELOW THIS LINE * * */
+(function() {
+  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><noscript><Please>enable JavaScript to view the</Please><a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com"><comments>powered by</comments><span class="logo-disqus">Disqus</span></a></div></div><footer class="row"><div class="large-12 columns text-right"><hr />Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a><br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small></div></footer></body></html>
