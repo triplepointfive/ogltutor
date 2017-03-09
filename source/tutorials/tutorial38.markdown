@@ -120,7 +120,7 @@ Id костей являются индексами в массиве преоб
 
 > mesh.cpp:215
 
-    void Mesh::LoadBones(uint MeshIndex, const aiMesh* pMesh, vector<vertexbonedata>& Bones)
+    void Mesh::LoadBones(uint MeshIndex, const aiMesh* pMesh, vector<VertexBoneData>& Bones)
     {
         for (uint i = 0 ; i < pMesh->mNumBones ; i++) {
             uint BoneIndex = 0;
