@@ -3,9 +3,13 @@ title: Урок 51 - Clear Screen in Vulkan
 date: 2016-12-06 16:24:30 +0300
 ---
 
+Добро пожаловать снова. Я надеюсь что у вас получилось пройти [предыдущий урок](tutorial50.html) и вы
+готовы продолжить. В этом уроке мы добавим очень простую операцию, с которой обычно начинают
+рендер кадра - очистку экрана. В OpenGL для этого достаточно вызвать функцию *glClear()*
+
 Welcome back. I hope that you've been able to complete the <a href="http://ogldev.atspace.co.uk/www/tutorial50/tutorial50.html">previous tutorial</a> successfully and
 you are now ready to continue. In this tutorial we will do a very basic operation that usually starts
-a new frame - clear the screen. In OpenGL this can be done very easily with just the glClear()
+a new frame - clear the screen. In OpenGL this can be done very easily with just the
 command but as you can already assume - it's a totally different ball game with Vulkan. This tutorial will introduce us
 to three new and improtant Vulkan entities - swap chain, images and the command buffers.
 
