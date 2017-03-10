@@ -1,61 +1,57 @@
 ---
-title: Урок 51 - Clear Screen in Vulkan
+title: Урок 51 - Очистка экрана в Vulkan
 date: 2016-12-06 16:24:30 +0300
 ---
 
 Добро пожаловать снова. Я надеюсь что у вас получилось пройти [предыдущий урок](tutorial50.html) и вы
 готовы продолжить. В этом уроке мы добавим очень простую операцию, с которой обычно начинают
-рендер кадра - очистку экрана. В OpenGL для этого достаточно вызвать функцию *glClear()*
+рендер кадра - очистку экрана. В OpenGL для этого достаточно вызвать функцию *glClear()*, но, как вы могли
+уже предположить, в Vulkan это совсем другая история. В этом уроке мы познакомимся с тремя новыми
+понятиями Vulkan: цепочки переключений, изображения и буферы команд.
 
-Welcome back. I hope that you've been able to complete the <a href="http://ogldev.atspace.co.uk/www/tutorial50/tutorial50.html">previous tutorial</a> successfully and
-you are now ready to continue. In this tutorial we will do a very basic operation that usually starts
-a new frame - clear the screen. In OpenGL this can be done very easily with just the
-command but as you can already assume - it's a totally different ball game with Vulkan. This tutorial will introduce us
-to three new and improtant Vulkan entities - swap chain, images and the command buffers.
-
-Let's look at a very simple OpenGL render loop which just clears the screen:
+Давайте рассмотрим очень простой цикл рендера в OpenGL, который только очищает экран:
 
     void RenderLoop()
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        glutSwapBuffers();   // Or in GLFW: glfwSwapBuffers(pWindow);
+        glutSwapBuffers();   // Или как в GLFW: glfwSwapBuffers(pWindow);
     }
 
-What we have here is a GL command to clear the color buffer followed by a GLUT or GLFW call that
-swaps the front buffer which is currently being displayed with the back buffer (which is really the
-buffer that glClear targeted). These two seemingly innocent functions hide a ton of back stage activity
-by the OpenGL driver. What Vulkan does is to provide us with a standard interface to the low level
-operations that used to be the sole domain of the OpenGL driver. Now we have to take control and manage
-these back stage activities ourselves.
+Здесь мы видим комманду GL для очистки буфера цвета, следом за которой идет вызов GLUT или GLFW,
+который переключает первый буфер (который отображается на экран) на второй (с которым работает
+команда *glClear*). Эти две невинные на первый взляд функции прячут за собой тонну действий
+драйвера OpenGL. А Vulkan предоставляет нам стандартный интерфейс для низкоуровневых операций,
+которые использует и драйвер OpenGL. Нам же требуется реализовать функционал этих функций
+самостоятельно.
 
-So now let's think what really happens in the driver when it executes that render loop. In most graphics drivers
-there is a concept of a command buffer. The command buffer is a memory buffer that the driver fills with
-GPU instructions. The driver translates the GL commands into GPU instructions. It submits the command buffer to the GPU and there is usually some form of a queue of
-all the command buffers that are currently in flight. The GPU picks up the command buffers one by one and
-executes their contents. The command buffers contain instructions, pointers to resources, state changes and everything else
-that the GPU needs in order to execute the the OpenGL commands correctly. Each command buffer
-can potentially contain multiple OpenGL commands (and it usually does because it is more efficient). It is up to the driver to decide how to batch the OpenGL commands
-into the command buffers. The GPU informs the driver whenever
-a command buffer is completed and the driver can stall the application to prevent it from getting too much
-ahead of the GPU (e.g. the GPU renders frame N while the application is already at frame N+10).
+Сейчас давайте подумаем что же на самом деле делает драйвер при проходе по циклу рендера. В большинстве
+графических драйверов существует такое понятие как буфер команд. Он представляет собой буфер памяти, в
+который драйвер записывает инструкции GPU. Драйвер переводит команды GL в инструкции GPU. В GPU, обычно,
+существует очередь из всех буферов команд, которые сейчас обрабатываются. GPU выбирает буферы по одному
+и выполняет их содержимое. Буфер команд содержит инструкции, указатели на ресурсы, изменения состояний
+и всё остальное необходимое для корректного запуска команд OpenGL. Каждый буфер команд может содержать
+несколько команд OpenGL (обычно так и происходит из соображений эффективности). За упаковку команд
+OpenGL в буферы команд отвечает драйвер. GPU сообщает драйверу когда буфер команд уже заполнен, так что
+драйвер может приостановить приложение чтобы оно не обгоняло GPU слишком сильно (например, GPU
+рендерит кадр N, а приложение уже на кадре N+10).
 
-This model works pretty well. Why do we need to change it? Well, making the driver in charge of command
-buffer management prevents us from some important potential performance optimizations that only we can
-make. For example, consider
-the Mesh class that we developed in previous tutorials when we studied the Assimp library. Rendering a mesh
-meant that in each frame we had to submit the same group of draw commands when the only real change was a few
-matrices that controlled the transformation. For each draw command the driver had to do considerable amount of work
-which is a waste of time in each frame. What if we could create a command buffer for this mesh class ahead of
-time and just submit it in each frame (while changing the matrices somehow)? That's the whole idea behind Vulkan. For the OpenGL driver the frame
-is just a series of GL commands and the driver doesn't understand what exactly the application is doing.
-It doesn't even know that these commands will be repeated in the next frame. Only the app designer understands what's going
-on and can create command buffers in a way that will match the structure of the application.
+Такой подход вполне себе работает, так почему же мы должны его менять? Дело в том, что перекладывание
+ответственности за обработку буферов команд на драйвер не даёт нам возможности произвести некоторые
+оптимизации, которые можем сделать только мы. Например, вспомним класс Mesh, который мы разрабатывали
+в предыдущих уроках когда мы изучали библиотеку Assimp. Рендер меша заключался в том, что мы отправляли
+одну и ту же группу команд отрисовки, хотя изменялись лишь матрицы преобразований. Для каждой команды
+отрисовки драйвер должен произвести существенное количество работы, и так каждый кадр. А что если бы
+мы могли создать заранее буфер команд для этого класса и просто отправлять его каждый кадр (обновляя
+при этом матрицы)? В этом и заключается главная идея Vulkan. С точки зрения драйвера OpenGL кадр - это
+просто набор команд GL, и драйвер не имеет малейшего понятия что делает приложение. Он даже не подозревает
+что эти команды повторятся на следующем кадре. Только разработчик приложения знает что происходит и
+может создавать такие буферы команд, которые подойдут приложению лучшим образом.
 
-Another area where OpenGL never excelled in is multi threading. Submitting draw commands in different
-threads is possible but complex. The problem is that OpenGL was not designed with multi threading in mind. Therefore,
-in most cases a graphics app has one rendering thread and uses multi-threading for the rest of the logic. Vulkan
-addresses multi threading by allowing you to build command buffers concurrently and introduces the concept of
-queues and semaphores to handle concurrency at the GPU level.
+Другая область в которой OpenGL никогда не блистал, это многопоточность. Отправка команд отрисовки в других
+потоках хоть и возможна, но сложна. Проблема в том, что OpenGL создавался без учёта многопоточности. Поэтому,
+в большинстве случаев графическое приложение имеет только один поток рендера и использует многопоточность для
+всего остального. Vulkan реализует многопоточность позволяя конкурентно создавать буферы команд и добавляет
+очереди и семафоры для обработки конкурентности на уровне GPU.
 
 Let's get back to that render loop. By now you can imagine that what we are going to do is create a command buffer
 and add the clear instruction to it. What about swap buffers? We have been using GLUT/GLFW so we never gave much thought
