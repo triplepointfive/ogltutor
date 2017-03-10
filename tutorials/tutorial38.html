@@ -126,13 +126,13 @@ ga('send', 'pageview');</script></head><body><div class="row header"><div class=
 }
 </code></pre>
 
-<p>Структура выше содержит все, что нам потребуется на уровне вершин. По-умолчанию, нам достаточно пространства для 4 костей (ID и вес на кость). VertexBoneData устроена похожим образом, что упрощает передачу в шейдер. У нас уже имеется позиция, координаты текстур и нормаль, привязанные к позициям 0, 1 и 2 соответственно. Хотя, мы настроили наш VAO для привязывания ID кости под позицией 3 и вес под 4. Важно заметить, что мы используем glVertexAttrib<strong>I</strong>Pointer вместо glVertexAttribPointer для привязывания ID. Причина в том, что ID - целое число, а не значение с плавующей точкой. Не упустите это или данные в шейдере повредятся.</p>
+<p>Структура выше содержит все, что нам потребуется на уровне вершин. По-умолчанию, нам достаточно пространства для 4 костей (ID и вес на кость). VertexBoneData устроена похожим образом, что упрощает передачу в шейдер. У нас уже имеется позиция, координаты текстур и нормаль, привязанные к позициям 0, 1 и 2 соответственно. Следовательно, мы настроили наш VAO для привязывания ID кости под позицией 3 и вес под 4. Важно заметить, что мы используем glVertexAttrib<strong>I</strong>Pointer вместо glVertexAttribPointer для привязывания ID. Причина в том, что ID - целое число, а не значение с плавающей точкой. Не упустите это или данные в шейдере повредятся.</p>
 
 <blockquote>
   <p>mesh.cpp:215</p>
 </blockquote>
 
-<pre><code>void Mesh::LoadBones(uint MeshIndex, const aiMesh* pMesh, vector&lt;vertexbonedata&gt;&amp; Bones)
+<pre><code>void Mesh::LoadBones(uint MeshIndex, const aiMesh* pMesh, vector&lt;VertexBoneData&gt;&amp; Bones)
 {
     for (uint i = 0 ; i &lt; pMesh-&gt;mNumBones ; i++) {
         uint BoneIndex = 0;
@@ -395,4 +395,4 @@ var disqus_config = function () {
   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
   dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><noscript><Please>enable JavaScript to view the</Please><a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com"><comments>powered by</comments><span class="logo-disqus">Disqus</span></a></div></div><footer class="row"><div class="large-12 columns text-right"><hr />Шедевр, созданный с помощью <a href="http://jaspervdj.be/hakyll">Hakyll</a><br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small></div></footer></body></html>
+})();</script><noscript><Please>enable JavaScript to view the</Please><a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com"><comments>powered by</comments><span class="logo-disqus">Disqus</span></a></div></div><footer class="row"><div class="large-12 columns text-right"><hr />Шедевр, созданный с помощью <a href="https://middlemanapp.com/">Middleman</a><br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small></div></footer></body></html>
