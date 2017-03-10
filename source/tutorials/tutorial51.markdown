@@ -53,10 +53,13 @@ OpenGL в буферы команд отвечает драйвер. GPU соо�
 всего остального. Vulkan реализует многопоточность позволяя конкурентно создавать буферы команд и добавляет
 очереди и семафоры для обработки конкурентности на уровне GPU.
 
-Let's get back to that render loop. By now you can imagine that what we are going to do is create a command buffer
-and add the clear instruction to it. What about swap buffers? We have been using GLUT/GLFW so we never gave much thought
-about it. GLUT/GLFW are not part of OpenGL. They are libraries built on top of windowing APIs such as GLX (Linux), WGL (Windows),
-EGL (Android) and CGL (Mac). They make it easy to build OS independent OpenGL programs. If you use the underlying APIs directly
+Вернёмся к нашему циклу рендера. На данный момент мы собираемся создать буфер команд и добавить в него инструкции
+для очистки. А что насчёт смены буферов? Мы использовали GLUT/GLFW, поэтому никогда не задумывались об этом.
+Но GLUT/GLFW не являются частью OpenGL, это всего лишь библиотеки построенные поверх оконного API, такого как
+GLX (Linux), WGL (Windows), EGL (Android) и CGL (Mac).
+
+
+. They make it easy to build OS independent OpenGL programs. If you use the underlying APIs directly
 you will have to create an OpenGL context and window surface which are in general corresponding to the instance and surface
 we created in the previous tutorial. The underlying APIs provide functions such as glXSwapBuffers() and eglSwapBuffers() in
 order to swap the front and back buffers that are hidden under the cover of the surface. They don't provide you much control
