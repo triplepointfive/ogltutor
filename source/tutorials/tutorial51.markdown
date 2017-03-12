@@ -93,7 +93,7 @@ Vulkan описывает цепочки переключений как абс�
 
 ## [Прямиком к коду!](https://github.com/triplepointfive/ogldev/tree/master/tutorial51)
 
-All the logic that needs to be developed for this tutorial will go into the following class:
+Вся логика этого урока уместилась в этот класс:
 
     class OgldevVulkanApp
     {
@@ -124,11 +124,11 @@ All the logic that needs to be developed for this tutorial will go into the foll
         VkCommandPool m_cmdBufPool;
     };
 
-What we have here are a couple of public functions (Init() and Run()) that will be called from main() later on and
-several private member functions that are based on the steps that were described in the previous section. In addition,
-there are a few private member variables. The VulkanWindowControl and OgldevVulkanCore which were part of the main()
-function in the previous tutorial were moved here. We also have a vector of images, swap chain object, command queue,
-vector of command buffers and a command buffer pool. Now let's look at the Init() function:
+У нас здесь есть пара публичных функций *Init()* и *Run()*, которые будут вызваны из *main()*, а также
+несколько приватных функций, которые совпадают с шагами из предыдущей секции. Кроме того, у класса есть
+несколько приватных свойств. *VulkanWindowControl* и *OgldevVulkanCore* из *main()* из прошлого урока
+были перемещены сюда. Кроме того, у нас есть вектор изображений, объект цепочки переключений, очередь
+команд, вектор буферов команд и пул буферов команд. Давайте перейдём к функции *Init()*:
 
     void OgldevVulkanApp::Init()
     {
@@ -141,22 +141,22 @@ vector of command buffers and a command buffer pool. Now let's look at the Init(
 
         m_core.Init(m_pWindowControl);
 
-        <b>vkGetDeviceQueue(m_core.GetDevice(), m_core.GetQueueFamily(), 0, &amp;m_queue);
+        vkGetDeviceQueue(m_core.GetDevice(), m_core.GetQueueFamily(), 0, &amp;m_queue);
 
         CreateSwapChain();
         CreateCommandBuffer();
-        RecordCommandBuffers();</b>
+        RecordCommandBuffers();
     }
 
-This function starts in a similar fashion to the previous tutorial by creating and initializing the window control
-and Vulkan core objects. After that we call the private members to create the swap chain and command buffer and
-to record the clear instruction into the command buffer. Note the call to vkGetDeviceQueue(). This Vulkan function
-fetches the handle of a VkQueue object from the device. The first three parameters are the device, the index of the
-queue family and the index of the queue in that queue family (zero in our case because there is only one queue).
-The driver returns the result in the last parameter. The two getter functions here were added in this tutorial to the
-Vulkan core object.
+Эта функция начинается аналогично предыдущему уроку с создания и инициализации объекта Vulkan и окна.
+После этого мы вызываем приватные методы для создания создания цепочки переключений, буфера команд и
+записи инструкции очистки в буфер команд. Обратите внимание на вызов *vkGetDeviceQueue()*. Эта функция
+Vulkan получает ссылку на объект *VkQueue* с устройства. Первые три параметра - это устройство,
+индекс набора очередей и индекс очереди в этом наборе (в нашем случае 0 т.к. у нас только одна очередь).
+Драйвер возвращает результат в последнем параметре. В этом уроке были добавлены две функции в объект
+Vulkan.
 
-Let's review the creation of the swap chain step by step:
+Давайте рассмотрим процесс создания цепочки переключений по шагам:
 
     void OgldevVulkanApp::CreateSwapChain()
     {
@@ -164,16 +164,20 @@ Let's review the creation of the swap chain step by step:
 
         assert(SurfaceCaps.currentExtent.width != -1);
 
-The first thing we need to do is to fetch the surface capabilities from the Vulkan core object. Remember that in the previous
-tutorial we populated a physical device database in the Vulkan core object with info about all the physical
-devices in the system. Some of that info was not generic but specific to the combination of the physical
-device and the surface that was created earlier. An example is the VkSurfaceCapabilitiesKHR vector which contains a
-VkSurfaceCapabilitiesKHR structure for each physical device. The function GetSurfaceCaps() indexes into that vector
-using the physical device index (which was selected in the previous tutorial). The VkSurfaceCapabilitiesKHR structure
-contains a lot of info on the surface. The currentExtent member describes the current size of the
-surface. Its type is a VkExtent2D which contains a width and height. Theoretically, the current extent should contain
-the dimensions that we have set when creating the surface and I have found that to be true on both Linux and Windows.
-In several examples (including the one in the Khronos SDK) I saw some logic which checks whether the width of the
+Первое что нам нужно сделать, это получить свойства поверхности из объекта ядра Vulkan. Вспомним, что в
+предыдущем уроке мы заполняли базу данных физического устройства в объекта ядра Vulkan информацией обо всех
+физических устройствах в системе. Некоторая часть этой информации была не общей, а относилась к конкретной
+паре физического устройства и созданной позднее поверхности. Примером может послужить вектор *VkSurfaceCapabilitiesKHR*,
+который содержит структуры *VkSurfaceCapabilitiesKHR* для каждого физического устройства. Функция *GetSurfaceCaps()*
+для этого вектора использует индексы от физических устройств (которые были получены в предыдущем уроке).
+Структура *VkSurfaceCapabilitiesKHR* содержит очень много информации о поверхности. Свойство *currentExtent*
+описывает текущий размер поверхности. Его тип *VkExtent2D* включает в себя ширину и высоту. В теории, экстент
+должен содержать ту размерность, которую мы установили при создании поверхности, и я заметил, что это соответствует
+действительности и для Linux, и для Windows. В некоторых примерах (включая официальный из Khronos SDK) я видел
+проверку, что ширина текущего экстента равна -1, и если так, то происходила замена значения на желаемое.
+Мне показалось, что эта логика излишняя, поэтому я добавил ассерты выше.
+
+In several examples (including the one in the ) I saw some logic which checks whether the width of the
 current extent is -1 and if so overwrites that with desired dimensions. I found that logic to be redundant so I just
 placed the assert you see above.
 
@@ -182,9 +186,10 @@ placed the assert you see above.
         assert(NumImages &gt;= SurfaceCaps.minImageCount);
         assert(NumImages &lt;= SurfaceCaps.maxImageCount);
 
-Next we set the number of images that we will create in the swap chain to 2. This mimics the behavior
-of double buffering in OpenGL. I added assertions to make sure that this number is within the valid range
-of the platform. I assume that you won't hit these assertions but if you do you can try with one image only.
+Затем мы задаем число изображений, которые мы будем создавать в цепочке, равным 2. Это будет имитировать
+двойную буферизацию в OpenGL. Я добавил ассерты чтобы убедиться, что платформа поддерживает это число.
+Я предполагаю, что эти ассерты у вас не сработают. Но если такое случилось, то можете попробовать и с
+одним изображением.
 
         VkSwapchainCreateInfoKHR SwapChainCreateInfo = {};
 
@@ -192,22 +197,23 @@ of the platform. I assume that you won't hit these assertions but if you do you 
         SwapChainCreateInfo.surface          = m_core.GetSurface();
         SwapChainCreateInfo.minImageCount    = NumImages;
 
-The function that creates the swap chain takes most of its parameters from the VkSwapchainCreateInfoKHR structure.
-The first three parameters are obvious - the structure type, the surface handle and the number of images. Once created
-the swap chain is permanently attached to the same surface.
+Функция, которая создает цепочку, принимает большую часть своих параметров из структуры *VkSwapchainCreateInfoKHR*.
+Первые три параметра очевидные - это тип структуры, ссылка на поверхность и число изображений. После создания
+цепочка навсегда привязана к одной поверхности.
 
         SwapChainCreateInfo.imageFormat      = m_core.GetSurfaceFormat().format;
         SwapChainCreateInfo.imageColorSpace  = m_core.GetSurfaceFormat().colorSpace;
 
-Next comes the image format and color space. The image format was discussed in the previous tutorial. It describes
-the layout of data in image memory. It contains stuff such as channels (red, green and/or blue) and format (float,
-normalized int, etc). The color space describes the way the values are matched to colors. For example, this
-can be linear or sRGB. We will take both from the physical device database.
+Дальше идут формат изображения и цветовое пространство. Формат изображения уже был рассмотрен в предыдущем
+уроке. Он описывает формат данных в памяти изображения. Он содержит такие параметры, как каналы (красный,
+зелёный и / или синий) и формат (целое число, с плавающей запятой и прочие). Цветовое пространство описывает
+способ которым значения сопоставляются цветам. Например, может быть линейным или *sRGB*. Мы возьмём оба
+значения из базы данных физического устройства.
 
         SwapChainCreateInfo.imageExtent      = SurfaceCaps.currentExtent;
 
-We can create the swap chain with a different size than the surface. For now, just grab the current extent from the surface
-capabilities structure.
+Мы можем создать цепочку с размером, отличным от размера поверхности. Но пока что просто возьмём экстент
+из структуры свойств поверхности.
 
         SwapChainCreateInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
