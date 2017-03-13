@@ -177,10 +177,6 @@ Vulkan.
 проверку, что ширина текущего экстента равна -1, и если так, то происходила замена значения на желаемое.
 Мне показалось, что эта логика излишняя, поэтому я добавил ассерты выше.
 
-In several examples (including the one in the ) I saw some logic which checks whether the width of the
-current extent is -1 and if so overwrites that with desired dimensions. I found that logic to be redundant so I just
-placed the assert you see above.
-
         uint NumImages = 2;
 
         assert(NumImages &gt;= SurfaceCaps.minImageCount);
@@ -217,59 +213,60 @@ placed the assert you see above.
 
         SwapChainCreateInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-We need to tell the driver how we are going to use this swap chain. We do that by specifying a combination
-of bit masks and there are 8 usage bits in total. For example, the swap chain can be used as a source
-or destination of a transfer (buffer copy) operation, as a depth stencil attachment, etc. We just want a standard
-color buffer so we use the bit above.
+Нам необходимо сообщить драйверу то, как мы собираемся использовать цепочку переключений. Для этого мы
+указываем маску из 8 бит. Например, цепочка может быть использована как источник или как место назначения
+команды перемещения (копирования буфера), как трафарет глубины и прочее. Нам нужен обычный буфер цвета,
+поэтому мы используем флаг выше.
 
         SwapChainCreateInfo.preTransform     = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 
-The pre transform field was designed for hand held devices that can change their orientation (cellular phones
-and tablets). It specifies how the orientation must be changed before presentation (90 degrees, 180 degrees, etc).
-It is more relevant to Android so we just tell the driver not to do any orientation change.
+Поле предварительной обработки предназначается для портативных устройств, чьё положение в пространстве
+может изменяться (мобильные телефоны и планшеты). Оно описывает то, как должна изменяться ориентация перед
+отображением (90 градусов, 180 градусов и т.д.). Это поле имеет смысл в основном для Android, поэтому мы
+говорим драйверу не делать никаких преобразований.
 
         SwapChainCreateInfo.imageArrayLayers = 1;
 
-imageArrayLayers is intended for stereoscopic applications where rendering takes place from more than
-one location and then combined before presentations. An example is VR where you want to render the scene from each
-eye separately. We are not going to do that today so just specify 1.
+*imageArrayLayers* предназначается для стереоскопических приложений, где рендеринг происходит более чем из одной
+точки, а затем результат комбинируется перед отображением. Примером может послужить виртуальная реальность, где
+для каждого глаза рендер сцены происходит по-отдельности. Это не наш случай, поэтому просто зададим значение 1.
 
         SwapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-Swap chain images can be shared by queues of different families. We will use exclusive access by
-the queue family we have selected previously.
+Изображения в цепочке могут быть поделены между несколькими семействами очередей. Мы будем даём доступ только
+для очереди, которую выбрали ранее.
 
         SwapChainCreateInfo.presentMode      = VK_PRESENT_MODE_FIFO_KHR;
 
-In the previous tutorial we briefly touched on the presentation engine which is the part of the platform
-involved in actually taking the swap chain image and putting it on the screen. This engine also exists
-in OpenGL where it is quite limited in comparison to Vulkan. In OpenGL you can select between single and double buffering.
-Double buffering avoids tearing by switching the buffers only on VSync and you have some control on the number
-of VSync in a second. That's it. Vulkan, however, provides you with no less than four different modes of operation
-that allow a higher level of flexibility and performance. We will be conservative here and use the FIFO mode which
-is the most similar to OpenGL double buffering.
+В предыдущем уроке мы вскользь затронули движки представления, которые, собственно, принимают изображение из
+цепочки и выводят его на экран. Подобное есть и в OpenGL, но с куда меньшим числом возможностей. В OpenGL можно
+выбирать между одинарной и двойной буферизацией. Двойная буферизация позволяет избежать разрывов в изображении
+с помощью переключения буферов при вертикальной синхронизации, и у нас есть возможность изменять число синхронизаций
+в секунду. Вот и всё. В то же самое время, Vulkan предоставляет не менее 4-х различных режимов операций, что даёт
+большую гибкость и производительность. Мы же будем консервативны и используем режим FIFO, который наиболее близок
+к двойной буферизации OpenGL.
 
         SwapChainCreateInfo.clipped          = true;
 
-The clipped field indicates whether the driver can discard parts of the image that are outside of the visible
-surface. There are some obscure cases where this is interesting but not in our case.
+Поле *clipped* обозначает может ли драйвер части изображения, которые выходят за пределы видимой области поверхности.
+Бывают странные ситуации когда это может пригодиться, но это не наш случай.
 
         SwapChainCreateInfo.compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
-compositeAlpha controls the manner in which the image is combined with other surfaces. This is only relevant on
-some of the operating systems so we don't use it.
+*compositeAlpha* управляет тем, как изображение сочетается с другими поверхностями. Параметр имеет
+смысл только для некоторых ОС, поэтому мы его не используем.
 
         VkResult res = vkCreateSwapchainKHR(m_core.GetDevice(), &amp;SwapChainCreateInfo, NULL, &amp;m_swapChainKHR);
         CHECK_VULKAN_ERROR("vkCreateSwapchainKHR error %d\n", res);
 
-Finally, we can create the swap chain and get its handle.
+Наконец, мы можем создать цепочку переключений и получить на неё ссылку.
 
         uint NumSwapChainImages = 0;
         res = vkGetSwapchainImagesKHR(m_core.GetDevice(), m_swapChainKHR, &amp;NumSwapChainImages, NULL);
         CHECK_VULKAN_ERROR("vkGetSwapchainImagesKHR error %d\n", res);
 
-When we created the swap chain we specified the minimum number of images it should contain. In the above
-call we fetch the actual number of images that were created.
+При создании цепочки мы указали наименьшее число изображений которая она может включать. В примере
+выше мы получаем то число изображений, которое мы создали.
 
         m_images.resize(NumSwapChainImages);
         m_cmdBufs.resize(NumSwapChainImages);
@@ -278,10 +275,11 @@ call we fetch the actual number of images that were created.
         CHECK_VULKAN_ERROR("vkGetSwapchainImagesKHR error %d\n", res);
     }
 
-We have to get the handles of all the swap chain images so we resize the image handle vector accordingly.
-We also resize the command buffer vector because we will record a dedicated command buffer for each image in the swap chain.
+Нам требуется получить ссылки на все изображения в цепочке чтобы мы могли соответсвенно изменить
+вектор ссылок на изображения. Кроме того, мы изменяем размер вектора буферов команд так как для
+каждого изображения в цепочке мы будем использовать отдельный буфер.
 
-The following function creates the command buffers:
+Следующие функции создают буферы команд:
 
     void OgldevVulkanApp::CreateCommandBuffer()
     {
@@ -292,15 +290,17 @@ The following function creates the command buffers:
         VkResult res = vkCreateCommandPool(m_core.GetDevice(), &amp;cmdPoolCreateInfo, NULL, &amp;m_cmdBufPool);
         CHECK_VULKAN_ERROR("vkCreateCommandPool error %d\n", res);
 
-Command buffer are not created directly. Instead, they must be allocated from pools. As expected, the motivation is
-performance. By making command buffers part of a pool, better memory management and reuse can be implemented.
-It is imported to note that the pools are not thread safe. This means that any action on the pool or its command
-buffers must be explicitly synchronized by the application. So if you want multiple threads to create command
-buffers in parallel you can either do this synchronization or simply create a different pool for each thread.
+Буферы команд не создаются напрямую. Вместо этого они должны быть получены из пула. Как и следовало
+ожидать, причина тому - производительность. Благодаря тому, что буферы команд являются часть пула,
+лучше организована работа с памятью и появилась возможность повторного использования. Важно заметить,
+что пулы не потокобезопасены. Это значит, что все действия над пулом или его буферами команд должны
+быть явно синхронизированными с приложением. Поэтому, если вы хотите создавать буферы команд параллельно
+в несколько потоков, то вы обязаны исползовать синхронизацию, либо для каждого потока создать по своему
+пулу.
 
-The function vkCreateCommandPool() creates the pool. It takes a VkCommandPoolCreateInfo structure parameter
-whose most important member is the queue family index. All commands allocated from this pool must be submitted
-to queues from this queue family.
+Функция *vkCreateCommandPool()* создает пул. Она принимает на вход структуру *VkCommandPoolCreateInfo*,
+самым интересным свойством которой является идекс семейства очередей. Все команды получаемые из пула
+должны быть отправлены в очередь из этого семейства.
 
         VkCommandBufferAllocateInfo cmdBufAllocInfo = {};
         cmdBufAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
