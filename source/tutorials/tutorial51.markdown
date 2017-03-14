@@ -312,16 +312,17 @@ Vulkan.
         CHECK_VULKAN_ERROR("vkAllocateCommandBuffers error %d\n", res);
     }
 
-We are now ready to create the command buffers. In the VkCommandBufferAllocateInfo structure we specify the pool
-we have just created and the number of command buffers (we need a dedicated command buffer per image in the swap chain).
-We also specify whether this is a primary or secondary command buffer. Primary command buffers are the common
-vehicle for submitting commands to the GPU but they cannot reference each other. This means that you can
-have two very similar command buffers but you still need to record everything into each one. You cannot share
-the common stuff between them. This is where secondary command buffers come in. They cannot be directly submitted
-to the queues but they can be referenced by primary command buffers which solves the problem of sharing. At this
-point we only need primary command buffers.
+Теперь мы готовы к созданию буферов команд. В структуре *VkCommandBufferAllocateInfo* мы задаем
+только что созданный пул и число буферов команд (нам потребуется отдельный буфер для каждого
+изображения в цепочке). Также нам требуется указать будет ли этот буфер первичным или вторичным.
+Первичные буферы используются для передачи команд в GPU, но они не могут ссылаться друг
+на друга. Это означает, что даже если у нас есть пара похожих буферов, мы должны записать полный
+набор команд в каждый из них. Общую часть выделить отдельно нельзя. Вот тут и могут пригодиться
+вторичный буферы. Их нельзя отправлять в очереди, но зато они могут быть использованы первичным
+буфером. Так и решается проблема с выносом общей части. Пока что нам будет достаточно первичных
+буферов.
 
-Now let's record the clear instruction into our new command buffers.
+Давайте запишем инструкцию очистки в наш новый буфер команд.
 
     void OgldevVulkanApp::RecordCommandBuffers()
     {
@@ -329,32 +330,35 @@ Now let's record the clear instruction into our new command buffers.
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-Recording of command buffers must be done inside a region of the code explictly marked by a vkBeginCommandBuffer() and
-vkEndCommandBuffer(). In the VkCommandBufferBeginInfo structure we have a field named 'flags' where we tell the driver
-that the command buffers will be resubmitted to the queue over and over again. There are other usage models
-but for now we don't need them.
+
+Код, который отвечает за запись в буфер команды, должен быть обрамлен вызовами функций *vkBeginCommandBuffer()*
+и *vkEndCommandBuffer()*. В структуре *VkCommandBufferBeginInfo* есть свойство под названием
+*flags*, которое сообщает драйверу что буферы команд будут записываться в очередь снова и снова.
+Существуют и другие модели, но пока что они нам не интересны.
 
         VkClearColorValue clearColor = { 164.0f/256.0f, 30.0f/256.0f, 34.0f/256.0f, 0.0f };
         VkClearValue clearValue = {};
         clearValue.color = clearColor;
 
-We have to specify our clear color using the two structures above. The first one is a union of four float/int/uint
-which allows different ways to do that. The second structure is a union of a VkClearColorValue structure and a
-VkClearDepthStencilValue structure. This scheme is used in parts of the API that can take either of the two structures.
-We go with the color case. Since I'm very creative today I used the RGB values from the color of the Vulkan logo ;-) <br> Note
-that each color channel goes from 0 (darkest) to 1 (brightest) and that this endless spectrum of real numbers is divided to 256
-discrete segments which is why I divide by 256.
+Чтобы указать цвет, которым будет очищен экран, мы используем две структуры выше. Первая объединяет
+четыре значения типов float/int/uint. Вторая структура объединяет структуры *VkClearColorValue* и
+*VkClearDepthStencilValue*. Такой подход используется в тех частях API, которые могут принимать на
+вход любую из двух структур. В нашем случае используется цвет. Поскольку меня сегодня прёт, то я
+взял цвет из логотипа Vulkan ;).
+
+Заметим, что каждый канал цвета принимает значения от 0 (темнее) до 1 (светлее). И этот бесконечный
+спектр вещественных значений разбит на 256 дискретных отрезков, вот почему я делю на 256.
 
         VkImageSubresourceRange imageRange = {};
         imageRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         imageRange.levelCount = 1;
         imageRange.layerCount = 1;
 
-We need to specify the range of images that we want to clear. In future tutorials we will study more complex schemes where
-there will be multiple mipmap levels, layers, etc. For now we just want the basics so we specify one mip map level and one layer.
-The aspectMask field tells the driver whether to clear the color, depth or stenctil (or a combination of them). We are only interested
-in the color aspect of the images.
-
+Нам требуется указать диапазон изображений, которые мы хотим очистить. В будующих уроках мы изучим
+более сложные схемы, где будут несколько уровней mip-текстур, слоев и прочего. Пока что мы просто
+хотим обойтись малой кровью, поэтому мы указываем один слой и один уровень mip-текстур.  Поле
+*aspectMask* сообщает драйверу что очищать - цвет, глубину или шаблон (или их комбинацию). Сейчас нас
+интересует только цветовая часть изображения.
 
         for (uint i = 0 ; i &lt; m_cmdBufs.size() ; i++) {
             VkResult res = vkBeginCommandBuffer(m_cmdBufs[i], &amp;beginInfo);
@@ -367,20 +371,23 @@ in the color aspect of the images.
         }
     }
 
-We are now ready to record the command buffers. As mentioned earlier, the commands that do the actual recording
-must be inside a block marked by calls that begin and end a command buffer. For that we specify the command buffer
-to record to and the beginInfo structure which we already prepared. Since we have an array of command buffers (one buffer
-per swap chain image) the entire thing is enclosed inside a for loop. vkCmdClearColorImage() records the clear instruction
-into the command buffer. As parameters it takes the command buffer to record, the target image, the layout of the image in memory,
-the clear color, the number of VkImageSubresourceRange structures to use and a pointer to an array of these structures (only one
-in our case).
+Теперь мы готовы к записи в буфер команд. Как я уже говорил, команды, которые производят запись,
+должны быть окружены вызовами функций обозначающих начало и конец буфера команд. Для этого мы
+указываем в какой буфер будет происходить запись и структуру *beginInfo*, которую мы подготовили
+ранее. Так как у нас массив буферов команд (один буфер на цепочку изображений), запись происходит
+в цикле. *vkCmdClearColorImage()* записывает инструкцию очистки экрана в буфер команд. В качестве
+параметров она принимает буфер команд, в который будет запись, целевое изображение, слой изображения
+в памяти, цвет очистки, число структур *VkImageSubresourceRange* которые должны использоваться и
+указатель на их массив (в нашем случае структура только одна).
 
-We prepared everything we need and we can now code our main render function. In standard OpenGL this usually means specifying a
-list of GL commands to draw stuff followed by a swap buffers call (be it GLUT, GLFW or any other windowing API). For the driver
-it means a tedious repetition of command buffer recording and submission where changes from one frame to the next are relatively small
-(changes in shader matrices, etc). But in Vulkan all our command buffers are already recorded! We just need to queue them to the GPU. Since
-we have to be more verbose in Vulkan we also need to manage how we acquire and image for rendering and how to tell the presentation
-image to display it.
+Мы подготовили всё что нам нужно и теперь мы можем писать код нашей главной функции рендера. Обычно
+в OpenGL это означает указание списка команд OpenGL для отрисовки сцены с последующим вызовом смены
+буферов (будь это GLUT, GLFW или любое другое оконное API). Для драйвера это означает нудное
+повторение записи в буфер команд и его отправки, причем отличия между кадрами относительно малы
+(изменения в шейдерных матрицах, и т.д.). Но в мире Vulkan все наши буферы команд уже записаны!
+Нам нужно только добавить их в очередь к GPU. Но так как в Vulkan действия должны быть более
+подробно описаны, то нам ещё требуется решить как получить изображение для рендера и как указать
+движку чтобы он это изображение вывел.
 
     void OgldevVulkanApp::RenderScene()
     {
@@ -389,19 +396,25 @@ image to display it.
         VkResult res = vkAcquireNextImageKHR(m_core.GetDevice(), m_swapChainKHR, UINT64_MAX, NULL, NULL, &amp;ImageIndex);
         CHECK_VULKAN_ERROR("vkAcquireNextImageKHR error %d\n", res);
 
-The first thing we need to do is to acquire an image from the presentation engine which is available for rendering.
-We can acquire more than one image (e.g. if we plan to render two or more frames ahead) in an advanced scenario but
-for now one image will be enough. The API call above takes the device and swap chain as the first two parameters, respectively.
-The third parameter is the amount of time we're prepared to wait until that function returns. Often, the presentation engine
-cannot provide an image immediately because it needs to wait for an image to be released or some internal OS or GPU event (e.g. the
-VSync signal of the display). If we specify zero we make this a non blocking call which means that if an image is available we
-get it immediately and if not the function returns with an error. Any value above zero and below the maximum value of an unsigned 64bit
-integer will cause a timeout of that number of nanoseconds. The value of UINT64_MAX will cause the function to return only when an image
-becomes available (or some internal error occured). This seems like the safest course of action for us here. The next two parameters
-are pointers to a semaphore and a fence, respectively. Vulkan was designed with a lot of asynchronous operation in mind. This means
-that you can define inter-dependencies between queues on the GPU, between the CPU and GPU, etc. This allows you to submit
-work to the image even if it is not really ready to be rendered to (which is a bit counter intuitive to what vkAcquireNextImageKHR is
-supposed to do but can still happen). These semaphore and fence are synchornization primitives that must be waited upon before
+Первое что нам требуется сделать - это получить доступное для рендера изображение из движка
+представления. Мы можем получить больше чем одно изображение (например, если мы хотим рендерить
+два или больше кадра наперёд) в более сложной ситуации, но для нас и одного изображения более чем
+достаточно. Вызов API выше принимает на вход устройство и цепочку переключений как первые два
+параметра, соответственно. Третий параметр это количество времени, которое мы готовы подождать,
+прежде чем функция вернёт управление. Часто движек представления не может вернуть изображение
+мгновенно потому, что он должен подождать пока изображение не будет готово, либо какого-то другого
+события ОС или GPU (например, сигнал вертикальной синхронизации от дисплея). Если мы укажем 0, то
+это будет не блокирующий вызов, т.е. если изображение готово, то мы получим его сразу, а иначе
+функция вернёт ошибку. Любое число больше 0 и меньше чем максимальное значение беззнакового типа
+64bit запустит таймер с этим числом наносекунд. Значение *UINT64_MAX* функция вернёт управление
+только когда изображение будет готово (или какую-то внутреннюю ошибку). Это наиболее безопасное для
+нас решение. Следующие два параметра - это указатели на семафор и fence, соответственно. При
+дизайне Vulkan многопоточность была хорошо учтена. Это значит, что мы можем добавить
+взаимозависимость между очередями GPU, между CPU и GPU, и так далее. Это позволяет отправлять
+задачи над изображением даже если оно ещё не полностью готово для рендера (это, конечно, не совсем
+соответсвует тому, что должен делать *vkAcquireNextImageKHR*, но тем не менее).
+
+ These semaphore and fence are synchornization primitives that must be waited upon before
 the actual rendering to the image can begin. A semaphore syncs between stuff on the GPU and the fence between the host CPU
 and the GPU. As you can see, I've specified NULL in both cases which might be unsafe and theoretically is not supposed
 to work yet it does. This may be because of the simplicity of our application. It allowed me to postpone all the synchronization
