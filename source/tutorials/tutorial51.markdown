@@ -412,14 +412,13 @@ Vulkan.
 дизайне Vulkan многопоточность была хорошо учтена. Это значит, что мы можем добавить
 взаимозависимость между очередями GPU, между CPU и GPU, и так далее. Это позволяет отправлять
 задачи над изображением даже если оно ещё не полностью готово для рендера (это, конечно, не совсем
-соответсвует тому, что должен делать *vkAcquireNextImageKHR*, но тем не менее).
-
- These semaphore and fence are synchornization primitives that must be waited upon before
-the actual rendering to the image can begin. A semaphore syncs between stuff on the GPU and the fence between the host CPU
-and the GPU. As you can see, I've specified NULL in both cases which might be unsafe and theoretically is not supposed
-to work yet it does. This may be because of the simplicity of our application. It allowed me to postpone all the synchronization
-business to a later date. Please let me know if you encounter problems because of this. The last parameter to the function is the index
-of the image that became available.
+соответсвует тому, что должен делать *vkAcquireNextImageKHR*, но тем не менее). Эти семафоры и fence
+синхронизируют примитивы, которые нужно подождать прежде чем начнётся сам рендер в изображение.
+Семафор занимается синхронизацией на GPU, а fence между CPU и GPU. Как вы заметили, я установил оба
+значения в *NULL*, что может быть не безопасно, а в теории вообще не должно работать, но работает.
+Вероятно это происходит из-за того, что наше приложение очень простое. Но это позволяет мне убрать
+вопросы синхронизацией в долгий ящик. Пожалуйста, сообщите мне о любых проблемах связанных с этим.
+Последним параметром функции является индекс доступного изображения.
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -429,13 +428,15 @@ of the image that became available.
         res = vkQueueSubmit(m_queue, 1, &amp;submitInfo, NULL);
         CHECK_VULKAN_ERROR("vkQueueSubmit error %d\n", res);
 
-Now that we have an image, let's submit the work to the queue. The vkQueueSubmit() function takes the handle of a queue, the number
-of VkSubmitInfo structures and a pointer to the corresponding array. The last parameter is a fence which we will conviniently ignore for now.
-The VkSubmitInfo actually contains 8 members in addition to the standard sType, but we are going to use only 2 (so just imagine how
-much complexity is still down there). We specify that we have one command
-buffer and we provide its address (the one that corresponds to the acquired image). The Vulkan spec notes that submission of work can have a high overhead and encourages us to pack as many command
-buffers as we possibly can into that API to minimize that overhead. In this simple example we don't have an opportunity to do that but
-we should keep that in mind as our application becomes more complex in the future.
+Теперь, когда у нас есть изображение, давайте отправим задачу в очередь. Функция *vkQueueSubmit()*
+принимает ссылку на очередь, число структур *VkSubmitInfo* и указатель на их массив. Последним
+параметром идет fence, который мы пока что просто проигнорируем. *VkSubmitInfo* имеет 8 свойств
+не считая тех, что идут в стандартном *sType*, но нам понадобятся только 2 (можете представить,
+сколько сложностей остаётся за кадром). Мы указываем что у нас только один буфер команд и
+мы передаём его адрес (на тот буфер, который связан с изображением). Документация к Vulkan
+указывает, что отправка задач может быть затратной по ресурсам, и призывает нас запакоывать
+как можно больше буферов команд за раз. В нашем простом приложении у нас нет такой возможности,
+но следует помнить об этом когда приложение будет наростать функционалом.
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -447,16 +448,19 @@ we should keep that in mind as our application becomes more complex in the futur
         CHECK_VULKAN_ERROR("vkQueuePresentKHR error %d\n" , res);
     }
 
-Once the previous API call has returned we know that the command buffer is on its way to the GPU queue but we have no idea
-when exactly it is going to be executed, and frankly, we don't really care. Command buffers in a queue are guaranteed to be
-processed in the order of submission and since we submit a present command after the clear command into the same queue we
-know that the image will be cleared before it is presented. So the vkQueuePresent() call is basically a marker that ends
-the frame and tells the presentation engine to display it. This function takes two parameters - a queue which has presentation
-capabilities (we took care of that when initializing the device and queue) and a pointer to a VkPresentInfoKHR structure.
-This structure contains, among other stuff, two arrays of equal sizes. A swap chain array and an image index array. This means that
-you can queue a present command to multiple swap chains where each swap chain is connected to a different window. Every swap chain
-in the array has a corresponding image index which specifies which image will be presented. The swapchainCount member says how many
-swap chains and images we are going present.
+После того как предыдущий вызов API вернул управление, то мы знаем, что буфер команд уже направился
+в очередь GPU, но мы не имеем никакого понятия о том, когда он будет запущен. Забавно то, что нам и
+нет до этого дела. Буферы команд гарантированно будут исполнены в том порядке, в которов их
+отправили. А так как мы отправили в одной очереди команду отображения после команды очистки, то
+мы можем быть уверены, что изображение будет очищено прежде чем отобразится. Так что вызов
+*vkQueuePresent()* просто отмечает что кадр закончен и говорит движку отображения чтобы он его вывел
+на экран. Функция принимает на вход два параметра - очередь, которая имеет возможности отображения
+(мы позаботились об этом при инициализации устройства и очереди), и указатель на структуру
+*VkPresentInfoKHR*. Помимо прочего, эта структура содержит два массива одного размера - массив
+цепочек и массив изображений. Это значит, можно положить в очередь одну и ту же команду отображения
+в разные цепочки переключений, где каждая цепочка подключена к отдельному окну. Каждая цепочка
+в массиве связана с изображением по индексу. Свойство *swapchainCount* указывает на число цепочек
+и изображений.
 
     void OgldevVulkanApp::Run()
     {
@@ -465,7 +469,7 @@ swap chains and images we are going present.
         }
     }
 
-Our main render function is very simple. We loop endlessly and call the function that we have just reviewed.
+Главная функция рендера очень проста. Мы вызываем в бесконечном цикле ту функцию, которую только что рассмотрели.
 
     int main(int argc, char** argv)
     {
@@ -478,6 +482,6 @@ Our main render function is very simple. We loop endlessly and call the function
         return 0;
     }
 
-The main function is also very simple. We declare an OgldevVulkanApp object, initialize and run it.
+Функция *main* очень простая. Мы объявляем объект *OgldevVulkanApp*, инициализируем и запускаем его.
 
-That's it for today. I hope that your window is clear. Next time we will draw a triangle.
+На этом всё. Я надеюсь что окно у вас чистое. В следующий раз мы нарисуем треугольник.
