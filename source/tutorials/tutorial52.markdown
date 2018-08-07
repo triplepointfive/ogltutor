@@ -95,18 +95,23 @@ date: 2018-08-06 11:56:30 +0300
 Приложения - это ресурсы пайплайна, а подпроходы представляют собой серию команд рисования, которые считывают
 и пишут в один и тот же набор приложений.
 
-The subpass description struct specifies a collection of attachments that take part in the subpass.
-This collection includes color, depth/stencil and multisample attachments. In our single subpass description struct we first specify that we are binding this subpass to the graphics pipeline (rather than the compute).
-Then we specify that we have just one color attachment that we are going to render to and we set the pColorAttachments to point to the descriptor
-of that attachment (in the case of multiple color attachments this would have been an array of descriptors). We don't have any other type of attachment here so all
-the other attachment count members remain zero.
+Структура подпрохода содержит набор приложений, которые ему понадобятся. Набор включает цвет, глубину / трафарет
+и мультисэмплы. В нашем единственном подпроходе мы указываем, что подпроход привязан к графическому пайплайну
+(а не к вычислителному). Затем мы указываем, что у нас будет лишь одно приложение цвета, которым мы будем
+рендерить, а так же мы устанавливаем pColorAttachments на дескриптор приложения (в случае нескольких приложений
+цвета здесь был бы массив). У нас нет других типов приложений, поэтому мы их не задаем.
 
-All the attachments that the subpass descriptor can point to have the VkAttachmentReference struct type. This struct has just two members. The first member, called 'attachment', is an index into the
-'pAttachments' member of the renderPassCreateInfo struct below. Basically the render pass create info struct points to an array of attachements and all the attachments specified in the subpasses are
-just indices into that array. We have just one attachment here so the index in our case is zero. The other member in the VkAttachmentReference struct is the layout of the attachment. This allows us to indicate how the attachment will be used so the driver can plan ahead accordingly (which is good for performance). We set it to be the target of rendering.
+Все приложения, на которые может указывать дескриптор подпрохода, содержат структуру VkAttachmentReference. У этой
+структуры два свойства. Первое, называемое 'attachment', это индекс в свойстве 'pAttachments' структуры
+renderPassCreateInfo ниже. В целом, проход рендера заполняет массив приложений, а все приложения, указанные в
+подпроходе, просто индексы в этом массиве. У нас только одно приложение, поэтому его индекс 0. Другое свойство
+в структуре VkAttachmentReference это расположение приложения. Оно позволяет указать как приложение будет использовано,
+чтобы драйвер мог заранее построить план действий (что хорошо сказывается на производительности). Мы устанавливаем его
+целью рендеринга.
 
-We now have a descriptor of a single subpass which points to a single attachment. Now we must specify all the attachments in the render pass as a single array. The attachments from the subpass are simply indices into this array
-so the actual data for each attachment is in a single location.
+Теперь у нас есть дескриптор единственного подпрохода, который указывает на единственное приложение. Теперь мы должны
+указать все приложения в проходе рендера как единственный массив. Приложения из подпрохода - это просто индексы
+в этом массиве, поэтому сами данные приложений находятся лишь в одном месте.
 
         VkAttachmentDescription attachDesc = {};
         attachDesc.format = m_core.GetSurfaceFormat().format;
@@ -124,33 +129,26 @@ so the actual data for each attachment is in a single location.
         renderPassCreateInfo.subpassCount = 1;
         renderPassCreateInfo.pSubpasses = &subpassDesc;
 
-In the render pass create info struct we specify that we have one attachment and one subpass. We also specify the
-addresses of the corresponding structures that describe the attachment and subpass (if we had more than one then 'attachDesc'
-and 'subpassDesc' would have been arrays of structs).
+В структуре прохода рендера мы указываем что у нас одно приложение и один подпроход. Мы так же указываем
+адреса соответствующих структур с описанием приложения и подпрохода (если бы у нас было больше одной сущности,
+то поля 'attachDesc' и 'subpassDesc' были бы массивами структур).
 
-Let's review the members in the VkAttachmentDescription structure.
-<ul>
-    <li>
-        <b>'format'</b> is simply the format of the image used for the
-        attachment. We grab it from the surface we created as part of the core (see <a href="../tutorial50/tutorial50.html">tutorial 50</a>). </li>
-    <li>
-        <b>'loadOp'</b> specifies whether we preserve or clear the previous contents in the color and depth buffers (we don't need the old contents so we go with clear).
-    </li>
-    <li>
-        <b>'storeOp'</b> specifies whether the content we will generate in the render pass will be stored to the color and depth buffers or be discarded (store in our case).
-    </li>
-    <li>
-        <b>'stencilLoadOp'/'stencilStoreOp'</b> is the same as the above two but for the stencil buffer. We are not using stencil here so we set it to 'don't care'.
-    </li>
-    <li>
-        <b>'initialLayout'/'finalLayout'</b> - images in Vulkan are stored in an implementationn defined layout which is opaque to us. This means that we don't know how the images
-        pixels are structured in the physical memory that contains them. What Vulkan does is to provide a few image usage types (a.k.a <i>layouts</i>) that allows the
-        programmer to specify how the image will be used. Each GPU vender can then map this to the most optimal method of storing the image in memory. We can often transition
-        an image from one layout to another. The attributes 'initialLayout'/'finalLayout' specify in what layout the image will be at the start of the render pass and the
-        layout they will transition to when the render pass ends. In our case we start and end with the "presentable" layout. This layout allows a swap chain image to be
-  presented to the display.
-    </li>
-</ul>
+Давайте рассмотрим свойства структуры VkAttachmentDescription:
+
+- **'format'** это просто формат изображения, используемый для приложения. Мы возьмём её из поверхности, которую создаем
+    в [уроке 50](tutorial50.html).
+- **'loadOp'** указывает сохранять или очищать предыдущее содержимое буферов цвета и глубины (нам старое содержимое
+    не нужно, поэтому очищаем).
+- **'storeOp'** указывает будет ли контент, который мы создали в проходе рендера, сохранён или уничтожен (мы сохраняем).
+- **'stencilLoadOp'/'stencilStoreOp'** аналогично двум полям выше, но для буфера трафарета. Так как мы не используем
+    трафарет, то устанавливаем значение в 'да пофиг'.
+- **'initialLayout'/'finalLayout'** изображения в Vulkan хранятся во внутреннем слое, который скрыт от нас. Это
+    означает, что мы не знаем структуру пикселей изображения в физической памяти. Всё что Vulkan делает, это предлагает
+    несколько типов использования изображения (или _слоев_), которые позволяют указать как будет использоваться
+    изображение. Затем каждый производитель видеокарт может отображать эти типы в оптимальный для них формат памяти.
+    Мы легко можем переводить изображение из одного типа в другой. Свойства 'initialLayout'/'finalLayout'
+    указывают в каком слое изображение будет в начале и в конце прохода рендера. В нашем случае, мы начинаем в слое
+    "presentable". Этот слой позволяет отображать цепочку изображений на экране.
 
         VkResult res = vkCreateRenderPass(m_core.GetDevice(), &renderPassCreateInfo, NULL, &m_renderPass);
         CHECK_VULKAN_ERROR("vkCreateRenderPass error %d\n", res);
