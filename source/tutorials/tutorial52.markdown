@@ -3,34 +3,34 @@ title: Урок 52 - Vulkan First Triangle
 date: 2018-08-06 11:56:30 +0300
 ---
 
-In the previous tutorial we learned how to clear the window and were introduced to a couple of Vulkan
-entities that are key parts of that operation - the swap chain and the command buffer. Today we are going
-to render our first triangle. This will require the introduction of four new Vulkan entities - the image view,
-render pass, framebuffer and the pipeline. Shaders are also required but since they play the same role as
-in OpenGL programmable pipeline, I don't consider them a new entity. If you are not familiar with shaders
-make sure you study tutorial 4 before continuing.
+В прошлом уроке мы узнали как очистить окно и нам была представлена пара ключевых концептов Vulkan -
+цепочки переключений и буферы команд. Сегодня мы собираем отрендерить наш первый треугольник.
+Для этого нам потребуется ввести 4 новых понятия из мира Vulkan - представление изображения,
+проход рендера, буфер кадра и пайплайн. Шейдеры тоже необходимы, но так как они выполняют ту же самую роль, как и в OpenGL, я бы не назвал их чем-то новым. Если вы не знакомы с шейдерами, перед продолжением пройдите 4-й урок.
 
-Let's start with the largest new object introduced by this tutorial - the <i>pipeline</i>. Actually, the full name is
-the <i>graphics pipeline</i> because in addition to graphics Vulkan takes the compute field very seriously. In general, compute
-is composed of many algorithms that are not 3D in nature (they are not based on the way GPUs process triangles) but they
-can be accelerated by the distributive power of the GPU. This is why the Vulkan spec specifies both a graphics pipeline and
-a compute pipeline. In this tutorial we are going to use only the graphics pipeline. The graphics pipeline object holds
-most of the state that is already familiar to us from standard OpenGL. Stuff such as details about various stages in the pipeline (
-vertex, geometry, tesselation, etc) that execute shaders; state of the input assembly which creates lines and triangles from buffers; viewport
-and rasterization state; depth stencil state and much more. We didn't create a graphics pipeline in the previous couple of tutorials
-because we didn't use the draw command. Now - we have to.
+Давайте начнем с самого большого объекта этого урока - _пайплайн_. На самом деле, полное название _графический пайплайн (graphics pipeline)_
+так как Vulkan кроме работы с графикой занимается широким спектром вычислений. В целом, вычисления
+состоят из большого числа алгоритмов, которые по своей природе не связаны с 3D (они не основываются на том,
+как GPU обрабатывает треугольник), но могут быть ускорены за счёт многопоточности GPU. Поэтому Vulkan и
+рассматривает как графический пайплайн, так и пайплайн для вычислений. В этом уроке мы собираемся использовать
+только графический пайплайн. Его объект имеет массу свойств, с которыми мы знакомы из мира OpenGL.
+Разные штуки для обозначения этапов обработки (вершина, геометрия, тесселяция, ...) которые используют
+шейдеры; данные по буферам из которых создаются линии и треугольники; этапы обзора и растеризации;
+буфер глубины и много другое. Мы не создавали объект графического пайплайна в предыдущих уроках так как
+мы ничего не рисовали. В этом уроке нам потребуется это сделать.
 
+Представления изображений - это мета объекты, прослойка между шейдером и конечным ресурсом из которого
+происходит чтение или в который происходит запись. Они позволяют ограничивать доступ к ресурсу (например,
+мы можем создать представление, имитирующее единственное изображение в массиве) и задавать формат
+отображения ресурса.
 
-Image views are meta data objects that stand between the shaders and the actual resource that is being read from or written to.
-They allow us to limit the access to the resource (for example we can create an image view that represents a single image inside
-an array) and some control on the apearance of the resource in terms of format.
+Проход рендера управляет списком всех ресурсов которые будут использованы, и их зависимостями (например,
+когда ресурс из которого происходило чтение, становится ресурсом в который происходит запись).
+Буфер кадра работает рука об руку с проходом рендера через создание двух шаговой связи пайплайна с
+ресурсом. Проход рендера привязан к буферу команд и содержит индексы буфера кадров. Буфер кадров
+отображает эти индексы на представления изображений (а это уже ссылка на сам ресурс).
 
-A render pass maintains a list of all resources that will be used and their dependencies (for example when a resource is changed
-from an output to input during shadow mapping). The framebuffer works hand in hand with the render pass by creating a two step connection
-from the pipeline to the resource. The render pass is bound to the command buffer and contains indices into the framebuffer. The framebuffer
-maps these indices to image views (that in turn reference a real resource).
-
-This in a nutshell is an overview of the new objects. Now let's see how to create them and put them to good use.
+Вот краткое описание новых объектов. Теперь давайте создадим их и используем для благих дел.
 
 ## [Прямиком к коду!](http://ogldev.atspace.co.uk/)
 
@@ -73,11 +73,11 @@ This in a nutshell is an overview of the new objects. Now let's see how to creat
         VkPipeline m_pipeline;
     };
 
-This is the updated main class of the tutorial. Highlighted we can see the four new private methods that were added in order to create the new objects
-and their respective members to hold the relevant handles.
+Это обновленный главный класс урока. Мы добавили 4 приватных метода для создания новых объектов и
+новые свойства чтобы их там хранить.
 
-Let's review the changes top to bottom. The first thing we need to do is add functions to create the four new types of objects. The new functions that were added on top
-of the material of the previous tutorial are marked in bold face above. We will start with the creation of the render pass.
+Давайте пройдем по изменениям сверху вниз. Первое что нам нужно сделать, это добавить функции для создания новых типов объектов.
+Новые функции добавляются к коду предыдущего урока. Мы начнем с создания прохода рендера.
 
     void OgldevVulkanApp::CreateRenderPass()
     {
@@ -90,8 +90,10 @@ of the material of the previous tutorial are marked in bold face above. We will 
         subpassDesc.colorAttachmentCount = 1;
         subpassDesc.pColorAttachments = &attachRef;
 
-In order to create a render pass we will need to populate a structure called VkRenderPassCreateInfo. This is a complex structure that points to several sub-structs. Most importantly, it points to a struct that specifies
-the attachments and subpasses. Attachments are resources connected to the pipeline and subpasses represent a series of draw commands that read or write to the same collection of attachments.
+Для создания прохода рендера нам требуется заполнить структуру VkRenderPassCreateInfo. Это сложная структура, которая
+ссылается на несколько подструктур. Самое главное, она указывает на структуру, содержащую приложения и подпроходы.
+Приложения - это ресурсы пайплайна, а подпроходы представляют собой серию команд рисования, которые считывают
+и пишут в один и тот же набор приложений.
 
 The subpass description struct specifies a collection of attachments that take part in the subpass.
 This collection includes color, depth/stencil and multisample attachments. In our single subpass description struct we first specify that we are binding this subpass to the graphics pipeline (rather than the compute).
@@ -578,8 +580,8 @@ draw and index of the first instance to draw. We can now end the command buffer.
         RecordCommandBuffers();
     }
 
-The last thing we need to do is to call the functions to create the four new objects.
+Последнее что нам нужно сделать - это вызвать функции для создания 4 новых объектов.
 
-Here's our triangle:
+Вот и наш треугольник:
 
 ![](/images/52/tutorial52.jpg)
