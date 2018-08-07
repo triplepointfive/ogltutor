@@ -154,8 +154,8 @@ renderPassCreateInfo ниже. В целом, проход рендера зап
         CHECK_VULKAN_ERROR("vkCreateRenderPass error %d\n", res);
     }
 
-Finally, the call to create the render pass is very simple - it takes the device, the address of the create info struct, an allocator (NULL in our case)
-and returns the handle to the render pass object in the last parameter.
+Наконец, вызод для создания прохода рендера очень простой, он принимает на вход устройство, адрес новой структуры,
+аллокатор (в нашем случае NULL), и возвращает указать на объект прохода рендера в последнем параметре.
 
     void OgldevVulkanApp::CreateSwapChain()
     {
@@ -166,17 +166,20 @@ and returns the handle to the render pass object in the last parameter.
         . . .
     }
 
-We are going to see how to create the framebuffer but to make sure it doesn't crash on us let's first
-resize the 'm_views' member (a vector of image views) to the same number as our images and command buffers.
-This will be used in the next function. This is the only change required in the creation of the swap chain.
+Мы собираемся рассмотреть как создать буфер кадра, но перед этим давайте убедимся, что приложение не упадет.
+Для этого изменим размер свойства 'm_views' (вектор представлений изображений) чтобы он совпадал с количеством
+изображений и буферов команд. Это нам потребуется в следующей функции. Это единственное изменение в создании
+цепочки переключений.
 
     void OgldevVulkanApp::CreateFramebuffer()
     {
         m_fbs.resize(m_images.size());
 
-We need to prepare a framebuffer object for every image so the first thing we do here is to resize the
-framebuffer vector to match the number of images.
+Нам нужно подготовить объект буфера кадров для каждого изображения, поэтому наш первый шаг - это изменить размер
+вектора буфера кадров, чтобы он совпадал с количеством изображений.
 
+Давайте теперь пройдем по циклу и создадим буферы кадров. Объекты в пайплайне (например, шейдеры) не могут напрямую
+обращаться к ресурсам. Промежуточная сущность _представление изображения_
 Now lets loop and create the framebuffers. Objects in the pipeline (e.g. shaders) cannot access resources directly.
 An intermediate entity called an <i>Image View</i> sits between the image and whoever needs to access it.
 The image view represents a continuous range of image subresources and provides more metadata for accessing.
