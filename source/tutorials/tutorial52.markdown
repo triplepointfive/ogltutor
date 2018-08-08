@@ -179,63 +179,63 @@ renderPassCreateInfo ниже. В целом, проход рендера зап
 вектора буфера кадров, чтобы он совпадал с количеством изображений.
 
 Давайте теперь пройдем по циклу и создадим буферы кадров. Объекты в пайплайне (например, шейдеры) не могут напрямую
-обращаться к ресурсам. Промежуточная сущность _представление изображения_
-Now lets loop and create the framebuffers. Objects in the pipeline (e.g. shaders) cannot access resources directly.
-An intermediate entity called an <i>Image View</i> sits between the image and whoever needs to access it.
-The image view represents a continuous range of image subresources and provides more metadata for accessing.
-Therefore, we need to create an image view in order for the framebuffer to be able to access the image. We will
-create an image view for each image and a framebuffer for each image view.
+обращаться к ресурсам. Промежуточная сущность _представление изображения_ располагается между изображением и чем
+угодно, что обращается за ним. Представление изображения содержит в себе подресурсы изображения и мета данные для
+доступа. Поэтому, нам требуется создать представление изображения для того, чтобы буфер кадра имел доступ к изображению.
+Мы создадим представление для каждого изображения и буфер кадра для каждого представления изображения.
 
         for (uint i = 0 ; i < m_images.size() ; i++) {
             VkImageViewCreateInfo ViewCreateInfo = {};
             ViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
             ViewCreateInfo.image = m_images[i];
 
-We prepare a VkImageViewCreateInfo structure. The 'image' member must point to the corresponding surface image.
+Мы подготавливаем структуру VkImageViewCreateInfo. Свойство 'image' должно указывать на соответствующую поверхность
+изображения.
 
             ViewCreateInfo.format = m_core.GetSurfaceFormat().format;
 
-Image views enable us to access the image using a format which is different than the native image format. For example,
-if the underlying format is 16 bit we can access it as a single 16 bit channel or two 8 bits channel. There are many
-restrictions about valid combinations. They are specified
-<a href="https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#features-formats-compatibility-classes">here</a>.
+Представления изображений позволяют нам получать доступ к изображению используя формат, отличный от формата изображения.
+Например, если формат изображения 16 битный, то мы можем использовать его как один канал 16 бит или два канала 8 бит.
+На эти комбинации накладывается масса ограничений. Подробнее о них
+(здесь)[https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#features-formats-compatibility-classes].
 
             ViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 
-We use the view type in order to change the way the system looks at the image. In our case we stay with the original 2D.
+Мы используем тип представления для того, чтобы указать системе как его интерпретировать. В данном случае, остановимся
+на обычном 2D.
 
             ViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
             ViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
             ViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
             ViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
-The components member is of the VkComponentMapping type. This structure allows us to map each component of a pixel to a different
-component. For example, we can broadcast one component across multiple components or change RGBA to GBAR (if it is useful...).
-The VK_COMPONENT_SWIZZLE_IDENTITY macro simply means each component is mapped to itself.
+Свойтво 'components' типа VkComponentMapping. Эта структура позволяет отображать каждый компонент пикселя в другой компонент. Например, мы можем
+передавать один компонент в несколько других, или изменить тип RGBA на GBAR (если это вообще может быть нужно ...). Макрос
+VK_COMPONENT_SWIZZLE_IDENTITY говорит, что компонент отображается как есть.
 
-An image can be complex, containing multiple mip levels (that allow various levels of resolution of the same basic picture) as well
-as multiple array slices (that allow placing several different textures into the same image). We can use the 'subresourceRange' member
-in order to specify the part of the image we wish to target. This structure contains five fields:
+Изображение может быть сложным. Например, содержать несколько мип-уровней (несколько разрешений у одной и той же картинки) или несколько
+срезов массива (array slices) (что позволяет разместить сразу несколько различных текстур в одно изображение). Мы можем использовать свойство
+'subresourceRange' для того, чтобы указать ту часть изображения, в которую мы хотим рендерить. У этой структуры пять полей:
 
             ViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-'aspectMask' specifies the parts of the image (color, depth or stencil) that are part of the view.
+'aspectMask' указывает какие части изображения (цвет, глубина или трафарет) являются частью представления.
 
             ViewCreateInfo.subresourceRange.baseMipLevel = 0;
             ViewCreateInfo.subresourceRange.levelCount = 1;
 
-'baseMipLevel' and 'levelCount' specify a subrange of the mip levels in the image. We must be careful not to overflow the actual number
-of mip levels. Since the minimum is one mip level what we do above is safe.
+'baseMipLevel' и 'levelCount' указывают подмножество мип-уровней в изображении. Нужно быть осторожными и не выйти за границы настоящего количества
+мип-уровней. Так как обязательно будет хотя бы один уровень, вариант выше безопасен.
 
             ViewCreateInfo.subresourceRange.baseArrayLayer = 0;
             ViewCreateInfo.subresourceRange.layerCount = 1;
 
-We do the same thing with the array part of the image.
+Аналогичное делаем и с массивной частью изображения.
 
             res = vkCreateImageView(m_core.GetDevice(), &ViewCreateInfo, NULL, &m_views[i]);
             CHECK_VULKAN_ERROR("vkCreateImageView error %d\n", res);
 
-We can now create the image view and switch to creating the framebuffer.
+Теперь мы можем создать представление изображения и перейти к созданию буфера кадров.
 
             VkFramebufferCreateInfo fbCreateInfo = {};
             fbCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
