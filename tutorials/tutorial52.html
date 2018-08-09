@@ -1,0 +1,644 @@
+<!DOCTYPE html><html><head><meta content="IE=edge" http-equiv="X-UA-Compatible" /><meta charset="utf-8" /><meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport" /><meta content="" name="keywords" /><meta content="" name="description" /><title>Уроки по OpenGL с сайта OGLDev - Урок 52 - Первый треугольник в Vulkan</title><link href="//fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet" type="text/css" /><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><link href="../stylesheets/site.css" rel="stylesheet" media="all" type="text/css" /><script src="../javascripts/shCore.js"></script><script src="../javascripts/shBrushCpp.js"></script><script src="../javascripts/all.js"></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-35259428-1', 'auto');
+ga('send', 'pageview');</script></head><body><div class="row header"><div class="large-12 columns"><div class="nav-bar right"><ul class="button-group"><li><a href="../" class="button nav-left">Содержание</a></li><li><a href="../instr.html" class="button">Инструкции</a></li><li><a href="../cont.html" class="button nav-right">Контакты</a></li></ul></div><h1><small>Уроки по OpenGL с сайта OGLDev</small></h1><hr /></div></div><div class="row"><div class="large-12 columns"><div class="tutorial"><h2><a href="http://ogldev.atspace.co.uk/www/tutorial52/tutorial52.html">Урок 52 - Первый треугольник в Vulkan</a></h2><p>В прошлом уроке мы узнали как очистить окно и нам была представлена пара ключевых концептов Vulkan -
+цепочки переключений и буферы команд. Сегодня мы собираем отрендерить наш первый треугольник.
+Для этого нам потребуется ввести 4 новых понятия из мира Vulkan - представление изображения,
+проход рендера, буфер кадра и пайплайн. Шейдеры тоже необходимы, но так как они выполняют ту же самую роль, как и в OpenGL, я бы не назвал их чем-то новым. Если вы не знакомы с шейдерами, перед продолжением пройдите 4-й урок.</p>
+
+<p>Давайте начнем с самого большого объекта этого урока - <em>пайплайн</em>. На самом деле, полное название <em>графический пайплайн (graphics pipeline)</em>
+так как Vulkan кроме работы с графикой занимается широким спектром вычислений. В целом, вычисления
+состоят из большого числа алгоритмов, которые по своей природе не связаны с 3D (они не основываются на том,
+как GPU обрабатывает треугольник), но могут быть ускорены за счёт многопоточности GPU. Поэтому Vulkan и
+рассматривает как графический пайплайн, так и пайплайн для вычислений. В этом уроке мы собираемся использовать
+только графический пайплайн. Его объект имеет массу свойств, с которыми мы знакомы из мира OpenGL.
+Разные штуки для обозначения этапов обработки (вершина, геометрия, тесселяция, …) которые используют
+шейдеры; данные по буферам из которых создаются линии и треугольники; этапы обзора и растеризации;
+буфер глубины и много другое. Мы не создавали объект графического пайплайна в предыдущих уроках так как
+мы ничего не рисовали. В этом уроке нам потребуется это сделать.</p>
+
+<p>Представления изображений - это мета объекты, прослойка между шейдером и конечным ресурсом из которого
+происходит чтение или в который происходит запись. Они позволяют ограничивать доступ к ресурсу (например,
+мы можем создать представление, имитирующее единственное изображение в массиве) и задавать формат
+отображения ресурса.</p>
+
+<p>Проход рендера управляет списком всех ресурсов которые будут использованы, и их зависимостями (например,
+когда ресурс из которого происходило чтение, становится ресурсом в который происходит запись).
+Буфер кадра работает рука об руку с проходом рендера через создание двух шаговой связи пайплайна с
+ресурсом. Проход рендера привязан к буферу команд и содержит индексы буфера кадров. Буфер кадров
+отображает эти индексы на представления изображений (а это уже ссылка на сам ресурс).</p>
+
+<p>Вот краткое описание новых объектов. Теперь давайте создадим их и используем для благих дел.</p>
+
+<h2 id="httpogldevatspacecouk"><a href="http://ogldev.atspace.co.uk/">Прямиком к коду!</a></h2>
+
+<pre><code>class OgldevVulkanApp
+{
+public:
+
+    OgldevVulkanApp(const char* pAppName);
+
+    ~OgldevVulkanApp();
+
+    void Init();
+
+    void Run();
+
+private:
+
+    void CreateSwapChain();
+    void CreateCommandBuffer();
+    void RecordCommandBuffers();
+    void RenderScene();
+    void CreateRenderPass();
+    void CreateFramebuffer();
+    void CreateShaders();
+    void CreatePipeline();
+
+    std::string m_appName;
+    VulkanWindowControl* m_pWindowControl;
+    OgldevVulkanCore m_core;
+    std::vector&amp;lt;VkImage&amp;gt; m_images;
+    VkSwapchainKHR m_swapChainKHR;
+    VkQueue m_queue;
+    std::vector&amp;lt;VkCommandBuffer&amp;gt; m_cmdBufs;
+    VkCommandPool m_cmdBufPool;
+    std::vector&amp;lt;VkImageView&amp;gt; m_views;
+    VkRenderPass m_renderPass;
+    std::vector&amp;lt;VkFramebuffer&amp;gt; m_fbs;
+    VkShaderModule m_vsModule;
+    VkShaderModule m_fsModule;
+    VkPipeline m_pipeline;
+};
+</code></pre>
+
+<p>Это обновленный главный класс урока. Мы добавили 4 приватных метода для создания новых объектов и
+новые свойства чтобы их там хранить.</p>
+
+<p>Давайте пройдем по изменениям сверху вниз. Первое что нам нужно сделать, это добавить функции для создания новых типов объектов.
+Новые функции добавляются к коду предыдущего урока. Мы начнем с создания прохода рендера.</p>
+
+<pre><code>void OgldevVulkanApp::CreateRenderPass()
+{
+    VkAttachmentReference attachRef = {};
+    attachRef.attachment = 0;
+    attachRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpassDesc = {};
+    subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpassDesc.colorAttachmentCount = 1;
+    subpassDesc.pColorAttachments = &amp;attachRef;
+</code></pre>
+
+<p>Для создания прохода рендера нам требуется заполнить структуру VkRenderPassCreateInfo. Это сложная структура, которая
+ссылается на несколько подструктур. Самое главное, она указывает на структуру, содержащую приложения и подпроходы.
+Приложения - это ресурсы пайплайна, а подпроходы представляют собой серию команд рисования, которые считывают
+и пишут в один и тот же набор приложений.</p>
+
+<p>Структура подпрохода содержит набор приложений, которые ему понадобятся. Набор включает цвет, глубину / трафарет
+и мультисэмплы. В нашем единственном подпроходе мы указываем, что подпроход привязан к графическому пайплайну
+(а не к вычислительному). Затем мы указываем, что у нас будет лишь одно приложение цвета, которым мы будем
+рендерить, а так же мы устанавливаем pColorAttachments на дескриптор приложения (в случае нескольких приложений
+цвета здесь был бы массив). У нас нет других типов приложений, поэтому мы их не задаем.</p>
+
+<p>Все приложения, на которые может указывать дескриптор подпрохода, содержат структуру VkAttachmentReference. У этой
+структуры два свойства. Первое, называемое 'attachment', это индекс в свойстве 'pAttachments' структуры
+renderPassCreateInfo ниже. В целом, проход рендера заполняет массив приложений, а все приложения, указанные в
+подпроходе, просто индексы в этом массиве. У нас только одно приложение, поэтому его индекс 0. Другое свойство
+в структуре VkAttachmentReference это расположение приложения. Оно позволяет указать как приложение будет использовано,
+чтобы драйвер мог заранее построить план действий (что хорошо сказывается на производительности). Мы устанавливаем его
+целью рендеринга.</p>
+
+<p>Теперь у нас есть дескриптор единственного подпрохода, который указывает на единственное приложение. Теперь мы должны
+указать все приложения в проходе рендера как единственный массив. Приложения из подпрохода - это просто индексы
+в этом массиве, поэтому сами данные приложений находятся лишь в одном месте.</p>
+
+<pre><code>    VkAttachmentDescription attachDesc = {};
+    attachDesc.format = m_core.GetSurfaceFormat().format;
+    attachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachDesc.initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    attachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkRenderPassCreateInfo renderPassCreateInfo = {};
+    renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassCreateInfo.attachmentCount = 1;
+    renderPassCreateInfo.pAttachments = &amp;attachDesc;
+    renderPassCreateInfo.subpassCount = 1;
+    renderPassCreateInfo.pSubpasses = &amp;subpassDesc;
+</code></pre>
+
+<p>В структуре прохода рендера мы указываем что у нас одно приложение и один подпроход. Мы так же указываем
+адреса соответствующих структур с описанием приложения и подпрохода (если бы у нас было больше одной сущности,
+то поля 'attachDesc' и 'subpassDesc' были бы массивами структур).</p>
+
+<p>Давайте рассмотрим свойства структуры VkAttachmentDescription:</p>
+
+<ul>
+  <li><strong>'format'</strong> это просто формат изображения, используемый для приложения. Мы возьмём её из поверхности, которую создаем
+  в <a href="tutorial50.html">уроке 50</a>.</li>
+  <li><strong>'loadOp'</strong> указывает сохранять или очищать предыдущее содержимое буферов цвета и глубины (нам старое содержимое
+  не нужно, поэтому очищаем).</li>
+  <li><strong>'storeOp'</strong> указывает будет ли контент, который мы создали в проходе рендера, сохранён или уничтожен (мы сохраняем).</li>
+  <li><strong>'stencilLoadOp'/'stencilStoreOp'</strong> аналогично двум полям выше, но для буфера трафарета. Так как мы не используем
+  трафарет, то устанавливаем значение в 'да пофиг'.</li>
+  <li>
+    <p><strong>'initialLayout'/'finalLayout'</strong> изображения в Vulkan хранятся во внутреннем слое, который скрыт от нас. Это
+  означает, что мы не знаем структуру пикселей изображения в физической памяти. Всё что Vulkan делает, это предлагает
+  несколько типов использования изображения (или <em>слоев</em>), которые позволяют указать как будет использоваться
+  изображение. Затем каждый производитель видеокарт может отображать эти типы в оптимальный для них формат памяти.
+  Мы легко можем переводить изображение из одного типа в другой. Свойства 'initialLayout'/'finalLayout'
+  указывают в каком слое изображение будет в начале и в конце прохода рендера. В нашем случае, мы начинаем в слое
+  "presentable". Этот слой позволяет отображать цепочку изображений на экране.</p>
+
+    <pre><code>  VkResult res = vkCreateRenderPass(m_core.GetDevice(), &amp;renderPassCreateInfo, NULL, &amp;m_renderPass);
+  CHECK_VULKAN_ERROR("vkCreateRenderPass error %d\n", res);   }
+</code></pre>
+  </li>
+</ul>
+
+<p>Наконец, вызов для создания прохода рендера очень простой, он принимает на вход устройство, адрес новой структуры,
+аллокатор (в нашем случае NULL), и возвращает указать на объект прохода рендера в последнем параметре.</p>
+
+<pre><code>void OgldevVulkanApp::CreateSwapChain()
+{
+    . . .
+    m_images.resize(NumSwapChainImages);
+    m_cmdBufs.resize(NumSwapChainImages);
+    m_views.resize(NumSwapChainImages);
+    . . .
+}
+</code></pre>
+
+<p>Мы собираемся рассмотреть как создать буфер кадра, но перед этим давайте убедимся, что приложение не упадет.
+Для этого изменим размер свойства 'm_views' (вектор представлений изображений) чтобы он совпадал с количеством
+изображений и буферов команд. Это нам потребуется в следующей функции. Это единственное изменение в создании
+цепочки переключений.</p>
+
+<pre><code>void OgldevVulkanApp::CreateFramebuffer()
+{
+    m_fbs.resize(m_images.size());
+</code></pre>
+
+<p>Нам нужно подготовить объект буфера кадров для каждого изображения, поэтому наш первый шаг - это изменить размер
+вектора буфера кадров, чтобы он совпадал с количеством изображений.</p>
+
+<p>Давайте теперь пройдем по циклу и создадим буферы кадров. Объекты в пайплайне (например, шейдеры) не могут напрямую
+обращаться к ресурсам. Промежуточная сущность <em>представление изображения</em> располагается между изображением и чем
+угодно, что обращается за ним. Представление изображения содержит в себе подресурсы изображения и мета данные для
+доступа. Поэтому, нам требуется создать представление изображения для того, чтобы буфер кадра имел доступ к изображению.
+Мы создадим представление для каждого изображения и буфер кадра для каждого представления изображения.</p>
+
+<pre><code>    for (uint i = 0 ; i &lt; m_images.size() ; i++) {
+        VkImageViewCreateInfo ViewCreateInfo = {};
+        ViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        ViewCreateInfo.image = m_images[i];
+</code></pre>
+
+<p>Мы подготавливаем структуру VkImageViewCreateInfo. Свойство 'image' должно указывать на соответствующую поверхность
+изображения.</p>
+
+<pre><code>        ViewCreateInfo.format = m_core.GetSurfaceFormat().format;
+</code></pre>
+
+<p>Представления изображений позволяют нам получать доступ к изображению используя формат, отличный от формата изображения.
+Например, если формат изображения 16 битный, то мы можем использовать его как один канал 16 бит или два канала 8 бит.
+На эти комбинации накладывается масса ограничений. Подробнее о них
+<a href="https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#features-formats-compatibility-classes">здесь</a>.</p>
+
+<pre><code>        ViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+</code></pre>
+
+<p>Мы используем тип представления для того, чтобы указать системе как его интерпретировать. В данном случае, остановимся
+на обычном 2D.</p>
+
+<pre><code>        ViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+</code></pre>
+
+<p>Свойство 'components' типа VkComponentMapping. Эта структура позволяет отображать каждый компонент пикселя в другой компонент. Например, мы можем
+передавать один компонент в несколько других, или изменить тип RGBA на GBAR (если это вообще может быть нужно …). Макрос
+VK_COMPONENT_SWIZZLE_IDENTITY говорит, что компонент отображается как есть.</p>
+
+<p>Изображение может быть сложным. Например, содержать несколько мип-уровней (несколько разрешений у одной и той же картинки) или несколько
+срезов массива (array slices) (что позволяет разместить сразу несколько различных текстур в одно изображение). Мы можем использовать свойство
+'subresourceRange' для того, чтобы указать ту часть изображения, в которую мы хотим рендерить. У этой структуры пять полей:</p>
+
+<pre><code>        ViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+</code></pre>
+
+<p>'aspectMask' указывает какие части изображения (цвет, глубина или трафарет) являются частью представления.</p>
+
+<pre><code>        ViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        ViewCreateInfo.subresourceRange.levelCount = 1;
+</code></pre>
+
+<p>'baseMipLevel' и 'levelCount' указывают подмножество мип-уровней в изображении. Нужно быть осторожными и не выйти за границы настоящего количества
+мип-уровней. Так как обязательно будет хотя бы один уровень, вариант выше безопасен.</p>
+
+<pre><code>        ViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        ViewCreateInfo.subresourceRange.layerCount = 1;
+</code></pre>
+
+<p>Аналогичное делаем и с массивной частью изображения.</p>
+
+<pre><code>        res = vkCreateImageView(m_core.GetDevice(), &amp;ViewCreateInfo, NULL, &amp;m_views[i]);
+        CHECK_VULKAN_ERROR("vkCreateImageView error %d\n", res);
+</code></pre>
+
+<p>Теперь мы можем создать представление изображения и перейти к созданию буфера кадров.</p>
+
+<pre><code>        VkFramebufferCreateInfo fbCreateInfo = {};
+        fbCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        fbCreateInfo.renderPass = m_renderPass;
+</code></pre>
+
+<p>В разделе спецификации 7.2 сказано: "Буферы кадра и графические пайплайны создаются для конкретных объектов прохода рендера. Они должны быть
+использованы с этим объектом прохода рендера или с другим совместимым". Пока что мы не будем рассматривать проблемы совместимости проходов
+рендера так как у нас будет использоваться лишь один такой объект. Наш буфер кадра просто указывает на проход рендера, который мы создали ранее.</p>
+
+<pre><code>        fbCreateInfo.attachmentCount = 1;
+        fbCreateInfo.pAttachments = &amp;m_views[i];
+</code></pre>
+
+<p>Буфер кадра может указывать на несколько приложений. Свойства 'attachmentCount' и 'pAttachments' указывают на массив представлений изображений
+и его размер. У нас одно приложение.</p>
+
+<pre><code>        fbCreateInfo.width = WINDOW_WIDTH;
+        fbCreateInfo.height = WINDOW_HEIGHT;
+</code></pre>
+
+<p>Понятия не имею почему нам требуется ещё раз указывать ширину и высоту и почему они не берутся из изображения. Я пробовал поиграться
+с этими значениями и не увидел никаких отличий в результате. Стоит разобраться с этим получше.</p>
+
+<pre><code>        fbCreateInfo.layers = 1;
+</code></pre>
+
+<p>Когда у нас будет геометрический шейдер, мы сможем рендерить в многослойный буфер кадра. А пока остановимся на одном слое.</p>
+
+<pre><code>        res = vkCreateFramebuffer(m_core.GetDevice(), &amp;fbCreateInfo, NULL, &amp;m_fbs[i]);
+        CHECK_VULKAN_ERROR("vkCreateFramebuffer error %d\n", res);
+    }
+}
+</code></pre>
+
+<p>После создания представления изображения мы создаем указывающий на него объект буфера кадра. Обратим внимание, что и проход рендера и буфер
+кадра знают о приложении, но буфер кадра содержит ссылку на сам ресурс (через представление изображения), а проход рендера содержит лишь
+индексы в активном буфере кадра.</p>
+
+<p>Наш объект представления изображения теперь готов, и позже мы увидим как его использовать. Следующая вещь которую мы должны сделать это шейдеры.
+Я не буду глубоко погружаться в шейдеры так как в <a href="tutorial4.html">уроке 4</a> мы уже подробно рассмотрели их и их место в пайплайне. Принципиальных
+отличий нет, если нужно больше деталей то перечитайте урок ещё раз. Для создания треугольника нам потребуется пара шейдеров - вершинный и
+фрагментный. Обычно мы используем вершинный буфер, чтобы передать вершины в шейдер. Без вершинного буфера далеко не уйти, это стандартный способ
+передачи модели, сохраненной на диске, в графический пайплайн. Но на данном этапе, где нам нужен лишь один треугольник на экране, мы хотим сделать
+как можно проще. Поэтому мы будем использовать вершинный шейдер для генерации 3-х вершин и отправки их по одной по пайплайну, пока их не
+интерполирует растеризатор и не запустит для них фрагментный шейдер.</p>
+
+<p>Вот полный код вершинного шейдера:</p>
+
+<pre><code>#version 400
+
+void main()
+{
+    vec2 pos[3] = vec2[3]( vec2(-0.7, 0.7),
+                           vec2(0.7, 0.7),
+                           vec2(0.0, -0.7) );
+    gl_Position = vec4( pos[gl_VertexIndex], 0.0, 1.0 );
+}
+</code></pre>
+
+<p>Вершинный шейдер начинается с прагмы, которая устанавливает версию. Весь код шейдера состоит из одной функции <em>main()</em>. Шейдер создает массив
+из 3-х двумерных векторов и заполняет их координатами вершин треугольника. Мы начинаем с нижнего левого угла и движемся против часовой стрелки
+пока не дойдём до верху. Сейчас я не буду объяснять координатную систему, но вы можете попробовать изменить эти значения и посмотреть что
+получится.</p>
+
+<p>Даже если мы не планируем привязывать буфер вершин, так как команда отрисовки будет вызвана 3 раза, то и шейдер будет вызван 3 раза. Я полагаю
+что это нормально, хотя мы и не используем буфер. Нам нужно для каждого вызова шейдера передавать по одной вершине. Для этого воспользуемся
+встроенной переменной gl_VertexIndex. Как вы могли предположить, эта переменная - счётчик, который начинается с 0 и автоматически увеличивается
+на 1 при каждом вызове вершинного шейдера. Мы используем её как индекс в массиве координат вершин. Координату Z устанавливаем в 0, а гомогенную
+координату W в 1.0. Результат записываем в другую встроенную переменную gl_Position. gl_Position - это выходные данные из шейдера. Они отправляются
+в растеризатор, который собирает все 3 вершины и интерполирует фрагмент между ними.</p>
+
+<p>Для того чтобы привязать шейдер в графическому пайплайну нам требуется скомпилировать текстовый шейдер в бинарный. Шейдерный язык в Vulkan
+называется SPIR-V и он также предоставляет общую промежуточную форму, аналогичную ассемблеру. Промежуточная форма будет передана в GPU, который
+преобразует её в свой собственный набор инструкций. Компилятор находится в Vulkan SDK
+<strong>&lt;Vulkan root&gt;/glslang/build/install/bin/glslangValidator</strong>.</p>
+
+<p>Вершинный шейдер компилируется следующим образом:</p>
+
+<p><strong>glslangValidator -V simple.vert -o vs.spv</strong></p>
+
+<p>В файле simple.vert сам текст шейдера, а флаг '-o' указывает имя выходного файла. Обратите внимание, что компилятор определяет тип шейдра
+по разрешению файла, поэтому для вершинных шейдеров это должен быть 'vert' и 'frag' для фрагментных шейдеров.</p>
+
+<p>Теперь фрагментный шейдер:</p>
+
+<pre><code>#version 400
+
+layout(location = 0) out vec4 out_Color;
+
+void main()
+{
+  out_Color = vec4( 0.0, 0.4, 1.0, 1.0 );
+}
+</code></pre>
+
+<p>Версия и точка входа аналогичны вершинному шейдеру, но фрагментный шейдер отдает на выходе цвет, в отличие от вершинного шейдера, который
+возвращает вершину. На выход мы отдаем 4-х мерный вектор, в который записан произвольный цвет. Вот и всё, это весь шейдер. Для компиляции
+используем команду:</p>
+
+<p><strong>glslangValidator -V simple.frag -o fs.spv</strong></p>
+
+<p>Теперь когда оба шейдера скомпилированны, нам нужно получить указатели на шейдеры, чтобы привязать их к объекту пайплайна. Следующая функция
+делает как раз это:</p>
+
+<pre><code>void OgldevVulkanApp::CreateShaders()
+{
+    m_vsModule = VulkanCreateShaderModule(m_core.GetDevice(), "Shaders/vs.spv");
+    assert(m_vsModule);
+
+    m_fsModule = VulkanCreateShaderModule(m_core.GetDevice(), "Shaders/fs.spv");
+    assert(m_fsModule);
+}
+</code></pre>
+
+<p>VulkanCreateShaderModule() - это функция-обертка определенная в библиотеке commonVulkan (часть исходников OGLDEV):</p>
+
+<pre><code>VkShaderModule VulkanCreateShaderModule(VkDevice&amp; device, const char* pFileName)
+{
+    int codeSize = 0;
+    char* pShaderCode = ReadBinaryFile(pFileName, codeSize);
+    assert(pShaderCode);
+
+    VkShaderModuleCreateInfo shaderCreateInfo = {};
+    shaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    shaderCreateInfo.codeSize = codeSize;
+    shaderCreateInfo.pCode = (const uint32_t*)pShaderCode;
+
+    VkShaderModule shaderModule;
+    VkResult res = vkCreateShaderModule(device, &amp;shaderCreateInfo, NULL, &amp;shaderModule);
+    CHECK_VULKAN_ERROR("vkCreateShaderModule error %d\n", res);
+    printf("Created shader %s\n", pFileName);
+    return shaderModule;
+}
+</code></pre>
+
+<p>Эта функция начинается с чтения бинарного файла шейдера. ReadBinaryFile() это вспомогательная функция, которая возвращает указать на строку с
+содержимым файла, и его размер. Указатель и размер передаются в структуру VkShaderModuleCreateInfo, а функция vkCreateShaderModule принимает
+эту структуру и возвращает указатель на шейдер.</p>
+
+<p>Последний объект, который нам требуется, это графический пайплайн. Он самый сложный, так что пристегнитесь…
+Я постарался удалить как можно больше из инициализации этого объекта. У меня работает. Понадеемся, что я не забыл ничего и оно запустится и на
+вашей системе.</p>
+
+<pre><code>void OgldevVulkanApp::CreatePipeline()
+{
+    VkPipelineShaderStageCreateInfo shaderStageCreateInfo[2] = {};
+
+    shaderStageCreateInfo[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStageCreateInfo[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    shaderStageCreateInfo[0].module = m_vsModule;
+    shaderStageCreateInfo[0].pName = "main";
+    shaderStageCreateInfo[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStageCreateInfo[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    shaderStageCreateInfo[1].module = m_fsModule;
+    shaderStageCreateInfo[1].pName = "main";
+</code></pre>
+
+<p>Функция создания объекта пайплайна принимает несколько входных параметров. Рассмотрим их по одному. Первая структура VkPipelineShaderStageCreateInfo
+указывает какие шейдерные этапы включены. В этом уроке у нас только вершинный и фрагментный шейдеры, поэтому нам нужен массив с двумя инстансами.
+Для каждого шейдерного этапа мы ставим свой флаг, указатель, который был создан функцией vkCreateShaderModule(), и имя точки входа.</p>
+
+<pre><code>    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+</code></pre>
+
+<p>VkPipelineVertexInputStateCreateInfo определяет вершинный буфер, который будет передан в пайплайн. Так как у нас нет буфера, мы просто передаем тип структуры и хватит.</p>
+
+<pre><code>    VkPipelineInputAssemblyStateCreateInfo pipelineIACreateInfo = {};
+    pipelineIACreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    pipelineIACreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+</code></pre>
+
+<p>VkPipelineInputAssemblyStateCreateInfo указывает с какой топологией будет работать пайплайн. Это очень маленькая структура, и нам нужно установить
+топологию только для функции отрисовки. Vulkan поддерживает 10 типов топологий, такие как точка, линия, треугольник и прочие. Подробнее
+<a href="https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#VkPrimitiveTopology">здесь</a>.</p>
+
+<pre><code>    VkViewport vp = {};
+    vp.x = 0.0f;
+    vp.y = 0.0f;
+    vp.width  = (float)WINDOW_WIDTH;
+    vp.height = (float)WINDOW_HEIGHT;
+    vp.minDepth = 0.0f;
+    vp.maxDepth = 1.0f;
+</code></pre>
+
+<p>Структура окна просмотра задает его преобразования, конкретней как нормированы координаты (от -1 до 1 по всем осям). Значения X/Y устанавливаем
+равными размеру окна. Глубина определяем минимальное / максимальное значения, которое будет записано в буфер глубины. Установим его от 0 до 1.</p>
+
+<pre><code>    VkPipelineViewportStateCreateInfo vpCreateInfo = {};
+    vpCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    vpCreateInfo.viewportCount = 1;
+    vpCreateInfo.pViewports = &amp;vp;
+</code></pre>
+
+<p>Теперь мы можем инициализировать структуру состояния окна просмотра.</p>
+
+<pre><code>    VkPipelineRasterizationStateCreateInfo rastCreateInfo = {};
+    rastCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rastCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+    rastCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    rastCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rastCreateInfo.lineWidth = 1.0f;
+</code></pre>
+
+<p>VkPipelineRasterizationStateCreateInfo управляет различными аспектами растеризации. <strong>polygonMode</strong> переключает между каркасным и полным режимами
+(попробуйте изменить на VK_POLYGON_MODE_LINE). <strong>cullMode</strong> определяет отсекать ли переднюю или заднюю стороны треугольника (посмотрите что
+получится если изменить на VK_POLYGON_FRONT_BIT). <strong>frontFace</strong>  говорит пайплайну как задан порядок вершин (по часовой или против).</p>
+
+<pre><code>    VkPipelineMultisampleStateCreateInfo pipelineMSCreateInfo = {};
+    pipelineMSCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+</code></pre>
+
+<p>Multi-Sampling - это механизм, который улучшает внешний вид линий и сторон полигонов (но также и точек). Он так же известен как Anti-Aliasing.
+Хотя мы не используем его, мы должны установить соответствующее состояние в конвейере, так что мы подготовим для него минимальную структуру.</p>
+
+<pre><code>    VkPipelineColorBlendAttachmentState blendAttachState = {};
+    blendAttachState.colorWriteMask = 0xf;
+</code></pre>
+
+<p>Несмотря на то, что мы не используем никакого смешивания, мы должны установить маску записи цвета в структуру смешивания, чтобы разрешить запись
+на всех четырех каналах (попробуйте использовать различные комбинациями первых 4 бит). Фактически, эта структура сама по себе не несёт смысла и
+должна быть передана в структуру информации о состоянии смешивания, которую мы создадим дальше.</p>
+
+<pre><code>    VkPipelineColorBlendStateCreateInfo blendCreateInfo = {};
+    blendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    blendCreateInfo.logicOp = VK_LOGIC_OP_COPY;
+    blendCreateInfo.attachmentCount = 1;
+    blendCreateInfo.pAttachments = &amp;blendAttachState;
+</code></pre>
+
+<p>logicOp определяет какое действие (AND/OR/XOR и другие) будет выполняться над старым и новым содержимым буфера кадров. Так как мы хотим чтобы новое
+содержимое перезаписывало старое, то ставим режим копирования.</p>
+
+<pre><code>    VkGraphicsPipelineCreateInfo pipelineInfo = {};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.stageCount = ARRAY_SIZE_IN_ELEMENTS(shaderStageCreateInfo);
+    pipelineInfo.pStages = &amp;shaderStageCreateInfo[0];
+    pipelineInfo.pVertexInputState = &amp;vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &amp;pipelineIACreateInfo;
+    pipelineInfo.pViewportState = &amp;vpCreateInfo;
+    pipelineInfo.pDepthStencilState = &amp;dsInfo;
+    pipelineInfo.pRasterizationState = &amp;rastCreateInfo;
+    pipelineInfo.pMultisampleState = &amp;pipelineMSCreateInfo;
+    pipelineInfo.pColorBlendState = &amp;blendCreateInfo;
+    pipelineInfo.renderPass = m_renderPass;
+    pipelineInfo.basePipelineIndex = -1;
+    VkResult res = vkCreateGraphicsPipelines(m_core.GetDevice(), VK_NULL_HANDLE, 1, &amp;pipelineInfo, NULL, &amp;m_pipeline);
+    CHECK_VULKAN_ERROR("vkCreateGraphicsPipelines error %d\n", res);
+}
+</code></pre>
+
+<p>Теперь когда у нас все есть, нам нужно создать объект пайплайна. Мы заполняем структуру создания пайплайна указателями на все промежуточные
+структуры, которые мы только что создали. Так же передаем проход рендера и отключаем производные пайплайна (pipeline derivatives) (сложная тема)
+передав -1 в basePipelineIndex.</p>
+
+<p>Теперь когда мы создали все новые объекты, давайте рассмотрим последнее крупное изменение - запись в командный буфер.</p>
+
+<pre><code>void OgldevVulkanApp::RecordCommandBuffers()
+{
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+
+    VkClearColorValue clearColor = { 164.0f/256.0f, 30.0f/256.0f, 34.0f/256.0f, 0.0f };
+    VkClearValue clearValue = {};
+    clearValue.color = clearColor;
+
+    VkImageSubresourceRange imageRange = {};
+    imageRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageRange.levelCount = 1;
+    imageRange.layerCount = 1;
+</code></pre>
+
+<p>В первых 3-х структурах этой функции никаких изменений.</p>
+
+<pre><code>    VkRenderPassBeginInfo renderPassInfo = {};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = m_renderPass;
+    renderPassInfo.renderArea.offset.x = 0;
+    renderPassInfo.renderArea.offset.y = 0;
+    renderPassInfo.renderArea.extent.width = WINDOW_WIDTH;
+    renderPassInfo.renderArea.extent.height = WINDOW_HEIGHT;
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &amp;clearValue;
+</code></pre>
+
+<p>Запись в командный буфер использует проход рендера сообщая драйверу где начинается и заканчивается проход. Начало прохода рендера требует структуру
+выше, которая содержит в себе указать на проход рендера и зону рендера. Мы просто устанавливаем её во всё окно (не уверен зачем нам сразу и
+зона рендера и окно просмотра). В предыдущем уроке мы начинали командный буфер, записывали команду очистки в него, и завершали буфер. Мы всё ещё
+можем так сделать, но есть способ проще. Проход рендера содержит массив структур очистки. Если массив заполнен, это аналогично явной команде
+очистки.</p>
+
+<pre><code>    VkViewport viewport = { 0 };
+    viewport.height = (float)WINDOW_HEIGHT;
+    viewport.width = (float)WINDOW_WIDTH;
+    viewport.minDepth = (float)0.0f;
+    viewport.maxDepth = (float)1.0f;
+
+    VkRect2D scissor = { 0 };
+    scissor.extent.width = WINDOW_WIDTH;
+    scissor.extent.height = WINDOW_HEIGHT;
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
+</code></pre>
+
+<p>Мы подготавливаем окно просмотра и структуру обрезания для отображения всего окна.</p>
+
+<pre><code>    for (uint i = 0 ; i &lt; m_cmdBufs.size() ; i++) {
+        VkResult res = vkBeginCommandBuffer(m_cmdBufs[i], &amp;beginInfo);
+        CHECK_VULKAN_ERROR("vkBeginCommandBuffer error %d\n", res);
+        renderPassInfo.framebuffer = m_fbs[i];
+</code></pre>
+
+<p>Мы переиспользуем информацию начала прохода рендера просто устанавливая указатель на правильный буфер кадра на каждой итерации.</p>
+
+<pre><code>        vkCmdBeginRenderPass(m_cmdBufs[i], &amp;renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+</code></pre>
+
+<p>Мы начинаем буфер команд и указываем VK_SUBPASS_CONTENTS_INLINE таким образом, что все записано в первичный буфер команд (пока не будем
+использовать второй буфер).</p>
+
+<pre><code>        vkCmdBindPipeline(m_cmdBufs[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+        vkCmdSetViewport(m_cmdBufs[i], 0, 1, &amp;viewport);
+
+        vkCmdSetScissor(m_cmdBufs[i], 0, 1, &amp;scissor);
+</code></pre>
+
+<p>Мы привязываем графический пайплайн и устанавливаем окно просмотра и структуру обрезания.</p>
+
+<pre><code>        vkCmdDraw(m_cmdBufs[i], 3, 1, 0, 0);
+
+        vkCmdEndRenderPass(m_cmdBufs[i]);
+</code></pre>
+
+<p>Наконец, мы записываем команду отрисовки. Аргументы - это буфер команд куда записывать, количество вершин, количество инстансов (для перезапуска
+отрисовки с другими шейдерными параметрами), индекс первой вершины для рисования и индекс первого инстанса. На этом с командным буфером все.</p>
+
+<pre><code>        res = vkEndCommandBuffer(m_cmdBufs[i]);
+        CHECK_VULKAN_ERROR("vkEndCommandBuffer error %d\n", res);
+    }
+ }
+
+void OgldevVulkanApp::Init()
+{
+#ifdef WIN32
+    m_pWindowControl = new Win32Control(m_appName.c_str());
+#else
+    m_pWindowControl = new XCBControl();
+#endif
+    m_pWindowControl-&gt;Init(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    m_core.Init(m_pWindowControl);
+
+    vkGetDeviceQueue(m_core.GetDevice(), m_core.GetQueueFamily(), 0, &amp;m_queue);
+
+    CreateSwapChain();
+    CreateCommandBuffer();
+    CreateRenderPass();
+    CreateFramebuffer();
+    CreateShaders();
+    CreatePipeline();
+    RecordCommandBuffers();
+}
+</code></pre>
+
+<p>Последнее что нам нужно сделать - это вызвать функции для создания 4 новых объектов.</p>
+
+<p>Вот и наш треугольник:</p>
+
+<p><img src="../images/52/tutorial52.jpg" alt="" /></p>
+</div><div id="disqus_thread"></div><script>/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+var disqus_shortname = 'ogltutor'; // required: replace example with your forum shortname
+var num = "52";
+
+var disqus_config = function () {
+  this.page.url = "https://triplepointfive.github.io/ogltutor/tutorials/tutorial" + num + ".html";
+  this.page.identifier = num;
+  this.page.title = "Урок 52 - Первый треугольник в Vulkan";
+};
+
+/* * * DON'T EDIT BELOW THIS LINE * * */
+(function() {
+  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><noscript><Please>enable JavaScript to view the</Please><a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com"><comments>powered by</comments><span class="logo-disqus">Disqus</span></a></div></div><footer class="row"><div class="large-12 columns text-right"><hr />Шедевр, созданный с помощью <a href="https://middlemanapp.com/">Middleman</a><br /><small><a href="https://github.com/triplepointfive/ogltutor">Исходный код</a></small></div></footer></body></html>
